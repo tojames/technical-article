@@ -1,0 +1,155 @@
+# redux react-redux dva
+
+### redux [传送门](https://cn.redux.js.org/)
+
+![redux原理图](../../static/images/redux%E5%8E%9F%E7%90%86%E5%9B%BE.png)
+
+- ```js
+  redux项目结构
+  redux--
+  			actions--
+  								count.js(等等各种action文件「按照功能划分」)
+  			reducers--
+  								count.js(等等各种reducer文件「按照功能划分」)
+        					index.js(通过combineReducers，将所有的reducer文件合并一起传给store)
+  			constant(常量文件)
+  			store（redux核心文件）
+  
+  -----------------------------------分界线---------------------------------------------------------
+  store.js
+  /* 
+  	该文件专门用于暴露一个store对象，整个应用只有一个store对象
+  */
+  
+  // 引入createStore，专门用于创建redux中最为核心的store对象
+  // applyMiddleware 的作用和thunk结合起来放在createStore中就可以处理一个 异步action返回函数的情况。
+  import { createStore, applyMiddleware } from "redux" // cnpm install --save redux
+  //引入汇总之后的reducer
+  import reducer from "./reducers"
+  //引入redux-thunk，用于支持异步action
+  import thunk from "redux-thunk" // cnpm install --save redux-thunk
+  // 引入redux-devtools-extension 同时谷歌插件也需要安装 Redux DevTools 这样配合起来就可以方便观看状态的变化。
+  // cnpm install redux-devtools-extension -D
+  import { composeWithDevTools } from "redux-devtools-extension" 
+  
+  
+  //暴露store
+  export default createStore(reducer, composeWithDevTools(applyMiddleware(thunk)))
+  
+  -----------------------------------分界线---------------------------------------------------------
+    
+  constant.js
+  /* 
+  	该模块是用于定义action对象中type类型的常量值，目的只有一个：便于管理的同时防止程序员单词写错
+  */
+  export const INCREMENT = "increment"
+  export const DECREMENT = "decrement"
+  
+  -----------------------------------分界线---------------------------------------------------------
+  
+  action.js
+  /*
+  	该文件专门为Count组件生成action对象
+  */
+  import { INCREMENT, DECREMENT } from "../constant"
+  
+  export const createIncrementAction = (data) => ({ type: INCREMENT, data })
+  export const createDecrementAction = (data) => ({ type: DECREMENT, data })
+  
+  export const createIncrementAsyncAction = (data) => {
+    // dispatch 这个参数是因为我们在 组件外面调用了 dispatch，然后因为是函数的缘故，所以applyMiddleware(thunk),帮我们处理了，
+    // 帮我们再次调用里面的函数，dispatch顺便也传了过来。
+    return (dispatch) => {
+      // 这里将来会是一些异步的操作
+      setTimeout(() => {
+        dispatch(createIncrementAction(data))
+      }, 500)
+    }
+  }
+  
+  -----------------------------------分界线---------------------------------------------------------
+  
+   reducers
+  /* 
+  	1.该文件是用于创建一个为Count组件服务的reducer，reducer的本质就是一个函数
+  	2.reducer函数会接到两个参数，分别为：之前的状态(preState)，动作对象(action)
+  	
+  	reducer 默认会先初始化值，内部会传入atcion需要的参数，preState为undefined，type为：'@@redux/InITi.0.i.m.d'「类似这种的随机字符串」，component就可以通过getState()获取初始值，但是如果没有subscribe监听的话，是不能自动呈现数据的，因为没有render，虽然数据改变了。
+  	官方定义的规则
+  		所有未匹配到的 action，必须把它接收到的第一个参数也就是那个 state 原封不动返回。
+  		永远不能返回 undefined。当过早 return 时非常容易犯这个错误，为了避免错误扩散，遇到这种情况时 			combineReducers 会抛异常。
+  		如果传入的 state 就是 undefined，一定要返回对应 reducer 的初始 state。根据上一条规则，初始 state 禁止使用 undefined。使用 ES6 的默认参数值语法来设置初始 state 很容易，但你也可以手动检查第一个参数是否为 undefined。
+  	
+  */
+  import { INCREMENT, DECREMENT } from "../constant"
+  
+  const initState = 0 //初始化状态
+  export default function countReducer(preState = initState, action) {
+    // console.log(preState);
+    //从action对象中获取：type、data
+    const { type, data } = action
+    //根据type决定如何加工数据
+    switch (type) {
+      case INCREMENT: //如果是加
+        return preState + data
+      case DECREMENT: //若果是减
+        return preState - data
+      default:
+        return preState
+    }
+  }
+  -----------------------------------分界线---------------------------------------------------------
+    
+    使用
+  // 在index.js 入口文件全局坚挺根组件
+  // 监听store中的state变化，并且render
+  store.subscribe(() => {
+    ReactDOM.render(<App />, document.getElementById("root"))
+  })
+  
+  
+  // 组件
+  import { createIncrementAction , createDecrementAction,createIncrementAsyncAction} from "../redux/actions/count"
+  //引入store，用于获取redux中保存状态
+  import store from '../redux/store'
+  
+  
+  store.dispatch(createIncrementAction(value*1)) // 修改state
+  store.getState().xx //获取state 这个xx为reduce合并的时候的值。
+  
+  
+  -----------------------------------分界线---------------------------------------------------------
+  
+  /*
+  总结：当我们页面刚开始运行的时候，store初始化值，state设置为初始值，没有设置默认就是undefined。
+  然后全局组件监听页面上的变化，即可渲染到页面上。
+  
+  */
+  
+  
+  /* 
+    store中的api
+      getState() 返回应用当前的 state 树，它与 store 的最后一个 reducer 返回值相同。（只声明一个reducer的时候，默认返回当前reducer处理完的state）。
+      dispatch(action) 分发 action。这是触发 state 变化的惟一途径。
+        过程：将使用当前 getState()的结果「上一次的值」和传入的 action 以同步方式的调用 store 的 reduce 函数。它的返回值会被作为下一个 state。
+        从现在开始，这就成为了 getState() 的返回值，同时变化监听器(change listener)会被触发。
+        action ：描述应用变化的普通对象，Action 是把数据传入 store 的惟一途径，action通过dispatch调用
+        按照约定，action 具有 type 字段来表示它的类型。type 也可被定义为常量或者是从其它模块引入。最好使用字符串，
+      subscribe(listener) 添加一个变化监听器。每当 dispatch action 的时候就会执行，state 树中的一部分可能已经变化。
+      你可以在回调函数里调用 getState() 来拿到当前 state，一般我们会在index中监听根组件。
+  */
+  
+  
+  问题一：
+  	为什么 dispatch 可以找到 reducer 呢？ 
+  	因为 stroe中直接通过遍历找到对应的reduce
+  ```
+
+
+
+
+###react-redux[传送门](https://cn.redux.js.org/docs/react-redux/) 
+
+> 它和redux是有些不一样的，它是react自家出的，它的出现为了更好的操作redux。
+
+![react-redux模型图](../../static/images/react-redux%E6%A8%A1%E5%9E%8B%E5%9B%BE.png)
