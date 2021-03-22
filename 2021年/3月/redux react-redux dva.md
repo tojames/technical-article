@@ -153,3 +153,50 @@
 > 它和redux是有些不一样的，它是react自家出的，它的出现为了更好的操作redux。
 
 ![react-redux模型图](../../static/images/react-redux%E6%A8%A1%E5%9E%8B%E5%9B%BE.png)
+
+```js
+react-redux 和redux 的关系  `桥` 的作用。
+
+react-redux 帮我们省略了监听redux中的state的变化，如下面代码。
+// 监听store中的state变化，并且render
+store.subscribe(() => {
+  ReactDOM.render(<App />, document.getElementById("root"))
+})
+
+容器组件 和UI 组件写在一个文件里面，通过props联系。
+
+1.建立props联系 通过 <Count store={store} />  通过这种方式注入，但是一般不会这么操作。
+	使用provider 包裹着 <app /> 如
+		import { Provider } from "react-redux"
+		ReactDOM.render(<Provider store={store}><App /> </Provider>,document.getElementById("root"))
+2.引入react-redux import { connect } from "react-redux" 
+3.Count组件
+// 映射状态
+ const mapStateToProps = state =>({ count: state.count })
+// 映射操作方法
+ const mapDispatchToProps = dispatch=> ({
+    increment:(data)=> dispatch(createIncrementAction(data)),
+    decrement:(data)=> dispatch(createDecrementAction(data)),
+    asyncInrement:(data)=> dispatch(createIncrementAsyncAction(data)),
+  })
+4.export default connect(mapStateToProps,mapDispatchToProps)(Count) // 容器组件
+
+/*
+mapDispatchToProps简写方式，
+原理分析：createIncrementAction 是一个函数，并且接受到了参数，那么就是少了一个dispatch，原来connect帮我们自动分发action出去了「自动帮我们调用action」
+const mapDispatchToProps = {
+    increment:createIncrementAction,
+    decrement:createDecrementAction,
+    asyncInrement:createIncrementAsyncAction
+}，
+如果当我们的页面上面使用的是createIncrementAction这种方法的话，又可以继续简写。
+const mapDispatchToProps = {
+    createIncrementAction,
+    createDecrementAction,
+    createIncrementAsyncAction
+}，
+*/
+
+5.然后Count组件就可以通过props访问容器组件的方法「mapDispatchToProps」和属性「mapStateToProps」
+```
+
