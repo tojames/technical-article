@@ -6,14 +6,15 @@
 
 - ```js
   redux项目结构
-  redux--
-  			actions--
-  								count.js(等等各种action文件「按照功能划分」)
-  			reducers--
-  								count.js(等等各种reducer文件「按照功能划分」)
-        					index.js(通过combineReducers，将所有的reducer文件合并一起传给store)
-  			constant(常量文件)
-  			store（redux核心文件）
+  + src
+    + redux
+  		+ actions
+      	- user.js(等等各种action文件「按照功能划分」)
+    	+ reducers
+     	 	- count.js(等等各种reducer文件「按照功能划分」)
+  		index.js(通过combineReducers，将所有的reducer文件合并一起传给store)
+  		constant(常量文件)
+  		store（redux核心文件）
   
   -----------------------------------分界线---------------------------------------------------------
   store.js
@@ -198,5 +199,58 @@ const mapDispatchToProps = {
 */
 
 5.然后Count组件就可以通过props访问容器组件的方法「mapDispatchToProps」和属性「mapStateToProps」
+```
+
+##  redux-saga
+
+> 主要用于处理异步的，使得action reducer state 还是保持原有的纯净的特性，这也是为什么Dva会使用saga的解决方案。
+
+
+
+# [Dva](https://dvajs.com/guide/)
+
+> dva 首先是一个基于 [redux](https://github.com/reduxjs/redux) 和 [redux-saga](https://github.com/redux-saga/redux-saga) 的数据流方案，然后为了简化开发体验，dva 还额外内置了 [react-router](https://github.com/ReactTraining/react-router) 和 [fetch](https://github.com/github/fetch)，所以也可以理解为一个轻量级的应用框架。作者是支付宝
+>
+> 由于是一个脚手架，很多写法是是需要按照Dva的语法，但是大多都是没有改变，而且官方都给示例。
+>
+> 在 dva 中，通常需要 connect Model的组件都是 Route Components，组织在`/routes/`目录下，而`/components/`目录下则是纯组件（Presentational Components）。
+>
+> dva = React-Router + Redux + Redux-saga
+
+```js
+
+// 创建应用
+const app = dva();
+
+// 注册 Model
+app.model({
+  namespace: 'count',
+  state: 0,
+  reducers: {
+    add(state) { return state + 1 },
+  },
+  effects: {
+    *addAfter1Second(action, { call, put }) {
+      yield call(delay, 1000);
+      yield put({ type: 'add' });
+    },
+  },
+});
+
+// 注册视图
+app.router(() => <ConnectedApp />);
+
+// 启动应用
+app.start('#root');
+
+
+app.model 所有的应用逻辑都定义在它上面。
+	namespace: 当前 Model 的名称。整个应用的 State，由多个小的 Model 的 State 以 namespace 为 key 合成
+	state: 该 Model 当前的状态。数据保存在这里，直接决定了视图层的输出
+	reducers: Action 处理器，处理同步动作，用来算出最新的 State
+	effects：Action 处理器，处理异步动作
+  	Effect 是一个 Generator 函数，内部使用 yield 关键字，标识每一步的操作（不管是异步或同步）。
+		call：执行异步函数
+		put：发出一个 Action，类似于 dispatch
 ```
 
