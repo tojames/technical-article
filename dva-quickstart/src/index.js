@@ -4,10 +4,10 @@ import "./index.css";
 // 1. Initialize
 const app = dva({
   initialState: {
-    products: [
-      { name: "dva", id: 1 },
-      { name: "antd", id: 2 },
-    ],
+    // products: [
+    //   { name: "dva", id: 1 },
+    //   { name: "antd", id: 2 },
+    // ],
   },
 });
 
@@ -19,6 +19,8 @@ const app = dva({
 
 // 4. Router
 app.router(require("./router").default);
-app.model(require("./models/products").default);
+// app.model(require("./models/products").default);
+
+require("./models").default.forEach((key) => app.model(key.default));
 // 5. Start
 app.start("#root");

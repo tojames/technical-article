@@ -201,9 +201,15 @@ const mapDispatchToProps = {
 5.然后Count组件就可以通过props访问容器组件的方法「mapDispatchToProps」和属性「mapStateToProps」
 ```
 
-##  redux-saga
+##  [Redux-saga](https://redux-saga-in-chinese.js.org/docs/introduction/BeginnerTutorial.html)
+
+
 
 > 主要用于处理异步的，使得action reducer state 还是保持原有的纯净的特性，这也是为什么Dva会使用saga的解决方案。
+>
+> redux-saga就是一个中间件，用来处理effect（异步），使用ES6的Generator的语法。
+>
+> 
 
 
 
@@ -218,30 +224,168 @@ const mapDispatchToProps = {
 > dva = React-Router + Redux + Redux-saga
 
 ```js
+说明 我是基于官网脚手架改造的。
+npm install dva-cli -g
+dva new dva-quickstart
 
-// 创建应用
-const app = dva();
+index.js 入口文件
+import dva from "dva";
+import "./index.css";
 
-// 注册 Model
-app.model({
-  namespace: 'count',
-  state: 0,
-  reducers: {
-    add(state) { return state + 1 },
+const app = dva({
+  initialState: {},
+});
+app.router(require("./router").default);
+require("./models").default.forEach((key) => app.model(key.default));
+app.start("#root");
+
+router.js
+import React from "react";
+import { Router, Route, Switch } from "dva/router";
+import IndexPage from "./routes/IndexPage";
+
+import Products from "./components/Products";
+
+function RouterConfig({ history }) {
+  return (
+    <Router history={history}>
+      <Switch>
+        <Route path="/" exact component={IndexPage} />
+        <Route path="/pro" exact component={Products} />
+      </Switch>
+    </Router>
+  );
+}
+
+export default RouterConfig;
+
+-----------------------------------分界线---------------------------------------------------------
+component
+
+import React, { Component } from "react";
+
+import { connect } from "dva";
+import { Button } from "antd";
+
+class Products extends Component {
+  state = {};
+  addProdust = () => {
+    const { dispatch } = this.props;
+    let newObj = { name: "华为Watch", value: 2500, id: 3 };
+    dispatch({
+      type: "products/add",
+      payload: newObj,
+    });
+  };
+  addProdustAsync = () => {
+    const { dispatch } = this.props;
+    let newObj = { name: "ihphone12", value: 6000, id: 4 };
+    dispatch({
+      type: "products/addAsync",
+      payload: newObj,
+    });
+  };
+  addProdustAsync2 = () => {
+    const { dispatch } = this.props;
+    let newObj = { name: "小米12", value: 5000, id: 5 };
+    dispatch({
+      type: "products/addAsync2",
+      payload: newObj,
+    });
+  };
+  deleteItem = (id) => {
+    console.log(id, "id");
+    const { dispatch } = this.props;
+    dispatch({
+      type: "products/delete",
+      payload: id,
+    });
+  };
+  render() {
+    console.log("render", this.props);
+    let produstList = this.props.produstList;
+    let produstView = produstList.map((item, index) => (
+      <div key={index + item.value}>
+        {item.name}---{item.value}
+        <Button onClick={() => this.deleteItem(item.id)}>删除</Button>
+      </div>
+    ));
+    return (
+      <div>
+        <Button onClick={this.addProdust}>新增产品</Button>
+        <Button onClick={this.addProdustAsync}>新增产品Async</Button>
+        <Button onClick={this.addProdustAsync2}>新增产品Async2</Button>
+
+        {produstView}
+      </div>
+    );
+  }
+}
+
+let mapStateToProps = (state) => ({ produstList: state.products.produstList });
+export default connect(mapStateToProps)(Products);
+-----------------------------------分界线---------------------------------------------------------
++model
+	products
+  index
+
+  products.js
+  export default {
+  namespace: "products",
+  state: {
+    produstList: [
+      { name: "iwatche6", value: 3000, id: 1 },
+      { name: "小米手环6", value: 300, id: 2 },
+    ],
   },
-  effects: {
-    *addAfter1Second(action, { call, put }) {
-      yield call(delay, 1000);
-      yield put({ type: 'add' });
+  reducers: {
+    delete(state, { payload: id }) {
+      let oldState = JSON.parse(JSON.stringify(state));
+      oldState.produstList = state.produstList.filter((item) => item.id !== id);
+      return oldState;
+    },
+    add(state, { payload: data }) {
+      let oldState = JSON.parse(JSON.stringify(state));
+      oldState.produstList = [...oldState.produstList, data];
+      return oldState;
     },
   },
-});
 
-// 注册视图
-app.router(() => <ConnectedApp />);
+  effects: {
+    *addAsync({ payload: data }, { put, call }) {
+      yield put({
+        type: "add",
+        payload: data,
+      });
+      console.log("run");
+    },
+    *addAsync2({ payload }, { put, call }) {
+      let res = yield call(func); // 调用 func函数，这里的func可以是异步的操作
+      yield put({
+        type: "add",
+        payload: res,
+      });
+    },
+  },
+};
 
-// 启动应用
-app.start('#root');
+let func = () => {
+  let product = { name: "小米汽车", value: 100000, id: 6 };
+  return product;
+};
+
+index.js
+/* 
+  解决当我们的model越写越多的时候，将会在入口文件中引入太多现在的重复代码
+*/
+
+const context = require.context("./", false, /\.js$/);
+export default context
+  .keys()
+  .filter((item) => item !== "./index.js")
+  .map((key) => context(key));
+
+
 
 
 app.model 所有的应用逻辑都定义在它上面。
@@ -250,7 +394,8 @@ app.model 所有的应用逻辑都定义在它上面。
 	reducers: Action 处理器，处理同步动作，用来算出最新的 State
 	effects：Action 处理器，处理异步动作
   	Effect 是一个 Generator 函数，内部使用 yield 关键字，标识每一步的操作（不管是异步或同步）。
-		call：执行异步函数
-		put：发出一个 Action，类似于 dispatch
+		call：执行异步函数 const result = yield call(fetch, '/todos'); // 执行 fetch函数
+		put：发出一个 Action，类似于 dispatch yield put({ type: 'todos/add', payload: 'Learn Dva'});
+    select 用于从state里获取数据。const todos = yield select(state => state.todos);
 ```
 
