@@ -235,6 +235,54 @@ options「暂时没用到过」
 >
 > 
 
+```js
+import { createStore, applyMiddleware } from "redux";
+import createSagaMiddleware from "redux-saga";
+import reducer from "./reducers";
+import rootSaga from "./sagas"; // 引入saga
+const sagaMiddleware = createSagaMiddleware();
+const store = createStore(reducer, applyMiddleware(sagaMiddleware));
+sagaMiddleware.run(rootSaga);
+//  将createSagaMiddleware传进applyMiddleware 运行saga，这时候就可以监听dispatch 中的action了「中间件的作用」。
+
+function* watchAsync() {
+  console.log("watchIncrementAsync");
+  yield takeEvery("takeEvery", function* () {
+    const state = yield select();
+    console.log(state, "state");
+    console.log("takeEvery");
+  });
+
+  yield takeLatest("takeLatest", function* () {
+    console.log("takeLatest");
+  });
+
+  yield throttle(1000, "throttle", function* () {
+    console.log("throttle");
+  });
+}
+
+// 这个 Saga yield 了一个数组，值是调用 helloSaga 和 watchAsync 两个 Saga 的结果。
+// 说这两个 Generators 将会同时启动
+export default function* rootSaga() {
+  yield all([helloSaga(), watchAsync()]);
+}
+
+当组件触发相应action的时候都会经过reducer 然后在到saga。
+
+辅助函数
+	1.takeEvery(pattern,saga,...args) 在发起 dispatch 到 Store 并且匹配pattern的每一个action上派生一个saga
+ 	2.takeLatest(pattern,saga,...args) 在发起到Store并且匹配pattern的每一个action上派生一个saga。并且自动取消之前所有已经启动但人在运行中的saga任务。
+	3.throttle(ms,pattern,saga,...args) 在发起到Store并且匹配pattern的一个action上派生一个saga，它在派生一次任务之后，仍然将传入的action接收到底层的buffer中，至多保留（最近的）一个。但与此同时，它在ms毫秒内将暂停派生新的任务。
+ 这三个函数都是通过pattern监听action的。
+ 
+effect 
+	1.select(selector,...args) 获取redux的state，如果调用select的参数为空（即yield select()）,那么effect会取得完整的state（与调用getState()的结果相同）
+  2.call(fn,...args) 创建一个effect描述信息，用来命令middleware以参数args调用函数fn
+  3.take(pattern) 阻塞的方法，用来匹配发出的action 只会监听一次，while(true) {} 可以实现takeEvery，一直监听。
+  4.put(action)  用来命令middleware向Store发起一个action，这个effect是非阻塞型的。
+```
+
 
 
 # [Dva](https://dvajs.com/guide/)
