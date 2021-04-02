@@ -6,6 +6,8 @@
 
 react 要求的原生javascript的能力比较高，写法也比较灵活，但是总有高效和低效之分的写法。
 
+## class组件
+
 **最标准的写法**
 
 ```js
@@ -75,5 +77,117 @@ react 要求的原生javascript的能力比较高，写法也比较灵活，但�
 	//2.渲染组件到页面
 	ReactDOM.render(<Weather/>,document.getElementById('test'))
 		
+```
+
+#### 规范
+
+```
+建议使用 eslint stylelint pretter 
+
+组件一般采用大驼峰命名规则，比如下面这种。 
+component/pages「视图」。 模块/功能进行目录结构划分
+			└─ User
+			    ├─ Form.jsx「尽量写jsx」
+			    	class Form extends Component {}，好处就是出错时 React Dev工具进行调试非常方便
+			    	如果想避免重名 可以使用这种 class UserForm extends Component {}
+			    └─ List.jsx
+ 
+ 这些规范定下来之前，每个人都会有想法的，一定要好好沟通，确定下来后务必遵循。
+ 以后想到了再来补充。  
+```
+
+#### Context
+
+> 一种组件通信方式，常用于祖组件和后代组件间通讯
+
+使用
+
+```js
+1.创建Context容器对象：
+  语法 const XxxContext = React.createContext()
+  
+2.渲染子组件时，外面包裹XxxContext.Provider,通过value属性给后代组件传递数据：
+	<XxxContext.Provider value = {数据}> 子组件 </XxxContext.Provider>
+Provider在我们的redux中也用到过。
+	
+3.后台组件读取数据：
+  3.1 仅适用于类组件
+  	static contextType = XxxContext // 声明接收context
+  	this.context // 读取context中的value
+  3.2 类组件 函数组件都可以使用
+  	<XxxContext.Consumer>
+  		{
+  		// 这个函数就是便利传过来的每一项数据，
+  			value =>{}
+  		}
+  	</XxxContext.Consumer>
+  	
+实例
+import React, { Component } from "react";
+
+const userNameContext = React.createContext();
+const { Provider, Consumer } = userNameContext;
+// export default class A extends Component {
+//   state = { userName: "果汁", age: 24 };
+
+//   render() {
+//     return (
+//       <div>
+//         我是A组件
+//         <Provider value={{ ...this.state }}>
+//           <B />
+//         </Provider>
+//       </div>
+//     );
+//   }
+// }
+
+export default function A() {
+  const [state] = React.useState({ userName: "果汁", age: 24 });
+
+  return (
+    <div>
+      我是A组件
+      <Provider value={{ ...state }}>
+        <B />
+      </Provider>
+    </div>
+  );
+}
+
+class B extends Component {
+  render() {
+    return (
+      <div>
+        我是B组件
+        <C />
+      </div>
+    );
+  }
+}
+
+// class C extends Component {
+//   static contextType = userNameContext;
+
+//   render() {
+//     const { userName, age } = this.context;
+//     console.log(this.context, "skdfsdf");
+//     return (
+//       <div>
+//         我是C组件
+//         {userName}-{age}
+//       </div>
+//     );
+//   }
+// }
+
+function C() {
+  return (
+    <div>
+      我是C组件
+      <Consumer>{(value) => `${value.userName}---${value.age}`}</Consumer>
+    </div>
+  );
+}
 ```
 

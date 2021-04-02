@@ -12,26 +12,34 @@
 >
 > 2、State 的更新可能是异步的，`this.props` 和 `this.state` 可能会异步更新，所以你不要依赖他们的值来更新下一个状态，但是你确实需要，可以如下操作，需要说明的是，异步不是那种真正的异步，只是react将改变状态的操作合并一起操作，避免频繁render造成性能浪费，合并就需要等待操作，那么开起来就像异步似的。
 >
-> 官方推荐的方案为 
->
-> ```js
-> this.setState((state, props) => ({
->   counter: state.counter + props.increment
-> }));
-> 定时器也可以
-> setTimeout(()=>{
->       this.setState({number:3})
->       console.log(this.state.number)
->     },0)
-> 可以让 setState() 接收一个函数而不是一个对象。这个函数用上一个 state 作为第一个参数，将此次更新被应用时的 props 做为第二个参数：
-> ```
->
 > 3、State 的更新会被合并，里面可能有很多state，但是只会将变化的进行替换，然后将state进行合并一起。
 >
-> 4、数据是向下流动的，通过state 传递给子组件，子组件通过props接收，虽然字组件不知道他来自哪里，显然这不重要。
+> 4、数据是向下流动的，通过state 传递给子组件，子组件通过props接收，虽然子组件不知道他来自哪里，显然这不重要。
 
-```
-简写方式： state ={name: '果汁'};
+```js
+初始值简写方式： state = {name: '果汁'};
+赋值比较有讲究
+1.对象式setState 	语法：setState(stateChange,[callback])
+  1.1 stateChange用于改变对象。
+  1.2 是可选参数，它在更新完毕render后才被调用，所以能获取到改变后的值。
+  
+	eg：this.setState({ count: this.state.count + 1 },() => {
+        console.log(this.state.count, "回调函数获取state更新后的值");
+      }
+    );
+2.函数式setState 语法:setState(updater,[callback])
+  2.1 updater 是一个返回stateChange对象的函数，可以接收到state，props。
+  2.2 callback 同上 
+  
+  this.setState((state) => ({ count: state.count + 1 }));
+
+总结 
+		对象式写法是函数式写法的简写方式，采用那种方式看个人喜好。
+    但是获取setState执行后的状态，都必须使用回调函数获取。
+    不过也可以使用 setTimeout
+		setTimeout(()=>{
+		   this.setState({count:3})
+		 },0)
 ```
 
 
