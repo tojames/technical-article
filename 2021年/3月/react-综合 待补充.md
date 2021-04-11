@@ -6,7 +6,7 @@
 
 react 要求的原生javascript的能力比较高，写法也比较灵活，但是总有高效和低效之分的写法。
 
-## class组件
+#### 1.class组件
 
 **最标准的写法**
 
@@ -79,7 +79,7 @@ react 要求的原生javascript的能力比较高，写法也比较灵活，但�
 		
 ```
 
-#### 规范
+#### 2.规范
 
 ```
 建议使用 eslint stylelint pretter 
@@ -96,7 +96,7 @@ component/pages「视图」。 模块/功能进行目录结构划分
  以后想到了再来补充。  
 ```
 
-#### Context
+#### 3.Context
 
 > 一种组件通信方式，常用于祖组件和后代组件间通讯
 
@@ -190,4 +190,98 @@ function C() {
   );
 }
 ```
+
+#### 4.PureComponent
+
+> 可以关注 PureComponent VS Component
+>
+> Component的2个问题
+>
+> 1.只要执行setState(),即使不改变状态，组件也会重新render() 
+>
+> 2.只当前组件重新render()  就会自动重新render子组件，即使子组件没有使用到props。
+
+**解决Component低效问题**
+
+```
+1.上面的问题虽然可以通过声明周期钩子函数 shouldComponentUpdate(nextProps，nextState) 可以控制，当传递数据多的时候不过挺鸡肋的。
+2.使用PureComponet
+	PureComponet重写了shouldComponentUpdate(),只有state或props数据有变化才返回true
+	注意：
+		只进行state和props数据的浅比较，如果只是数据对象内部数据变量，返回false。
+		不能直接修改state数据，而是要产生新数据
+推荐：项目汇总一般使用PureComponent来优化
+```
+
+#### 5.render props
+
+**如何向组件内部动态传入带内容的结构（标签）？**
+
+> Vue 使用slot
+>
+> React  
+>
+>  1.使用children props 通过组件标签传入结构
+>
+>  2.使用render props 通过组件标签属性传入结构，而且可以携带数据，一般涌render函数属性
+
+**children props**
+
+```
+<A> 
+	<B/>
+</A>
+组件A 使用 this.props.children 即可渲染B组件，问题：但是组件B想不了组件A的数据
+```
+
+**render props**
+
+```
+<A render={data=> <B data ={data}> </B>} ></A>
+A组件：this.props.render 将state数据传入
+B组件：读取A组件传入的数据显示 {this.props.data}
+```
+
+#### 6.错误边界
+
+> 错误边界(Error boundary):用来捕获后代组件错误，渲染备用页面
+>
+> 局限只能捕获后代组件生命周期产生的错误，不能捕获自己组件产生的错误和其他组件的合成事件，定时器中产生的错误
+
+```
+getDerivedStateFromError 和 componentDidCatch
+
+static getDerivedStateFromError(error){} // 生命周期函数，一旦后代组件报错，就会触发，通过状态判断是否渲染子组件或报错页面
+
+componentDidCatch(error,info){} // 统计页面的错误，可以发送给后台。
+```
+
+#### 7.组件通信
+
+**通信方式**
+
+```
+1.props：
+	（1).children props 
+	 (2).render props
+	 
+2.消息订阅-发布
+	pubs-sub、event等等
+	
+3.集中式管理：
+	redux、dva
+	
+4.conText
+	生产者-消费者
+```
+
+**使用场景**
+
+```
+父子组件：props 
+兄弟组件：消息订阅-发布、集中式管理
+祖孙组件（跨级组件）：消息订阅-发布、集中式管理、conText HOC（高阶组件）
+```
+
+####  HOC（高阶组件）
 
