@@ -1,8 +1,10 @@
-// new Promise((resolve, reject) => {
-//   console.log("开始了");
-//   resolve(1);
-// }).then((res) => {
-//   console.log(res, "获取到的数据");
-// });
-
-new Promise(1);
+new Promise((resolve, reject) => {
+  resolve(1)
+})
+  .then((res) => {
+    console.log(res, "res")
+    return res + "一次then的结果"
+  })
+  .then((res2) => {
+    console.log(res2, "res2")
+  })

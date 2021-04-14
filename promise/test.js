@@ -1,9 +1,12 @@
-const Promise = require("./promise");
-
+const Promise = require("./promise")
+debugger
 new Promise((resolve, reject) => {
-  // debugger;
-  console.log("开始了");
-  resolve(1);
-}).then((res) => {
-  console.log(res, "获取到的数据");
-});
+  resolve(1)
+})
+  .then((res) => {
+    console.log(res, "res")
+    return res + "一次then的结果"
+  })
+  .then((res2) => {
+    console.log(res2, "res2")
+  })

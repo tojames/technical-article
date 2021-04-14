@@ -23,10 +23,10 @@
 ## then(..) 和 catch(..)
 
 ```js
-then(..) 和 catch(..) 也会创建并返回一个新的 promise，这个 promise 可以用于实现 Promise 链式流程控制。如果完成或拒绝回调中抛出异常，返回的 promise 是被拒绝的。如 果任意一个回调返回非 Promise、非 thenable 的立即值，这个值会被用作返回 promise 的完 成值。如果完成处理函数返回一个 promise 或 thenable，那么这个值会被展开，并作为返回 promise 的决议值。
+then(..) 和 catch(..) 也会创建并返回一个新的 promise，这个 promise 可以用于实现 Promise 链式流程控制。如果完成或拒绝回调中抛出异常，返回的 promise 是被拒绝的。如果任意一个回调返回非 Promise、非 thenable 的立即值，这个值会被用作返回 promise 的完成值。如果完成处理函数返回一个 promise 或 thenable，那么这个值会被展开，并作为返回 promise 的决议值。
 
-then(..) 接受一个或两个参数:第一个用于完成回调，第二个用于拒绝回调。如果两者中的任何一个被省略或者作为非函数值传入的话，就会替换为相应的默认回调。默认完成回调只是把消息传递下去，而默认拒绝回调则只是重新抛出(传播)其接收到的出错原因。
-catch(..) 只接受一个拒绝回调作为参数，并自动替换默认完成 回调。换句话说，它等价于 then(null,..)
+then(..) 接受一个或两个参数:第一个用于完成回调，第二个用于拒绝回调。如果两者中的任何一个被省略或者作为非函数值传入的话，就会替换为相应的默认回调「空函数，一般我们传null进去即可」。默认完成回调只是把消息传递下去，而默认拒绝回调则只是重新抛出(传播)其接收到的出错原因。
+catch(..) 只接受一个拒绝回调作为参数，并自动替换默认完成回调。换句话说，它等价于 then(null,..)
 
 p.then( fulfilled );
 p.then( fulfilled, rejected );
@@ -40,8 +40,8 @@ p.catch( rejected ); // 或者p.then( null, rejected )
 ```js
 const p = new Promise( function(resolve,reject){ 
   resolve() // 用于决议/完成这个promise
-  // 1.如果传给 resolve(..) 的是一个非 Promise、非 thenable(对象具有then方法) 的立即值，这 个 promise 就会用这个值完成。
-  // 2.如果传给 resolve(..) 的是一个真正的 Promise 或 thenable 值，这个值就会被递归展 开，并且(要构造的)promise 将取用其最终决议值或状态。
+  // 1.如果传给 resolve(..) 的是一个非 Promise、非 thenable(对象具有then方法) 的立即值，这个 promise 就会用这个值完成。
+  // 2.如果传给 resolve(..) 的是一个真正的 Promise 或 thenable 值，这个值就会被递归展开，并且(要构造的)promise 将取用其最终决议值或状态。
   reject() //用于拒绝这个promise
 } );
 
@@ -96,7 +96,7 @@ p2.catch((err) => {
 const p1 = new Promise((resolve, reject) => {
         setTimeout(() => {
           reject(new Error("这是一个错误"));
-          // resolve(1);
+          // resolve(1);x
         }, 1000);
       });
 
