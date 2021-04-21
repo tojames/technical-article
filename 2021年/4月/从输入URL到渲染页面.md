@@ -12,9 +12,47 @@
 
 - 地址解析
 
-  ![地址解析](../../static/images/地址解析-8993258.png)
+![地址解析](../../static/images/%E5%9C%B0%E5%9D%80%E8%A7%A3%E6%9E%90.png)
 
 协议：http 默认端口21，  https = tsl 默认端口 80 ，ftp 默认端口443 
+
+
+
+
+
+#### HTTP1.0 VS HTTP1.1 VS HTTP2.0
+
+![http历史](../../static/images/http%E5%8E%86%E5%8F%B2.png)
+
+**HTTP1.0和HTTP1.1的一些区别**
+
+- `缓存处理`，HTTP1.0中主要使用 Last-Modified，Expires 来做为缓存判断的标准，HTTP1.1则引入了更多的缓存控制策略：ETag，Cache-Control…
+- `带宽优化及网络连接的使用`，HTTP1.1支持断点续传，即返回码是206（Partial Content）
+- `错误通知的管理`，在HTTP1.1中新增了24个错误状态响应码，如409（Conflict）表示请求的资源与资源的当前状态发生冲突；410（Gone）表示服务器上的某个资源被永久性的删除…
+- `Host头处理`，在HTTP1.0中认为每台服务器都绑定一个唯一的IP地址，因此，请求消息中的URL并没有传递主机名（hostname）。但随着虚拟主机技术的发展，在一台物理服务器上可以存在多个虚拟主机（Multi-homed Web Servers），并且它们共享一个IP地址。HTTP1.1的请求消息和响应消息都应支持Host头域，且请求消息中如果没有Host头域会报告一个错误（400 Bad Request）
+- `长连接`，HTTP1.1中默认开启Connection： keep-alive，一定程度上弥补了HTTP1.0每次请求都要创建连接的缺点
+
+**HTTP2.0和HTTP1.X相比的新特性**
+
+- `新的二进制格式（Binary Format）`，HTTP1.x的解析是基于文本，基于文本协议的格式解析存在天然缺陷，文本的表现形式有多样性，要做到健壮性考虑的场景必然很多，二进制则不同，只认0和1的组合，基于这种考虑HTTP2.0的协议解析决定采用二进制格式，实现方便且健壮
+- `header压缩`，HTTP1.x的header带有大量信息，而且每次都要重复发送，HTTP2.0使用encoder来减少需要传输的header大小，通讯双方各自cache一份header fields表，既避免了重复header的传输，又减小了需要传输的大小
+- `服务端推送（server push）`，例如我的网页有一个sytle.css的请求，在客户端收到sytle.css数据的同时，服务端会将sytle.js的文件推送给客户端，当客户端再次尝试获取sytle.js时就可以直接从缓存中获取到，不用再发请求了
+
+```javascript
+// 通过在应用生成HTTP响应头信息中设置Link命令
+
+Link: </styles.css>; rel=preload; as=style, </example.png>; rel=preload; as=image
+```
+
+- `多路复用（MultiPlexing）`
+
+```javascript
+- HTTP/1.0  每次请求响应，建立一个TCP连接，用完关闭
+
+- HTTP/1.1 「长连接」 若干个请求排队串行化单线程处理，后面的请求等待前面请求的返回才能获得执行机会，一旦有某请求超时等，后续请求只能被阻塞，毫无办法，也就是人们常说的线头阻塞；
+
+- HTTP/2.0 「多路复用」多个请求可同时在一个连接上并行执行，某个请求任务耗时严重，不会影响到其它连接的正常执行；
+```
 
 ​		
 
@@ -81,9 +119,10 @@ Cache-Control：cache-control: max-age=2592000第一次拿到资源后的2592000
 
 <img src="../../static/images/强缓存.png" alt="强缓存" style="zoom:50%;" />
 
-**协商缓存 Last-Modified / ETag**
+**协商缓存 Last-Modified / ETag**「总是和服务器协商」
 
 ```
+Last-Modified「http 1.0」 ETag「http 1.1」
 协商缓存就是强制缓存失效后，浏览器携带缓存标识向服务器发起请求，由服务器根据缓存标识决定是否使用缓存的过程
 
 Last-Modified 表示本文件最后修改日期「可在服务器修改和本地修改，如打开操作即可」，浏览器会在request header加上If-Modified-Since（上次返回的Last-Modified的值），询问服务器在该日期后资源是否有更新，有更新的话就会将新的资源发送回来
@@ -93,14 +132,133 @@ Last-Modified 表示本文件最后修改日期「可在服务器修改和本地
 
 
 
-
-
-
-
-
-
 **第三步：DNS解析**
+
+> 每一次DNS解析时间预计在20~120毫秒
+>
+> - 减少DNS请求次数
+> - DNS预获取（DNS Prefetch）
+>
+> <meta http-equiv="x-dns-prefetch-control" content="on">
+> <link rel="dns-prefetch" href="//static.360buyimg.com"/>
+
+
 
 - 递归查询
 - 迭代查询
+
+![DNS解析-递归查询](../../static/images/DNS%E8%A7%A3%E6%9E%90-%E9%80%92%E5%BD%92%E6%9F%A5%E8%AF%A2.png)
+
+
+
+
+
+**第四步：TCP三次握手**
+
+> UDP是即时通信。
+>
+> - seq序号，用来标识从TCP源端向目的端发送的字节流，发起方发送数据时对此进行标记
+> - ack确认序号，只有ACK标志位为1时，确认序号字段才有效，ack=seq+1
+> - 标志位
+>   - ACK：确认序号有效
+>   - RST：重置连接
+>   - SYN：发起一个新连接
+>   - FIN：释放一个连接
+>   - ……
+
+
+
+**为什么一定是三次握手？**
+
+```
+第一次握手客户端发送请求「新链接SYN，序号seq」链接给服务器，
+第二次握手服务器处理完处理返回「新链接SYN=1，确认序号有效ACK=1，返回新的序号seq=y，确认序号ack=x+1」
+第三次握手客户端「确认序号有效ACK=1， 返回新的序号seq=x+1，确认序号ack=y+1」
+然后就可以传输数据，http1.1是长链接，断开链接后才需要重新建立连接通道。
+TCP作为一种可靠传输控制协议，其核心思想：既要保证数据可靠传输，又要提高传输的效率！
+
+如果是两次握手？
+服务端无法确认客户端是否收到了信息，从而无法进行下一步建立通道的操作。
+如果是四次握手？
+服务端如果是第四次握手的话，就会存在没有什么需要确认的信息回去了，因为需要确认的序号都已经确认好了，无需多余的操作。
+```
+
+![三次握手](../../static/images/%E4%B8%89%E6%AC%A1%E6%8F%A1%E6%89%8B.png)
+
+**第五步：数据传输**
+
+```
+- HTTP报文
+  - 请求报文
+  - 响应报文
+- 响应状态码
+  - 200 OK
+  - 202 Accepted ：服务器已接受请求，但尚未处理（异步）
+  - 204 No Content：服务器成功处理了请求，但不需要返回任何实体内容
+  - 206 Partial Content：服务器已经成功处理了部分 GET 请求（断点续传 Range/If-Range/Content-Range/Content-Type:”multipart/byteranges”/Content-Length….）
+  - 301 Moved Permanently
+  - 302 Move Temporarily
+  - 304 Not Modified
+  - 305 Use Proxy
+  - 400 Bad Request : 请求参数有误
+  - 401 Unauthorized：权限（Authorization）
+  - 404 Not Found
+  - 405 Method Not Allowed
+  - 408 Request Timeout
+  - 500 Internal Server Error
+  - 503 Service Unavailable
+  - 505 HTTP Version Not Supported
+  - ……
+```
+
+**第六步：TCP四次挥手**
+
+> - 服务器端收到客户端的SYN连接请求报文后，可以直接发送SYN+ACK报文
+> - 但关闭连接时，当服务器端收到FIN报文时，很可能并不会立即关闭链接，所以只能先回复一个ACK报文，告诉客户端：”你发的FIN报文我收到了”，只有等到服务器端所有的报文都发送完了，我才能发送FIN报文，因此不能一起发送，故需要四步握手。
+>
+> 
+>
+> Connection: keep-alive http1.0需要设置，http1.1默认就是长链接，一般页面关闭后就会关闭链接。
+
+
+
+**为什么TCP需要四次挥手而不是2次挥手呢**
+
+```
+因为当客户端发送断开请求的时候，服务端需要马上回复客户端，但是服务端此时需要做一些比较费时的事情，所以先马上返回客户端‘好的，我正在处理后续的断开操作’，等处理完了，再去返回给客户端，接着客户端接收到了，回复一下服务端，就可以断开了
+```
+
+![四次挥手](../../static/images/%E5%9B%9B%E6%AC%A1%E6%8C%A5%E6%89%8B.png)
+
+**第七步：页面渲染**
+
+```
+/*
+ *     1.利用缓存
+ *       + 对于静态资源文件实现强缓存和协商缓存（扩展：文件有更新，如何保证及时刷新？）  
+ *       + 对于不经常更新的接口数据采用本地存储做数据缓存（扩展：cookie / localStorage / vuex|redux 区别？）
+ *     2.DNS优化
+ *       + 分服务器部署，增加HTTP并发性（导致DNS解析变慢）
+ *       + DNS Prefetch
+ *     3.TCP的三次握手和四次挥手
+ *       + Connection:keep-alive
+ *     4.数据传输
+ *       + 减少数据传输的大小
+ *         + 内容或者数据压缩（webpack等）
+ *         + 服务器端一定要开启GZIP压缩（一般能压缩60%左右）
+ *         + 大批量数据分批次请求（例如：下拉刷新或者分页，保证首次加载请求数据少）
+ *       + 减少HTTP请求的次数
+ *         + 资源文件合并处理
+ *         + 字体图标
+ *         + 雪碧图 CSS-Sprit
+ *         + 图片的BASE64
+ *       + ......
+ *     5.CDN服务器“地域分布式”
+ *     6.采用HTTP2.0
+ * ==============
+ * 网络优化是前端性能优化的中的重点内容，因为大部分的消耗都发生在网络层，尤其是第一次页面加载，如何减少等待时间很重要“减少白屏的效果和时间”
+ *     + LOADDING 人性化体验
+ *     + 骨架屏：客户端骨屏 + 服务器骨架屏
+ *     + 图片延迟加载
+```
 
