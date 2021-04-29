@@ -8,18 +8,39 @@
   </head>
   <body>
     <script>
-      class test {
-        constructor() {
-          this.age = 24;
-        }
-        getName(name) {
-          return name;
-        }
-      }
-      let t = new test();
+      // 中介者
+      let mediator = (function () {
+        let topics = {};
 
-      console.log(t, "t");
-      console.log(t.getName("121"), "t");
+        // 订阅：订阅A组件中的某个方法
+        let subscribe = function subscribe(topic, callback) {
+          !topics[topic] ? (topics[topic] = []) : null;
+          console.log(this, "subscribe的this");
+          topics[topic].push({
+            context: this,
+            callback,
+          });
+        };
+
+        // 发布：B组件中到某个阶段，可以通知之前订阅的方法执行
+        let publish = function publish(topic, ...params) {
+          if (!topics[topic]) return;
+          topics[topic].forEach((item) => {
+            let { callback, context } = item;
+            callback.call(context, ...params);
+          });
+        };
+
+        return {
+          subscribe,
+          publish,
+        };
+      })();
+
+      mediator.subscribe("topic", (...params) => {
+        console.log("我是callback", ...params);
+      });
+      mediator.publish("topic", 1, 2, 3);
     </script>
   </body>
 </html>
