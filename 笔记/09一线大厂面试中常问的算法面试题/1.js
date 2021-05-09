@@ -55,16 +55,16 @@ console.log(ary);*/
 console.log(ary);
 */
 
-
 /*数组扁平化*/
-/*let arr = [
-    [1, 2, 2],
-    [3, 4, 5, 5],
-    [6, 7, 8, 9, [11, 12, [12, 13, [14]]]], 10
-];*/
+let arr = [
+  [1, "李白", 0.1, "李白2", 2],
+  [3, 4, 5, 5],
+  [6, 7, 8, 9, [11, 12, [12, 13, [14]]]],
+  10,
+];
 
 /*ES6方法直接实现*/
-// arr=arr.flat(Infinity);
+arr = arr.flat(Infinity);
 
 /*转换为字符串*/
 // arr=arr.toString().split(',').map(item=>parseFloat(item));
@@ -99,7 +99,6 @@ arr = arr.myFlat();*/
 
 // console.log(arr);
 
-
 /*斐波那契数列*/
 /*function fibonacci(n){
 	if(n<=1) return 1;
@@ -128,44 +127,43 @@ function fibonacci(count) {
 }
 */
 
-
 /*
  * 输入一个正数N，输出所有和为N的连续正数序列
  * 例如：输入15
  * 结果：[[1,2,3,4,5],[4,5,6],[7,8]]
  */
- function createArr(n,len){
-    let arr=new Array(len).fill(null),
-        temp=[];
-    arr[0]=n;
-    arr=arr.map((item,index)=>{
-        if(item===null){
-            item=temp[index-1]+1;
-        }
-        temp.push(item);
-        return item;
-    });
-    return arr;
-}
-function fn(count){
-    let result=[];
-    //=>求出中间值
-    let middle=Math.ceil(count/2);
-    //从1开始累加
-    for(let i=1;i<=middle;i++){
-        //控制累加多少次
-        for(let j=2;;j++){
-            //求出累加多次的和
-            let total=(i+(i+j-1))*(j/2);
-            if(total>count){
-                break;
-            }else if(total===count){
-                result.push(createArr(i,j));
-                break;
-            }
-        }
+function createArr(n, len) {
+  let arr = new Array(len).fill(null),
+    temp = [];
+  arr[0] = n;
+  arr = arr.map((item, index) => {
+    if (item === null) {
+      item = temp[index - 1] + 1;
     }
-    return result;
+    temp.push(item);
+    return item;
+  });
+  return arr;
+}
+function fn(count) {
+  let result = [];
+  //=>求出中间值
+  let middle = Math.ceil(count / 2);
+  //从1开始累加
+  for (let i = 1; i <= middle; i++) {
+    //控制累加多少次
+    for (let j = 2; ; j++) {
+      //求出累加多次的和
+      let total = (i + (i + j - 1)) * (j / 2);
+      if (total > count) {
+        break;
+      } else if (total === count) {
+        result.push(createArr(i, j));
+        break;
+      }
+    }
+  }
+  return result;
 }
 console.log(fn(4));
 console.log(fn(5));

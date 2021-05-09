@@ -8,39 +8,49 @@
   </head>
   <body>
     <script>
-      // 中介者
-      let mediator = (function () {
-        let topics = {};
+      function createArr(n, len) {
+        console.log(n, len);
+        let arr = new Array(len).fill(null),
+          temp = [];
+        arr[0] = n;
+        arr = arr.map((item, index) => {
+          if (item === null) {
+            item = temp[index - 1] + 1;
+          }
+          temp.push(item);
+          return item;
+        });
+        return arr;
+      }
+      function fn(count) {
+        let result = [];
+        //=>求出中间值
+        let middle = Math.ceil(count / 2);
+        //从1开始累加
+        for (let i = 1; i <= middle; i++) {
+          //控制累加多少次
+          for (let j = 2; ; j++) {
+            //求出累加多次的和
+            let total = (i + (i + j - 1)) * (j / 2);
+            if (total > count) {
+              break;
+            } else if (total === count) {
+              result.push(createArr(i, j));
+              break;
+            }
+          }
+        }
+        return result;
+      }
+      console.log(fn(4));
+      console.log(fn(5));
+      console.log(fn(10));
+      console.log(fn(15));
 
-        // 订阅：订阅A组件中的某个方法
-        let subscribe = function subscribe(topic, callback) {
-          !topics[topic] ? (topics[topic] = []) : null;
-          console.log(this, "subscribe的this");
-          topics[topic].push({
-            context: this,
-            callback,
-          });
-        };
-
-        // 发布：B组件中到某个阶段，可以通知之前订阅的方法执行
-        let publish = function publish(topic, ...params) {
-          if (!topics[topic]) return;
-          topics[topic].forEach((item) => {
-            let { callback, context } = item;
-            callback.call(context, ...params);
-          });
-        };
-
-        return {
-          subscribe,
-          publish,
-        };
-      })();
-
-      mediator.subscribe("topic", (...params) => {
-        console.log("我是callback", ...params);
-      });
-      mediator.publish("topic", 1, 2, 3);
+      @log
+      class Test {
+        getName = () => {};
+      }
     </script>
   </body>
 </html>
