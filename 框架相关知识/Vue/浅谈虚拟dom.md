@@ -4,9 +4,9 @@
 
 
 
-> 以vue为例子。
+> 以Vue为例子。
 >
-> 模版编译-->vnode类生成vdom-->通过渲染函数生成真实dom-->渲染到试图。
+> 模版编译-->vnode类生成vdom-->通过渲染函数生成真实dom-->渲染到视图。
 >
 > 性能。
 >
@@ -14,17 +14,17 @@
 >
 > 跨端。
 >
-> 现今无论是微信小程序、uniapp、taro、 app（React-Native 和 Weex） ，在基于虚拟dom，让我们可以使用vue/react 来进行开发，打包的时候自动通过weex/React-Native提供的api或者标签进行编译就可以实现原声编译的目的。
+> 现今无论是微信小程序、uniapp、taro、 app（React-Native 和 Weex） ，在基于虚拟dom，让我们可以使用Vue/React 来进行开发，打包的时候自动通过weex/React-Native提供的api或者标签进行编译就可以实现原生编译的目的。
 
 
 
-**现今三大前端框检测架变化，react 采用虚拟DOM，vue 虚拟DOM，Angular使用脏检测的流程。**
+**现今三大前端框检测架变化，React 采用虚拟DOM，Vue 使用虚拟DOM，Angular使用脏检测的流程。**
 
 ### 虚拟DOM
 
 ```
 虚拟dom通过VNode类生成，所以VNode也可以叫做虚拟dom，虚拟dom通过patch后就会一个一个节点插入到视图上。
-由于虚拟dom是由javascript生成，可以将上一次渲染视图的虚拟dom缓存起来，用来为下一次为新旧虚拟dom进行patch做准备。
+由于虚拟dom是由JavaScript生成，可以将上一次渲染视图的虚拟dom缓存起来，用来为下一次为新旧虚拟dom进行patch做准备。
 VNode的类型 
 	注释节点
   	页面展示：<!-- 我是注释节点 --> 
@@ -62,7 +62,7 @@ VNode的类型
 			场景2: 当newVnode的节点和oldVnode完全不是一个节点时，需要新增，而且还需要删除（同上）。
 		修改需要更新的节点
 			场景1: 当newVnode 和 oldVnode 节点相同，没有子节点的时候，进行diff算法发现不同点进行状态更新。
-			场景2: 当newVnode 和 oldVnode 节点相同，有子节点的时候，进行diff算法，递归遍历子节点，进行更新，当列表中存在key值时，可以快速建立所以关系定位节点，进行更新，以前vue中的key值是建议填，现在eslint不填会报错。
+			场景2: 当newVnode 和 oldVnode 节点相同，有子节点的时候，进行diff算法，递归遍历子节点，进行更新，当列表中存在key值时，可以快速建立所有关系定位节点，进行更新，以前vue中的key值是建议填，现在eslint不填会报错。
 
 ```
 
