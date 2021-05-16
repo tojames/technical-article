@@ -1,33 +1,78 @@
-/* @flow */
+问题1 getData
+问题2 proxy 和 observe 什么关系
 
-import config from "../config";
-import Watcher from "../observer/watcher";
-import Dep, { pushTarget, popTarget } from "../observer/dep";
-import { isUpdatingChildComponent } from "./lifecycle";
+
+/* @flow */
+import config from "../config"; // 一大堆的配置信息
+import Watcher from "../observer/watcher"; // 监听器
+import Dep, { pushTarget, popTarget } from "../observer/dep"; // 收集依赖
+import { isUpdatingChildComponent } from "./lifecycle"; // 更新子组件状态，是由生命周期组件渲染来控制prop值的传递
 
 import {
-  set,
-  del,
-  observe,
-  defineReactive,
-  toggleObserving,
+  set, // 设置属性触发的方法
+  del, // 删除属性触发的方法
+  observe, // 观察数据
+  defineReactive, // 监听数据核心方法
+  toggleObserving, // 切换监听
 } from "../observer/index";
 
+/**
+ *  bind：对bind进行兼容处理
+ * Simple bind polyfill for environments that do not support it,
+ * e.g., PhantomJS 1.x. Technically, we don't need this anymore
+ * since native bind is now performant enough in most browsers.
+ * But removing it would mean breaking code that was able to run in
+ * PhantomJS 1.x, so this must be kept for backward compatibility.
+ */
+
+/**
+ *  Strict object type check. Only returns true
+ *  or plain JavaScript objects.
+ *  _toString：const _toString = Object.prototype.toString
+ * isPlainObject：
+ * export function isPlainObject (obj: any): boolean {
+ *   return _toString.call(obj) === '[object Object]'
+ * }
+ *
+ */
+
+
+/**
+ * Check if a string starts with $ or _  检查字符串开头第一个字符是否是 $ or _
+ * 
+ * export function isReserved (str: string): boolean {
+ *  const c = (str + '').charCodeAt(0)
+ *  return c === 0x24 || c === 0x5F
+ * }
+*/
+
+
+/**
+ *  hyphenate：
+ * Hyphenate a camelCase string.
+ * const hyphenateRE = /\B([A-Z])/g
+ * export const hyphenate = cached((str: string): string => {
+ *   return str.replace(hyphenateRE, '-$1').toLowerCase()
+ * })
+ * 
+ */
+
 import {
-  warn,
-  bind,
-  noop,
-  hasOwn,
-  hyphenate,
-  isReserved,
-  handleError,
-  nativeWatch,
-  validateProp,
-  isPlainObject,
-  isServerRendering,
-  isReservedAttribute,
+  warn, // 封装打印在控制台的显示，非生产环境使用
+  bind, // 看注释
+  noop, // 一个空的函数 export function noop (a?: any, b?: any, c?: any) {}
+  hasOwn, // Check whether an object has the property
+  hyphenate, // eg 将getName 变成 get-name 看注释
+  isReserved, // 看注释
+  handleError, // 处理错误
+  nativeWatch, // 为了兼容火狐 Firefox has a "watch" function on Object.prototype...
+  validateProp, // 返回有效prop
+  isPlainObject, // 看注释
+  isServerRendering, // 判断环境是 是 ssr 还是 server 是server 返回 server，否则返回false
+  isReservedAttribute, // 判断是否是保留属性
 } from "../util/index";
 
+// 共享的基础配置信息，用于Object.defineProperty
 const sharedPropertyDefinition = {
   enumerable: true,
   configurable: true,
@@ -48,17 +93,17 @@ export function proxy(target: Object, sourceKey: string, key: string) {
 export function initState(vm: Component) {
   vm._watchers = [];
   const opts = vm.$options;
-  if (opts.props) initProps(vm, opts.props);
-  if (opts.methods) initMethods(vm, opts.methods);
+  if (opts.props) initProps(vm, opts.props); // 初始化props
+  if (opts.methods) initMethods(vm, opts.methods); // 初始化methods
   if (opts.data) {
-    initData(vm);
+    initData(vm); // 初始化data
   } else {
-    observe((vm._data = {}), true /* asRootData */);
+    observe((vm._data = {}), true /* asRootData */); // 如果data为空 创建一个观察对象
   }
   if (opts.computed) initComputed(vm, opts.computed); // 初始化计算属性
   if (opts.watch && opts.watch !== nativeWatch) {
     // 初始化watch
-    initWatch(vm, opts.watch);
+    initWatch(vm, opts.watch); // 初始化watch
   }
 }
 
@@ -118,6 +163,7 @@ function initProps(vm: Component, propsOptions: Object) {
 function initData(vm: Component) {
   let data = vm.$options.data;
   data = vm._data = typeof data === "function" ? getData(data, vm) : data || {};
+  // 判断如果不是对象，警告
   if (!isPlainObject(data)) {
     data = {};
     process.env.NODE_ENV !== "production" &&
@@ -135,6 +181,7 @@ function initData(vm: Component) {
   while (i--) {
     const key = keys[i];
     if (process.env.NODE_ENV !== "production") {
+      // 判断 methods 是否已经存在data中的key，存在，则警告
       if (methods && hasOwn(methods, key)) {
         warn(
           `Method "${key}" has already been defined as a data property.`,
@@ -142,6 +189,7 @@ function initData(vm: Component) {
         );
       }
     }
+     // 判断 props 是否已经存在data中的key，存在，则警告
     if (props && hasOwn(props, key)) {
       process.env.NODE_ENV !== "production" &&
         warn(
@@ -149,7 +197,7 @@ function initData(vm: Component) {
             `Use prop default value instead.`,
           vm
         );
-    } else if (!isReserved(key)) {
+    } else if (!isReserved(key)) { // _ 或者 $ 开头的key是无法被代理的
       proxy(vm, `_data`, key);
     }
   }
@@ -201,14 +249,15 @@ function initComputed(vm: Component, computed: Object) {
     if (!(key in vm)) {
       defineComputed(vm, key, userDef);
     } else if (process.env.NODE_ENV !== "production") {
+      // 如果 data 中已经有了 key 则警告
       if (key in vm.$data) {
         warn(`The computed property "${key}" is already defined in data.`, vm);
-      } else if (vm.$options.props && key in vm.$options.props) {
-        warn(
-          `The computed property "${key}" is already defined as a prop.`,
-          vm
-        );
+      } 
+      // 如果 prop 中已经有了 key 则警告
+      else if (vm.$options.props && key in vm.$options.props) {
+        warn(`The computed property "${key}" is already defined as a prop.`,vm );
       }
+      // 如果 computed 和 method 重名会怎么样？ 答案是method会被替换，因为computed声明在method后面
     }
   }
 }
@@ -218,7 +267,7 @@ export function defineComputed(
   key: string,
   userDef: Object | Function
 ) {
-  const shouldCache = !isServerRendering();
+  const shouldCache = !isServerRendering(); // 
   if (typeof userDef === "function") {
     sharedPropertyDefinition.get = shouldCache
       ? createComputedGetter(key)
@@ -293,6 +342,7 @@ function initMethods(vm: Component, methods: Object) {
         );
       }
     }
+    // 这里的bind 要认真看，他调用的是项目里面的bind， 底层是这样的Function.prototype.bind(context,prams)，注意区分。
     vm[key] =
       typeof methods[key] !== "function" ? noop : bind(methods[key], vm);
   }
@@ -326,6 +376,7 @@ function createWatcher(
   }
   return vm.$watch(expOrFn, handler, options);
 }
+
 
 export function stateMixin(Vue: Class<Component>) {
   // flow somehow has problems with directly declared definition object
