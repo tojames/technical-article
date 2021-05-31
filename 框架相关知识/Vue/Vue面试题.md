@@ -7,7 +7,7 @@
 ```js
 理解:
 1.核心点: Object.defineProperty
-2.默认 Vue 在初始化数据时，会给 data 中的属性使用 Object.defineProperty 重新定义所有属 性,当页面取到对应属性时。会进行依赖收集(收集当前组件的watcher) 如果属性发生变化会通 知相关依赖进行更新操作。
+2.默认 Vue 在初始化数据时，会给 data 中的属性使用 Object.defineProperty 重新定义所有属性,当页面取到对应属性时。会进行依赖收集(收集当前组件的watcher) 如果属性发生变化会通 知相关依赖进行更新操作。
 
 原理:
 
@@ -125,7 +125,7 @@ export function queueWatcher(watcher: Watcher) {
 
 
 
-####  **4.实现原理**?
+####  **4.实现响应式原理**?
 
 <img src="../../static/images/image-20210513095734602.png" alt="image-20210513095734602" style="zoom:50%;" />
 
@@ -186,7 +186,9 @@ cb.call(ctx) } catch (e) {
 理解:
 默认 也是一个 是具备缓存的，只要当依赖的属性发生变化时才会更新视图
 
-function initComputed (vm: Component, computed: Object) { const watchers = vm._computedWatchers = Object.create(null) const isSSR = isServerRendering()
+function initComputed (vm: Component, computed: Object) { 
+  const watchers = vm._computedWatchers = Object.create(null) 
+  const isSSR = isServerRendering()
 for (const key in computed) {
 const userDef = computed[key]
 const getter = typeof userDef === 'function' ? userDef : userDef.get if (!isSSR) {
@@ -225,41 +227,50 @@ return watcher.value }
 
 ```js
 理解:
-当用户指定了 watch 中的deep属性为 true 时，如果当前监控的值是数组类型。会对对象中的每 一项进行求值，此时会将当前 watcher 存入到对应属性的依赖中，这样数组中对象发生变化时也 会通知数据更新
+当用户指定了 watch 中的deep属性为 true 时，如果当前监控的值是数组类型。会对对象中的每一项进行求值，此时会将当前 watcher 存入到对应属性的依赖中，这样数组中对象发生变化时也 会通知数据更新
 
 get () {
-pushTarget(this) // 先将当前依赖放到 Dep.target上 let value
-const vm = this.vm
-try {
-value = this.getter.call(vm, vm) } catch (e) {
-if (this.user) {
-handleError(e, vm, `getter for watcher "${this.expression}"`)
-      } else {
+	pushTarget(this) // 先将当前依赖放到 Dep.target上 let value
+	const vm = this.vm
+	try {
+		value = this.getter.call(vm, vm) }
+  catch (e) {
+		if (this.user) {
+			handleError(e, vm, `getter for watcher "${this.expression}"`)
+   	} else {
         throw e
+		}
+	} finally {
+			if (this.deep) { // 如果需要深度监控
+			traverse(value) // 会对对象中的每一项取值,取值时会执行对应的get方法
+	}
+    popTarget()
+ }
+	return value
 }
-} finally {
-if (this.deep) { // 如果需要深度监控
-traverse(value) // 会对对象中的每一项取值,取值时会执行对应的get方法
-}
-      popTarget()
-    }
-        return value
-}
+
 function _traverse (val: any, seen: SimpleSet) {
-let i, keys
-const isA = Array.isArray(val)
-if ((!isA && !isObject(val)) || Object.isFrozen(val) || val instanceof VNode)
-{
+	let i, keys
+	const isA = Array.isArray(val)
+	if ((!isA && !isObject(val)) || Object.isFrozen(val) || val instanceof VNode){
+    return
+	}
+	if (val.__ob__) {
+  	const depId = val.__ob__.dep.id 
+  	if (seen.has(depId)) {
+			return
+  	 }
+		seen.add(depId) 
+  }
+  if (isA) {
+		i = val.length
+		while (i--) _traverse(val[i], seen)
+	} else {
+		keys = Object.keys(val)
+		i = keys.length
+		while (i--) _traverse(val[keys[i]], seen)
+		} 
 }
-seen.add(depId) }
-if (isA) {
-i = val.length
-while (i--) _traverse(val[i], seen)
-} else {
-keys = Object.keys(val)
-i = keys.length
-while (i--) _traverse(val[keys[i]], seen)
-} }
 ```
 
 
@@ -286,36 +297,31 @@ updated 可以执行依赖于 DOM 的操作。然而在大多数情况下，你�
 因为这可能会导致更新无限循环。 该钩子在服务器端渲染期间不被调用。 destroyed 可以执行一些优化操作,清空定时器，解除绑定事件
 ```
 
-####  **8.Vue中模板编译原理**
+####  
+
+#### **8.Vue中模板编译原理**
 
 **将 template 转化成 render 函数**
 
 ```js
-function baseCompile (
-  template: string,
-  options: CompilerOptions
-){
-const ast = parse(template.trim(), options) // 1.将模板转化成ast语法树
-if (options.optimize !== false) { optimize(ast, options)
+function baseCompile (template: string,options: CompilerOptions){
+	const ast = parse(template.trim(), options) // 1.将模板转化成ast语法树
+	if (options.optimize !== false) { 
+    optimize(ast, options) // // 2.优化树
   }
-  const code = generate(ast, options)
+  const code = generate(ast, options) // 3.生成树
   return {
-ast,
-render: code.render,
-staticRenderFns: code.staticRenderFns
-} })
-// 2.优化树
-// 3.生成树
-ncname = `[a-zA-Z_][\\-\\.0-9_a-zA-Z]*`;
-qnameCapture = `((?:${ncname}\\:)?${ncname})`;
-startTagOpen = new RegExp(`^<${qnameCapture}`); // 标签开头的正则 捕获的内容是
-const
-const
-const
-标签名
-const
+		ast,
+		render: code.render,
+		staticRenderFns: code.staticRenderFns
+}})
+
+
+const ncname = `[a-zA-Z_][\\-\\.0-9_a-zA-Z]*`;
+const qnameCapture = `((?:${ncname}\\:)?${ncname})`;
+const startTagOpen = new RegExp(`^<${qnameCapture}`); // 标签开头的正则 捕获的内容是标签名
 const attribute = /^\s*([^\s"'<>\/=]+)(?:\s*(=)\s*(?:"([^"]*)"+|'([^']*)'+| ([^\s"'=<>`]+)))?/; // 匹配属性的
-endTag = new RegExp(`^<\\/${qnameCapture}[^>]*>`); // 匹配标签结尾的 </div>
+const endTag = new RegExp(`^<\\/${qnameCapture}[^>]*>`); // 匹配标签结尾的 </div>
 const startTagClose = /^\s*(\/?)>/; // 匹配标签结束的 > let root;
 let currentParent;
 let stack = []
@@ -326,84 +332,114 @@ function createASTElement(tagName,attrs){
         children:[],
         attrs,
         parent:null
+		}
 }
-yortseDerofeb
-euV
- }
+
 function start(tagName,attrs){
     let element = createASTElement(tagName,attrs);
     if(!root){
         root = element;
     }
     currentParent = element;
-stack.push(element); }
-function chars(text){ currentParent.children.push({
-type:3,
-text
+	stack.push(element); 
+}
+
+function chars(text){ 
+  currentParent.children.push({
+			type:3,
+			text
+  })
+}
+
 function end(tagName){
-const element = stack[stack.length-1]; stack.length --;
-currentParent = stack[stack.length-1]; if(currentParent){
-element.parent = currentParent;
-currentParent.children.push(element) }
+	const element = stack[stack.length-1]; stack.length --;
+	currentParent = stack[stack.length-1]; 
+  if(currentParent){
+		element.parent = currentParent;
+		currentParent.children.push(element) 
+  }
 }
+
 function parseHTML(html){
-while(html){
-let textEnd = html.indexOf('<'); if(textEnd == 0){
-            const startTagMatch = parseStartTag();
-            if(startTagMatch){
-start(startTagMatch.tagName,startTagMatch.attrs);
-continue; }
-const endTagMatch = html.match(endTag); if(endTagMatch){
-advance(endTagMatch[0].length);
-                end(endTagMatch[1])
-            }
-        }
-        let text;
-        if(textEnd >=0 ){
-text = html.substring(0,textEnd) }
-if(text){ advance(text.length); chars(text);
-} }
+	while(html){
+		let textEnd = html.indexOf('<'); if(textEnd == 0){
+  	const startTagMatch = parseStartTag();
+  	if(startTagMatch){
+			start(startTagMatch.tagName,startTagMatch.attrs);
+			continue; 
+  	}
+		const endTagMatch = html.match(endTag); 
+  	if(endTagMatch){
+			advance(endTagMatch[0].length);
+  		end(endTagMatch[1])
+  	}
+ 	}
+  let text;
+  if(textEnd >=0 ){
+		text = html.substring(0,textEnd) 
+  }
+	if(text){ 
+    advance(text.length);
+    chars(text);
+	}
+}
+  
 function advance(n) {
-html = html.substring(n);
-    }
-    function parseStartTag(){
-const start = html.match(startTagOpen); if(start){
-            const match = {
-                tagName:start[1],
-                attrs:[]
+	html = html.substring(n);
 }
-}) }
+  
+function parseStartTag(){
+	const start = html.match(startTagOpen); 
+  if(start){
+     const match = {
+        tagName:start[1],
+        attrs:[]
+		}
+    advance(start[0].length);
+		let attr,end
+		while(!(end = html.match(startTagClose)) &&(attr=html.match(attribute))){
+      advance(attr[0].length);
+			match.attrs.push({name:attr[1],value:attr[3]}) 
+    }
  
-advance(start[0].length);
-let attr,end
-while(!(end = html.match(startTagClose)) &&
-(attr=html.match(attribute))){ advance(attr[0].length);
-match.attrs.push({name:attr[1],value:attr[3]}) }
-if(end){ advance(end[0].length); return match
-} }
+	if(end){ 
+    advance(end[0].length); 
+    return match
+	} 
+ }
+  
 // 生成语法树
-parseHTML(`<div id="container"><p>hello<span>zf</span></p></div>`); function gen(node){
-if(node.type == 1){
-return generate(node);
-}else{
-return `_v(${JSON.stringify(node.text)})`
-} }
-function genChildren(el){
-const children = el.children; if(el.children){
-return `[${children.map(c=>gen(c)).join(',')}]` }else{
-        return false;
-    }
+parseHTML(`<div id="container"><p>hello<span>zf</span></p></div>`); 
+  
+function gen(node){
+	if(node.type == 1){
+		return generate(node);
+	}else{
+		return `_v(${JSON.stringify(node.text)})`
+	} 
 }
+  
+function genChildren(el){
+	const children = el.children; 
+  if(el.children){
+		return `[${children.map(c=>gen(c)).join(',')}]` 
+  }else{
+    return false;
+  }
+}
+  
 function genProps(attrs){
-let str = '';
-for(let i = 0; i < attrs.length;i++){
-        let attr = attrs[i];
-str+= `${attr.name}:${attr.value},`; }
-return `{attrs:{${str.slice(0,-1)}}}` }
+	let str = '';
+	for(let i = 0; i < attrs.length;i++){
+  	let attr = attrs[i];
+		str+= `${attr.name}:${attr.value},`; 
+  }
+	return `{attrs:{${str.slice(0,-1)}}}` 
+}
+  
 function generate(el){
-let children = genChildren(el); let code = `_c('${el.tag}'${
-el.attrs.length? `,${genProps(el.attrs)}`:'' }${
-children? `,${children}`:'' })`;
+	let children = genChildren(el);
+  let code = `_c('${el.tag}'${el.attrs.length? `,${genProps(el.attrs)}`:'' }${children?`,${children}`:'' })`;
     return code;
 }
 // 根据语法树生成新的代码
@@ -415,7 +451,7 @@ let renderFn = new Function(render); console.log(renderFn.toString());
 
 
 
-#### **9.为什么 和 不能连用**
+#### **9.为什么v-for和v-if不能连用**
 
 ```js
 const VueTemplateCompiler = require('vue-template-compiler');
@@ -438,26 +474,60 @@ v-for 会比 v-if 的优先级高一些,如果连用的话会把 v-if 给每个�
 虚拟节点就是用一个对象来描述真实的 dom 元素
 
 ```js
-function $createElement(tag,data,...children){ let key = data.key;
-delete data.key;
-children = children.map(child=>{
-        if(typeof child === 'object'){
-            return child
-        }else{
-            return vnode(undefined,undefined,undefined,undefined,child)
-} })
-    return vnode(tag,props,key,children);
+function $createElement(tag, data, ...children) {
+  let key = data.key;
+  delete data.key;
+  children = children.map((child) => {
+    if (typeof child === "object") {
+      return child;
+    } else {
+      return vnode(undefined, undefined, undefined, undefined, child);
+    }
+  });
+  return vnode(tag, data, key, children);
 }
 
-export function vnode(tag,data,key,children,text){
-    return {
-    tag, // 表示的是当前的标签名 
-    data, // 表示的是当前标签上的属性 
-    key, // 唯一表示用户可能传递 
+function vnode(tag, data, key, children, text) {
+  return {
+    tag, // 表示的是当前的标签名
+    data, // 表示的是当前标签上的属性
+    key, // 唯一表示用户可能传递
     children,
-		text
-} }
+    text,
+  };
+}
 
+let v = $createElement(
+  "div",
+  { id: "container" },
+  $createElement("p", { key: "test" }, "hellow"),
+  "李白"
+);
+
+console.log(v);
+
+{
+  tag: 'div',
+  data: { id: 'container' },
+  key: undefined,
+  children: [
+    {
+      tag: 'p',
+      data: {},
+      key: 'test',
+      children: [Array],
+      text: undefined
+    },
+    {
+      tag: undefined,
+      data: undefined,
+      key: undefined,
+      children: undefined,
+      text: '李白'
+    }
+  ],
+  text: undefined
+}
 ```
 
 #### **9.** diff**算法的时间复杂度**

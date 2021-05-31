@@ -1,6 +1,6 @@
 # 生成器
 
-##### 什么是thunk函数
+#### 什么是thunk函数
 
 > ```
 > let isString = (obj) => {
@@ -36,14 +36,14 @@
 
 
 
-## 为什么会有生成器
+#### 为什么会有生成器
 
 ```
 它能帮我们解决什么样的问题，可以解决异步代码耗时操作，然后处理完成再继续操作（暂停），不会影响主程序。
 好好利用起来 Promise + Generator 才是最后面解决问题的核心。
 ```
 
-### Generator(生成器)
+#### Generator(生成器)
 
 > Generator函数和普通的函数区别有两个。
 >
@@ -53,7 +53,7 @@
 
 这个如果运行的话，会返回一个Iterator实例， 然后再执行Iterator实例的**next()**方法， 那么这个函数才开始真正运行， 并把yield后面的值**包装成固定对象并返回**，直到运行到函数结尾， 最后再返回**undefined**；  
 
-Generator函数返回的Iterator运行的过程中，如果碰到了yield， 就会把yield后面的值返回， 此时函数相当于停止了， 下次再执行next()方法的时候， 函数又会从上次退出去的地方重新开始执行； 如果后面有return 返回值=yield+return中的返回值 后面的yield不会生效,不能在非Generator函数中使用yield 
+Generator函数返回的Iterator运行的过程中，如果碰到了yield， 就会把yield后面的值返回「表达式」， 此时函数相当于停止了， 下次再执行next()方法的时候 「yield xx 也是表达式」， 函数又会从上次退出去的地方重新开始执行； 如果后面有return 返回值=yield+return中的返回值 后面的yield不会生效,不能在非Generator函数中使用yield 
 
 ```js
 Generator函数返回的Iterator执行next()方法以后， 返回值的结构为 
@@ -94,7 +94,7 @@ console.log(it.next(2)); // 4
 
 ```
 
-### 在看一些例子
+#### 在看一些例子
 
 ```js
 function* foo(x) {
@@ -114,7 +114,7 @@ console.log(b.next(12)) // { value:8, done:false } 当我们的next有参数就�
 console.log(b.next(13)) // { value:42, done:true } 5+24+13 = 42
 ```
 
-### 生成器委托
+#### 生成器委托
 
 > yield*这种语句让我们可以在Generator函数里面再套一个Generator。
 >
@@ -294,4 +294,74 @@ console.log(func());
 从执行的结果可以看出，async 函数 func 最后返回的结果直接是 Promise 对象，比较方便让开发者继续往后处理。而之前 Generator 并不会自动执行，需要通过 next 方法控制，最后返回的也并不是 Promise 对象，而是需要通过 co 函数库来实现最后返回 Promise 对象。
 
 这样看来，ES7 加入的 async/await 的确解决了之前的问题，使开发者在编程过程中更容易理解，语法更清晰，并且也不用再单独引用 co 函数库了。因此用 async/await 写出的代码也更加优雅，相比于之前的 Promise 和 co+Generator 的方式更容易理解，上手成本也更低，不愧是 JS 异步的终极解决方案。
+
+#### 手写async await
+
+```js
+/**
+ * async的执行原理
+ * 其实就是自动执行generator函数
+ * 暂时不考虑genertor的编译步骤（更复杂）
+ */
+
+const getData = () => new Promise(resolve => setTimeout(() => resolve('data'), 1000))
+
+// 这样的一个async函数 应该再1秒后打印data
+// async function test() {
+//   const data = await getData()
+
+//   console.log(data, 'data')
+//   return data
+// }
+
+// console.log(test())
+
+// async函数会被编译成generator函数 (babel会编译成更本质的形态，这里我们直接用generator)
+function* testG() {
+  // await被编译成了yield
+  const data = yield getData()
+  console.log('data: ', data)
+  const data2 = yield getData()
+  console.log('data2: ', data2)
+  return data + '123'
+}
+
+function asyncToGenerator(generatorFunc) {
+  return function() {
+    const gen = generatorFunc.apply(this, arguments)
+
+    return new Promise((resolve, reject) => {
+      function step(key, arg) {
+        let generatorResult
+        try {
+          generatorResult = gen[key](arg)
+        } catch (error) {
+          return reject(error)
+        }
+
+        const { value, done } = generatorResult
+
+        if (done) {
+          return resolve(value)
+        } else {
+          return Promise.resolve(value).then(
+            function onResolve(val) {
+              step('next', val)
+            },
+            function onReject(err) {
+              step('throw', err)
+            }
+          )
+        }
+      }
+      step('next')
+    })
+  }
+}
+
+const testGAsync = asyncToGenerator(testG)
+testGAsync().then(result => {
+  console.log(result)
+})
+```
 

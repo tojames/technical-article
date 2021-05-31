@@ -1,6 +1,8 @@
 /* @flow */
+问题 __ob__ 是哪里来的？有什么用？
 
-import { _Set as Set, isObject } from '../util/index'
+
+import { _Set as Set, isObject } from '../util/index' // 引入Set数据处理结构，和 对象判断方法
 import type { SimpleSet } from '../util/index'
 import VNode from '../vdom/vnode'
 
