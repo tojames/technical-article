@@ -8,7 +8,6 @@
 > - 隐式绑定
 > - 显示绑定
 > - new关键字
->
 
 #### 默认绑定
 
@@ -164,9 +163,9 @@ Function.prototype.bind = function bind(context, ...params) {
 		context == null ? context = window : null;
   	
   	// 将原型挂到新的函数上面
-  	if(this.prototype) {
-      fbound.prototype = Object.create(self.prototype);
-    }
+  	//if(this.prototype) {
+    //  fbound.prototype = Object.create(self.prototype);
+    //}
   
     !/^(object|function)$/i.test(typeof context) ? context = Object(context) : null;
     return function proxy(...args) {
@@ -174,6 +173,21 @@ Function.prototype.bind = function bind(context, ...params) {
         self.apply(context, params.concat(args));
     };
 };
+
+
+Function.prototype.bind = function (context, ...args) {
+    if (typeof this !== "function") {
+      throw new Error("this must be a function");
+    }
+    var self = this;
+    var fbound = function () {
+        self.apply(this instanceof self ? this : context, args.concat(Array.prototype.slice.call(arguments)));
+    }
+    if(this.prototype) {
+      fbound.prototype = Object.create(this.prototype);
+    }
+    return fbound;
+}
 
 // 间接调用了apply，返回一个函数出来，还有注意细节，将原型也要改回去
 
@@ -258,5 +272,26 @@ func(10, 20, 30);
 
 // Q6 
 // 	构造函数继承 前面继承有讲的。那么需要补充的是， Parent.call(this);  其实是执行Parent 然后将Parent的属性添加一份到当前的this上面「不包含prototype的方法和属性」。
+
+
+
+// Q7
+var name = "Hello Word";
+function A(x, y) {
+  var res = x + y;
+  console.log(res, this.name);
+}
+function B(x, y) {
+  var res = x - y;
+  console.log(res, this.name);
+}
+B.call(A,40,30); // 10 A
+B.call.call.call(A, 20, 10); 
+// 第一步：this === B.call.call  context === A
+// 第二步：context.fn = this;context.fn(20,10) === B.call.call(20,10)「单独拿出去会报错」
+// 第三步：this === A context === 20,这里的this是A的原因可能是最外层的this不能更改的原因吧
+// 第四步：context.fn = A; context.fn(10) === 20.A(10)。所以call只要调用了两次以上一定是去调用this这个对象
+Function.prototype.call(A,60,50); // 空函数
+Function.prototype.call.call.call(A,80,70); // 同上
 ```
 
