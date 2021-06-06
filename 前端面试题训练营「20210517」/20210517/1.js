@@ -6,13 +6,14 @@
  */
 var a = {
   n: 1,
-};
-var b = a;
+}
+var b = a
 a.x = a = {
   n: 2,
-};
-console.log(a.x);
-console.log(b);
+}
+console.log(a.x)
+console.log(a)
+console.log(b)
 
 /* // == 比较：两边类型不一样，会进行数据类型转换   对象==数字，把对象转换为数字「Symbol.toPrimitive -> valueOf -> toString -> Number」
 var a = {
