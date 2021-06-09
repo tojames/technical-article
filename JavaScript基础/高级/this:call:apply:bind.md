@@ -1,6 +1,6 @@
 # 关于this
 
-> 我们一开始解释this的时候,肯定会有点困得,就是觉得怎么有时候力不从心,感觉不是真正学会.
+> 我们一开始接触this的时候,肯定会有点迷惑得,就是觉得怎么有时候力不从心,感觉不是真正学会.
 >
 > 分为四个方面,优先级越往下越高
 >
@@ -8,7 +8,6 @@
 > - 隐式绑定
 > - 显示绑定
 > - new关键字
->
 
 #### 默认绑定
 
@@ -52,7 +51,13 @@ myMethod();// 此时myMethod就是foo函数的一个引用,当调用的时候没
 
 #### 显式绑定
 
-显式绑定就是通过我们自己来改变他的this指向,我们通常利用call apply bind 来改变this的指向.这三者的区别不大.call(this,只接收一个个的参数,按照顺序接收),apply(this,[接收一个数组,把参数都放进去]) bind(this,参数和call是一样的,但是区别就是bind只会生成一个新的指向函数,不会去执行,call,apply都会去执行)
+显式绑定就是通过我们自己来改变他的this指向,我们通常利用call apply bind 来改变this的指向.这三者的区别不大。
+
+call(this,只接收一个个的参数,按照顺序接收)
+
+apply(this,[接收一个数组,把参数都放进去]) 
+
+bind(this,参数和call是一样的,但是区别就是bind只会生成一个新的指向函数,不会去执行,call,apply都会去执行)
 
 回到主题
 
@@ -82,7 +87,7 @@ myMethod(); // obj 22
 
 #### new绑定
 
-优先级最高的new绑定.什么时候用到呢?当我们 var foo = new Foo(); 就用到了
+优先级最高的new绑定
 
 - 创建一个全新的对象
 - 新对象指向构造函数调用的原型
@@ -121,7 +126,7 @@ function _new(ctor, ...args) {
     if(typeof ctor !== 'function') {
       throw 'ctor must be a function';
     }
-    let obj = new Object();
+    let obj = {}
     obj.__proto__ = Object.create(ctor.prototype);
     let res = ctor.apply(obj,  [...args]);
 
@@ -157,23 +162,23 @@ Function.prototype.call = function call(context, ...params) {
 //  /i  表示匹配的时候不区分大小写
 // /m 表示多行匹配，什么是多行匹配呢？就是匹配换行符两端的潜在匹配。影响正则中的^$符号
 
-
-Function.prototype.bind = function bind(context, ...params) {
-    // this/self->func  context->obj  params->[10,20]
-    let self = this;
-		context == null ? context = window : null;
-  	
-  	// 将原型挂到新的函数上面
-  	if(this.prototype) {
-      fbound.prototype = Object.create(self.prototype);
-    }
-  
-    !/^(object|function)$/i.test(typeof context) ? context = Object(context) : null;
-    return function proxy(...args) {
-        // 把func执行并且改变this即可  args->是执行proxy的时候可能传递的值
-        self.apply(context, params.concat(args));
-    };
-};
+(function() {
+	var slice = Array.prototype.slice
+	Function.prototype.bind = function() {
+	  var thatFunc = this,
+	   thatArg = arguments[0]
+	  var args = slice.call(arguments, 1)
+	  if (typeof thatFunc !== 'function') {
+	    // closest thing possible to the ECMAScript 5
+     	// internal IsCallable function
+      throw new TypeError('Function.prototype.bind - ' + 'what is trying to be bound is not callable')
+  	}
+    return function() {
+       var funcArgs = args.concat(slice.call(arguments))
+        return thatFunc.apply(thatArg, funcArgs)
+		}
+	}
+})()
 
 // 间接调用了apply，返回一个函数出来，还有注意细节，将原型也要改回去
 
@@ -258,5 +263,70 @@ func(10, 20, 30);
 
 // Q6 
 // 	构造函数继承 前面继承有讲的。那么需要补充的是， Parent.call(this);  其实是执行Parent 然后将Parent的属性添加一份到当前的this上面「不包含prototype的方法和属性」。
+
+
+
+// Q7
+var name = "Hello Word";
+function A(x, y) {
+  var res = x + y;
+  console.log(res, this.name);
+}
+function B(x, y) {
+  var res = x - y;
+  console.log(res, this.name);
+}
+B.call(A,40,30); // 10 A
+B.call.call.call(A, 20, 10); // NaN undefined
+// 第一步：this === B.call.call  context === A
+// 第二步：context.fn = this;context.fn(20,10) === B.call.call(20,10)「单独拿出去会报错」
+// 第三步：this === A context === 20,这里的this是A的原因可能是最外层的this不能更改的原因吧
+// 第四步：context.fn = A; context.fn(10) === 20.A(10)。所以call只要调用了两次以上一定是去调用this这个对象
+Function.prototype.call(A,60,50); // 空函数，不打印
+Function.prototype.call.call.call(A,80,70); // 同上
+
+
+// Q8
+let obj = {
+  a: 1,
+  f () {
+    return this.a
+  }
+}
+const r = obj.f.bind({ a: 2 }).bind({ a: 3 }).call({ a: 4 })
+console.log(r)
+
+
+(function() {
+	var slice = Array.prototype.slice
+	Function.prototype.bind = function() {
+	  var thatFunc = this,
+	    thatArg = arguments[0]
+	  var args = slice.call(arguments, 1)
+	  if (typeof thatFunc !== 'function') {
+	    throw new TypeError('Function.prototype.bind - ' + 'what is trying to be bound is not callable')
+    }
+    return function() {
+      var funcArgs = args.concat(slice.call(arguments))
+      return thatFunc.apply(thatArg, funcArgs)
+    }
+  }
+})()
+
+let obj = {
+  a: 1,
+  f() {
+    return this.a
+  }
+}
+// 复制上面的代码 自己断点
+const r = obj.f.bind({ a: 2 }) // 第一步： 形成了一个闭包，保存在内存中 this指向是{a:2}的闭包
+
+let r2 = r.bind({ a: 3 }) // 第二步：形成了一个闭包，保存在内存中，和第一个闭包不一样的，this指向是{a:3}的闭包 
+// 又由于 r 里面是一个闭包，神奇之处就在此，所以返回出去的还是第一步中的闭包
+
+let r3 = r.call({ a: 4 }) // 调用第二步返回的闭包函数，就打印了。
+      
+console.log(r3)
 ```
 
