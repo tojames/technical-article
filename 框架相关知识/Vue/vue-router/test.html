@@ -1,0 +1,48 @@
+<html>
+  <head>
+    <title></title>
+
+    <meta charset="utf-8" />
+
+    <meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no" />
+
+    <style></style>
+  </head>
+
+  <body>
+    <!-- <a href="#/a">/a</a>
+    <a href="#/b">/b</a>
+    <br /> -->
+
+    <a onclick="goToA()">/a</a>
+    <a onclick="goToB()">/b</a>
+
+    <div id="app"></div>
+
+    <script>
+      // hash模式 利用的是hashchange的方法
+      // const app = document.getElementById("app")
+      // let fn = function () {
+      //   app.innerHTML = window.location.hash
+      // }
+      // fn()
+      // window.addEventListener("hashchange", fn)
+
+      // history模式
+      let fn2 = function () {
+        app.innerHTML = window.location.pathname
+      }
+      function goToA() {
+        console.log("AAA")
+        history.pushState({}, null, "/a")
+        fn2()
+      }
+      function goToB() {
+        console.log("BBB")
+        history.pushState({}, null, "/b")
+        fn2()
+      }
+      window.addEventListener("popstate", fn2)
+    </script>
+  </body>
+</html>
