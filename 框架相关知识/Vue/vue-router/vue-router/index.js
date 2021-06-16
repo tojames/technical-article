@@ -49,6 +49,11 @@ export default class VueRouter {
     console.log(app, "app")
   }
 
+  push(to) {
+    this.history.push(to) // 跳转路由
+  }
+  go() {}
+
   // 匹配路由的方法
   match(location) {
     return this.matcher.match(location)

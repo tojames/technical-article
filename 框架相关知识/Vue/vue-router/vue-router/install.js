@@ -1,5 +1,5 @@
-// import link from "./components/link"
-// import view from "./components/view"
+import link from "./components/link"
+import view from "./components/view"
 // 提供给其他组件使用
 export let _Vue
 let install = function (Vue, options) {
@@ -27,15 +27,21 @@ let install = function (Vue, options) {
   })
 
   // 需要挂载全局组件
-  Vue.component("router-link", {
-    render: (h) => h("h1", {}, "link"),
-  })
-  Vue.component("router-view", {
-    render: (h) => h("h1", {}, "view"),
-  })
+  Vue.component("router-link", link)
+  Vue.component("router-view", view)
   // 接着需要挂载全局属性
-  Vue.prototype.$router = {} // 路由实例对象「属性及方法」
-  Vue.prototype.$route = {} // 路由对象「属性」
+
+  Object.defineProperty(Vue.prototype, "$route", {
+    get() {
+      return this._routerRoot._route // 路由对象「属性」
+    },
+  })
+
+  Object.defineProperty(Vue.prototype, "$router", {
+    get() {
+      return this._routerRoot._router
+    }, //  路由实例对象「属性及方法」
+  })
 }
 
 export default install

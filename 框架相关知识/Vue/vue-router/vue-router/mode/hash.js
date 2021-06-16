@@ -16,6 +16,12 @@ export default class HashHistory extends History {
       this.transitionTo(getHash())
     })
   }
+  push(location) {
+    this.transitionTo(location, () => {
+      // 去更新hash值，hash虽然变化，代码有拦截，不会重复变化。
+      window.location.hash = location
+    })
+  }
 }
 
 function getHash() {
