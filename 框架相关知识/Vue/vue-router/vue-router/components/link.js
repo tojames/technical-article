@@ -12,13 +12,13 @@ export default {
   },
   methods: {
     handler(to) {
-      console.log(this.$router, "this")
-      this.$router.push(to)
+      console.log(this, "this");
+      this.$router.push(to);
     },
   },
   render() {
-    let { tag, to } = this
+    let { tag, to } = this;
     // jsx 语法
-    return <tag onClick={this.handler.bind(this, to)}>{this.$slots.default}</tag>
+    return <tag onClick={this.handler.bind(this, to)}>{this.$slots.default}</tag>;
   },
-}
+};

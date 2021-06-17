@@ -1,6 +1,6 @@
-import Vue from "vue"
-import VueRouter from "../vue-router/index"
-Vue.use(VueRouter)
+import Vue from "vue";
+import VueRouter from "../vue-router/index";
+Vue.use(VueRouter);
 
 export const constantRouterMap = [
   {
@@ -27,7 +27,7 @@ export const constantRouterMap = [
       },
     ],
   },
-]
+];
 
 const router = new VueRouter({
   // mode: 'history', // 如果你是 history模式 需要配置vue.config.js publicPath
@@ -35,11 +35,11 @@ const router = new VueRouter({
   // base: process.env.BASE_URL,
   scrollBehavior: () => ({ y: 0 }),
   routes: constantRouterMap,
-})
+});
 
-router.matcher.addRoutes([{ path: "/auth", component: { render: (h) => h("auth") } }])
+router.matcher.addRoutes([{ path: "/auth", component: { render: (h) => h("auth") } }]);
 
-export default router
+export default router;
 
 // // Detail see: https://github.com/vuejs/vue-router/issues/1234#issuecomment-357941465
 // // 权限   动态路由 修改的时候 需要调用该方法  重置路由
@@ -49,23 +49,21 @@ export default router
 // }
 
 // // 1  路由守卫  进入页面之前
-// router.beforeEach((to, from, next) => {
-//   // 1 填写 页面标题
-//   // document.title = to.meta.title
-//   // 2 记录页面路由
-//   dealWithRoute(from, to)
-//   // 3 校验token  跳转路由
-//   if (to.meta.needLogin && !localStorage.token) {
-//     next({
-//       path: 'login',
-//       query: {
-//         redirect: to.fullPath
-//       }
-//     })
-//   } else {
-//     next()
-//   }
-// })
+router.beforeEach((to, from, next) => {
+  console.log("router.beforeEach");
+  setTimeout(() => {
+    // 迭代器，next执行完毕
+    next();
+  }, 1000);
+});
+
+router.afterEach((to, from, next) => {
+  console.log("router.afterEach");
+  setTimeout(() => {
+    // 迭代器，next执行完毕
+    next();
+  }, 1000);
+});
 
 // // 2  路由守卫
 // router.afterEach(route => {
