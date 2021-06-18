@@ -2,33 +2,22 @@ import Vue from "vue";
 import VueRouter from "../vue-router/index";
 Vue.use(VueRouter);
 
-export const constantRouterMap = [
+const constantRouterMap = [
   {
-    path: "/",
+    path: "/home",
+    component: () => import("../views/home"),
+  },
+  {
+    path: "/layout",
     component: () => import("../views/layouts/index"),
-    redirect: "/home",
-    meta: {
-      title: "首页",
-      keepAlive: false,
-      needLogin: false,
-    },
     children: [
       {
-        path: "/home",
-        name: "Home",
-        component: () => import("../views/home"),
-        meta: { title: "首页", keepAlive: false, tabbarShow: true },
-      },
-      {
         path: "/about",
-        name: "Home",
         component: () => import("../views/about"),
-        meta: { title: "关于我", keepAlive: false },
       },
     ],
   },
 ];
-
 const router = new VueRouter({
   // mode: 'history', // 如果你是 history模式 需要配置vue.config.js publicPath
   mode: "hash",

@@ -3,10 +3,16 @@ import createMatcher from "./create-matcher";
 import HashHistory from "./mode/hash";
 import BrowserHistory from "./mode/history";
 
+/* 
+1. 根据Vue的特性， Vue提供一个install方法，我们只需通过Vue.use(xxx).
+  所以在install中，注册全局组件 link view，暴露$router $route,将vue传进来
+  在 beforeCreate 生命周期，为每个组件添加_routerRoot，并在根组件在加载的时候初始化操作,然后将当前的匹配的路由做成响应式
+ */
+
 export default class VueRouter {
   // options 接收所有的参数，比如mode route
   constructor(options) {
-    console.log(options, "options");
+    // console.log(options, "options");
     // console.log(this, "this")
 
     // 创建匹配器

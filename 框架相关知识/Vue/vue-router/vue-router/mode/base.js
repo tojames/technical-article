@@ -10,6 +10,7 @@ class History {
       path: "/",
     });
 
+    // console.log(this.current, "this.current");
     this.router.match();
   }
   listen(cb) {
@@ -25,7 +26,7 @@ class History {
     if (location == this.current.path && route.matched.length == this.current.matched.length) return; // 防止重复跳转
 
     // 在更新之前先调用注册好导航守卫
-    let queue = [].concat(this.router.beforeHooks);
+    let queue = [].concat(this.router.beforeHooks, this.router.afterHooks);
 
     const iterator = (hook, next) => {
       hook(this.current, route, () => {
@@ -33,7 +34,7 @@ class History {
       });
     };
 
-    // runQueue的作用经常被问
+    // runQueue的作用 经常被问
     runQueue(queue, iterator, () => {
       // 更新路由
       this.updateRoute(route);

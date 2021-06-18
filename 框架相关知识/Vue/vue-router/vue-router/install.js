@@ -9,18 +9,17 @@ let install = function (Vue) {
   Vue.mixin({
     beforeCreate() {
       // 这个是根组件
+      console.log(this.$options.router, "this.$options.router");
       if (this.$options.router) {
         this._routerRoot = this; // this指向当前组件的实例
-        this._router = this.$options.router; // 注入的router
-        console.log(this._router, "this._router");
-        // 在当前根组件进行初始化
-
-        this._router.init(this); // this-->根实例「根组件」
-        // 将current属性定义在_route上，并且是响应式
-        Vue.util.defineReactive(this, "_route", this._router.history.current);
-        console.log(this.route, "route");
+        this._router = this.$options.router; // 注入的router,也就是VueRouter实例
+        this._router.init(this); //在当前根组件进行初始化 调用VueRouter实例原型上面的init方法
+        // console.log(this._router.history, "this._router.history");
+        Vue.util.defineReactive(this, "_route", this._router.history.current); // 将current属性定义在_route上，并且是响应式
       } else {
+        // console.log(this.$parent && this.$parent._routerRoot, "this.$parent && this.$parent._routerRoot");
         // 组件渲染是一层层渲染的，到这里的都是子组件
+
         this._routerRoot = this.$parent && this.$parent._routerRoot;
       }
     },
@@ -36,6 +35,8 @@ let install = function (Vue) {
 
   Object.defineProperty(Vue.prototype, "$router", {
     get() {
+      console.log(this._routerRoot._router, "this._routerRoot._router");
+      // console.log(this._routerRoot._route, "this._routerRoot._route");
       return this._routerRoot._router;
     }, //  路由实例对象「属性及方法」
   });
