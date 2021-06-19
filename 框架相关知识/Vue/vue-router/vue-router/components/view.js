@@ -20,8 +20,8 @@ export default {
     }
 
     // 第一层router-view 渲染第一个record 第二个router-view 渲染第二个
-    // console.log(route, "route1111");
     let record = route.matched[depth];
+    console.log(record, depth, "record1111");
     if (!record) {
       return h(); // 空的虚拟节点  注释节点
     }

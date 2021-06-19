@@ -38,22 +38,17 @@ export default class VueRouter {
     // 监听hash值变化，默认跳转到对应的路径上
     const history = this.history;
 
-    const setUpHashListener = () => {
-      history.setUpHashListener(); // 监听路由变化，hashchange
-    };
     // 获取hash值，并且监听hash变化
     history.transitionTo(
       history.getCurrentLocation(), // 获取当前的位置
-      setUpHashListener
+      () => {
+        history.setUpHashListener(); // 监听路由变化，hashchange
+      }
     );
 
     history.listen((route) => {
-      app._router = route;
+      app._route = route;
     });
-
-    // setUpHashListener 放hash里
-    // transitionTo  放base
-    // getCurrentLocation 放到history 和 hash  window.location.hash  window.location.path
   }
 
   push(to) {

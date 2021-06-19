@@ -5,9 +5,12 @@ export default function createMatcher(routes) {
   // console.log(routes, "routes")
   let { pathMap } = createRouteMap(routes); // 扁平化配置
 
+  // 动态新增路由
   const addRoutes = function (routes) {
     createRouteMap(routes, pathMap);
   };
+
+  // 匹配路由
   const match = function (location) {
     // 找到之后还需要找到父级的，通过while
     let record = pathMap[location];

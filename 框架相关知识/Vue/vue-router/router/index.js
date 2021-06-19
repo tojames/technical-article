@@ -4,7 +4,7 @@ Vue.use(VueRouter);
 
 const constantRouterMap = [
   {
-    path: "/home",
+    path: "/",
     component: () => import("../views/home"),
   },
   {

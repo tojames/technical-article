@@ -13,6 +13,8 @@ class History {
     // console.log(this.current, "this.current");
     this.router.match();
   }
+
+  // 记录回调函数
   listen(cb) {
     this.cb = cb;
   }
@@ -21,7 +23,6 @@ class History {
     // console.log(location, "location")
     // 这个route 就是当前最新的匹配结果
     let route = this.router.match(location); // {"/",matched:[]}
-    // console.log(route, "route")
 
     if (location == this.current.path && route.matched.length == this.current.matched.length) return; // 防止重复跳转
 
