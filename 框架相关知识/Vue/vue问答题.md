@@ -1,13 +1,13 @@
 # vue问答题 基于element-ui
 
-**1.style加scoped属性的用途和原理**
+## 1.style加scoped属性的用途和原理
 
 ```
 用途：防止全局同名CSS污染
 原理：在标签加上v-data-something属性，再在选择器时加上对应[v-data-something]，即CSS带属性选择器，以此完成类似作用域的选择方式
 ```
 
-**2.怎么重置数据**
+## **2.怎么重置数据**
 
 ```
 1.逐个赋值
@@ -18,7 +18,7 @@
 重置from表单的数据 this.$refs[formName].resetFields();
 ```
 
-**3.vue组件之间的通信都有哪些**
+## **3.vue组件之间的通信都有哪些**
 
 ```
 父子Coms
@@ -34,7 +34,7 @@
 7.( $attrs/$listeners )
 ```
 
-**4.你对指令的理解**
+## **4.你对指令的理解**
 
 ```
 1.创建编译模板的compile对象
@@ -47,13 +47,13 @@
 主要是给我们方便对dom操作
 ```
 
-**5.$nextTick有什么作用**
+## **5.$nextTick有什么作用**
 
 ```
 在dom更新后做一些操作。
 ```
 
-**6.vue渲染模板时怎么保留模板中的HTML注释**
+## **6.vue渲染模板时怎么保留模板中的HTML注释**
 
 ```html
 <template comments>
@@ -61,14 +61,14 @@
 </template>
 ```
 
-**7.vue中key的原理**
+## **7.vue中key的原理**
 
 ```
 diff算法，根据key的值来判断。
 作用的话，便于diff算法的更新，key的唯一性，能让算法更快的找到需要更新的dom，需要注意的是，key要唯一，不然会出现很隐蔽性的更新问题。
 ```
 
-**10.在vue事件中传入$event，使用e.target和e.currentTarget有什么区别**
+## **8.在vue事件中传入$event，使用e.target和e.currentTarget有什么区别**
 
 ```
 e.currentTarget：指向事件所绑定的元素，所以一直不变。
@@ -79,7 +79,7 @@ e.target：始终指向事件发生时的元素，会变。
 2.当我们点击 子元素时，e.currentTarget ===  父级，e.target === 所点击的元素
 ```
 
-**11.vue怎么实现强制刷新组件**
+## **9.vue怎么实现强制刷新组件**
 
 ```
 1.如果要在组件内部中进行强制刷新
@@ -87,16 +87,17 @@ e.target：始终指向事件发生时的元素，会变。
 2.如果是刷新某个子组件
 利用v-if指令的特性
 3.当组件的key 值变更时，会自动的重新渲染
+4.如果上面的办法都没有效果，可以考虑使用watch
 ```
 
-**12.你理解keep-alive吗**
+## **10.你理解keep-alive吗**
 
 ```
 抽象组件 它们不向DOM呈现任何内容。他们只是添加额外的行为。
 Props：
 include - 字符串或正则表达式。只有名称匹配的组件名字（name属性）会被缓存。
 exclude - 字符串或正则表达式。任何名称匹配的组件名字（name属性）组件都不会被缓存。
-max - 数字。最多可以缓存多少组件实例。
+max - 数字。最多可以缓存多少组件实例，使用LRU算法进行优化，当超出max会把很久没有使用的组件进行销毁。
 
 <keep-alive>是Vue的内置组件，能在组件切换过程中将状态保留在内存中，防止重复渲染DOM。
 <keep-alive> 包裹动态组件时，会缓存不活动的组件实例，而不是销毁它们。
@@ -106,20 +107,14 @@ max - 数字。最多可以缓存多少组件实例。
 当我们使用抽象组件keep-alive的时候，页面第一次进入，钩子的触发顺序created-> mounted-> activated，退出时触发deactivated。当再次进入（前进或者后退）时，只触发activated。
 ```
 
-**13.v-model原理**
-
-```
-
-```
-
-**14.计算属性，函数名和data数据源中的数据可以同名吗**
+## **11.计算属性，函数名和data数据源中的数据可以同名吗**
 
 ```
 可以同名，但data会覆盖methods。并且本就不该同名，同名说明你命名不规范。
 然后解释为什么会覆盖，因为Props、methods、data、computed、watch都是在initState函数中被初始化的。初始化顺序就是我上面给出的顺序，本质上这些都是要挂载到this上面的，你如果重名的话，后面出现的属性自然而然会覆盖之前挂载的属性了。如果你的eslint配置比较严格的话，同名是编译不通过的。
 ```
 
-**15.怎么给vue定义全局的方法**
+## **12.怎么给vue定义全局的方法**
 
 ```
 1、通过prototype，这个非常方便。Vue.prototype[method]=method;
@@ -127,15 +122,15 @@ max - 数字。最多可以缓存多少组件实例。
 3、通过mixin，Vue.mixin(mixins);
 ```
 
-**16.vue的:class和:style有几种表示方式**
+## **13.vue的:class和:style有几种表示方式**
 
 ```
 :class 绑定变量 绑定对象 绑定一个数组 绑定三元表达式
 :style 绑定变量 绑定对象 绑定函数返回值 绑定三元表达式
 
 以class举例
-绑定变量 <div :class="{classA:a , classB: b,...}"/></div>
-绑定对象 <div :class="test"></div>
+绑定对象 <div :class="{classA:a , classB: b,...}"/></div>
+绑定变量 <div :class="test"></div>
 绑定一个数组 <div :class="[test1,test2]"></div>
 绑定三元表达式 <div :class="true?'signSpanChange':'signSpan'" ></div>
 new Vue({
@@ -155,15 +150,15 @@ new Vue({
 })
 ```
 
-**17.组件中写name选项有什么作用**
+## **14.组件中写name选项有什么作用**
 
 ```
-项目使用keep-alive时，可搭配组件name进行缓存过滤
-DOM做递归组件时需要调用自身name
-vue-devtools调试工具里显示的组见名称是由vue中组件name决定的
+1.项目使用keep-alive时，可搭配组件name进行缓存过滤
+2.DOM做递归组件时需要调用自身name
+3.vue-devtools调试工具里显示的组见名称是由vue中组件name决定的
 ```
 
-**18.对动态组件&&异步组件的理解**
+## **15.对动态组件&&异步组件的理解**
 
 ```js
 让多个组件使用同一个挂载点，并动态切换，这就是动态组件。
@@ -190,7 +185,7 @@ const AsyncComponent = () => ({
 })
 ```
 
-**19.prop验证的type类型有哪几种**
+## **16.prop验证的type类型有哪几种**
 
 ```
 title:String,
@@ -215,7 +210,7 @@ propF: {
 }
 ```
 
-**21.说说你对vue组件的设计原则的理解**
+## **17.说说你对vue组件的设计原则的理解**
 
 ```
 第一: 命名要通俗易懂, 代码即注释。
@@ -230,19 +225,9 @@ propF: {
 第十: 有详细的文档/注释和变更历史, 能查到来龙去脉, 新版本加了什么功能是因为什么。
 ```
 
-**22.diff算法的理解**
 
-```
 
-```
-
-**23.vue如何优化首页的加载速度**
-
-```
-
-```
-
-**24.vue能监听到数组变化的方法有哪些？为什么这些方法能监听到呢？**
+## **18.vue能监听到数组变化的方法有哪些？为什么这些方法能监听到呢？**
 
 ```
 7个方法（ 'push','pop','shift','unshift','splice','reverse','sort'）进行重新包装，
@@ -251,14 +236,14 @@ propF: {
 因为不应该过多地去影响全局
 ```
 
-**25.表单修饰符和事件修饰符以及用途**
+## **19.表单修饰符和事件修饰符以及用途**
 
 ```
 事件修饰符.stop .prevent .capture .self .once .passive
 表单修饰符.number .lazy .trim
 ```
 
-**26.用vue怎么实现一个换肤的功能**
+## **20.用vue怎么实现一个换肤的功能**
 
 ```
 方法一。
@@ -272,15 +257,61 @@ propF: {
 预先配置好主题，通过切换主题即可。也可以模仿上面的操作，也可以使用 gulp-css-wrap
 ```
 
-**28.vue性能优化**
+## **21.vue性能优化**
 
 ```
 https://juejin.im/post/6844903913410314247
 ```
 
-**29.vue编程规范**
+## **22.vue编程规范**
 
 ```
 https://juejin.im/post/6844903652096770055
+```
+
+
+
+## **23.vue如何优化首页的加载速度**
+
+```
+FP (First Paint) 首次绘制: 标记浏览器渲染任何在视觉上不同于导航前屏幕内容之内容的时间点.
+FCP (First Contentful Paint) 首次内容绘制 标记浏览器渲染来自 DOM 第一位内容的时间点，该内容可能是文本、图像、SVG 甚至 元素.
+FMP(First Meaningful Paint) 首次有效绘制: 例如，在 YouTube 观看页面上，主视频就是主角元素. 看这个csdn的网站不是很明显, 这几个都成一个时间线了, 截个weibo的看下. 下面的示例图可以看到, 微博的博文是主要元素.
+
+减少请求的次数
+1.请求合并：将同一时间需要的js合并，目的是节省dns查找的时间
+2.按需加载---（1）单页应用下的按照路由的需要加载 （2）缓存
+3.css sprite base64 iconfont
+4.cdn托管
+5.延迟加载：图片的延迟加载：（就是先不设置img的src属性，等合适的时机（比如滚动、滑动、出现在视窗内等）再把图片真实url放到img的src属性上。） js的延迟加载：
+
+减少代码量
+1.精简代码（tree-shaking）----(1)去除无用的代码 (2)规范些代码的方式 (3)外部cdn的引入
+2.懒加载 ---（1）路由的懒加载
+3.压缩 ---（1）webpack 压缩UglifyJsPlugin；（2）gzip压缩 (3)图片压缩、JPG优化
+4.缓存http代码：---浏览器的强缓存（max-age Etag）和协商(弱)缓存（last-modified）
+5.第三方组件---第三方组件作为外部依赖使用，会被打爆进业务代码。
+6.按需加载 --- （1）第三方库和工具的按需加载，如echarts （2）选择更优的工具 day.js代替moment （3）可用代码拆分（Code-splitting）只传送用户需要的代
+
+减少内存的消耗
+1.减少全局变量；
+2.减少全局组件；
+3.减少dom操作， 减少DOM访问，使用事件代理
+
+webpack
+1.遇到webpack打包性能问题，先去npm run build --report，然后根据分析结果来做相应的优化，谁占体积大就干谁
+2.webpack提供的externals可以配合外部资源CDN轻松大幅度减少打包体积，尤其对于echarts、jQuery、lodash这种库来说
+3.代码拆分
+
+JS 层面细细展开
+只传送用户需要的代码。可用代码拆分（Code-splitting）。
+优化压缩代码（ES5的Uglify，ES2015的babel-minify或者uglify-es）
+高度压缩（用Brotli~q11，Zopfli或gzip）。Brotli的压缩比优于gzip。它可以帮CertSimple节省17%的压缩JS的字节大小，以及帮LinkedIn减少4%的加载时间。
+移除无用的代码。用 Chrome DevTools代码覆盖率功能来查找未使用的JS代码。对于精简代码，可参阅tree-shaking， Closure Compiler的高端模式（advanced optimizations）和类似于 lodash-babel-plugin的微调库插件，或者像Moment.js这类库的Webpack的ContextReplacementPlugin。用babel-preset-env & browserlist来避免现代浏览器中已有的转译（transpiling）功能。高级开发人员可能会发现仔细分析Webpack打包（bundle）有助于他们识别和调整不必要的依赖关系。
+缓存HTTP代码 来减少网络传输量。确定脚本最佳的缓存时间（例如：max-age）和提供验证令牌（Etag）来避免传送无变化的字节。用Service Worker缓存一方面可以让应用程序网络更加灵活，另一方面也可以让你能够快速访问像V8代码缓存这样的功能。长期缓存可以去了解下Webpack带哈希值文件名（filename hashing）。
+
+
+其他
+1.预加载：preload（在主渲染前进行预加载） 和prefetch（利用空闲时间）,可用webpackde PreLoadWebpackPlugin插件
 ```
 
