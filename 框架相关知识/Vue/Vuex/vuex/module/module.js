@@ -22,6 +22,7 @@ export default class Module {
   }
   forEachAction(fn) {
     if (this._raw.actions) {
+      // console.log(this._raw.actions, "this._raw.actions");
       forEachValue(this._raw.actions, fn);
     }
   }
