@@ -1,37 +1,48 @@
-import { forEachValue } from "../utils";
-import Module from "./module";
+import { forEachValue } from "../utils"
+import Module from "./module"
 
 export default class ModuleCollection {
   constructor(options) {
     // 递归处理数据
 
-    this.register([], options); // statck = [根，子，孙]
+    this.register([], options) // statck = [根，子，孙]
   }
+  // 获取命名空间前缀
+  getNamespaced(path) {
+    let root = this.root // 从根模块找
+    return path.reduce((str, key) => {
+      root = root.getChild(key) //  不停去找当前模块
+      return str + (root.namespaced ? key + "/" : "")
+    }, "")
+  }
+
   register(path, rootModule) {
-    // 格式化的结果
-    let newModule = new Module(rootModule);
+    // 格式化的结果，返回一个实例处理并且将方法带出来
+    let newModule = new Module(rootModule)
 
     if (path.length === 0) {
       // 根模块
-      this.root = newModule;
+      this.root = newModule
     } else {
       // path.slice(0,-1) 把自己排除，找爷爷 爸爸
-      let patent = path.slice(0, -1).reduce((memo, current) => {
+      // console.log(path, "path.slice(0, -1)")
+      let parent = path.slice(0, -1).reduce((memo, current) => {
         // return memo._children[current];
-        return memo.getChild[current];
-      }, this.root);
+        return memo.getChild(current)
+      }, this.root)
 
-      newModule.addChild(path[path.length - 1], newModule);
+      parent.addChild(path[path.length - 1], newModule)
       // patent._children[path[path.length - 1]] = newModule;
-      console.log(patent, "patent");
+      // console.log(parent, "parent")
+      // console.log(parent, "path[path.length - 1]")
     }
 
     if (rootModule.modules) {
       forEachValue(rootModule.modules, (module, moduleName) => {
         // [a]
         // [b]
-        this.register([...path, ...moduleName], module);
-      });
+        this.register([...path, ...moduleName], module)
+      })
     }
   }
 }

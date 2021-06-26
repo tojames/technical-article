@@ -1,10 +1,10 @@
-import Vue from "vue";
-import Vuex from "../vuex/index";
+import Vue from "vue"
+import Vuex from "../vuex/index"
 // import Vuex from "vuex";
-import a from "./a";
-import b from "./b";
+import a from "./a"
+import b from "./b"
 
-Vue.use(Vuex);
+Vue.use(Vuex)
 
 const store = new Vuex.Store({
   namespaced: true,
@@ -15,13 +15,13 @@ const store = new Vuex.Store({
 
   getters: {
     myAge(state) {
-      return state.age;
+      return state.age
     },
   },
   mutations: {
     // 在没有namespace 合并 mutations
     changeAge(state, proload) {
-      state.age += proload;
+      state.age += proload
     },
   },
 
@@ -29,8 +29,14 @@ const store = new Vuex.Store({
     // 在没有namespace 合并 actions
     changeAge({ commit }, payload) {
       setTimeout(() => {
-        commit("changeAge", payload);
-      }, 1000);
+        commit("changeAge", payload)
+      }, 1000)
+    },
+
+    changeAge2({ commit }, payload) {
+      setTimeout(() => {
+        commit("changeAge", payload)
+      }, 1000)
     },
   },
 
@@ -39,6 +45,6 @@ const store = new Vuex.Store({
     a,
     b,
   },
-});
+})
 
-export default store;
+export default store
