@@ -115,6 +115,8 @@ function resetStoreVM(store, state) {
       return fn()
     }
 
+    // 给store.getters 附加一个key属性，并它会触发上面的computed，从而实现缓存，
+    // 意思就是只要template中使用了key了getter 第一次就会触发computed进行缓存起来
     Object.defineProperty(store.getters, key, {
       get: () => store._vm[key],
     })
