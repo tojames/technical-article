@@ -6,20 +6,20 @@ export default {
 
   getters: {
     myAge(state) {
-      return state.age;
+      return state.age
     },
   },
   mutations: {
     changeAge(state, proload) {
-      state.age += proload;
+      state.age += proload
     },
   },
 
   actions: {
     changeAge({ commit }, payload) {
       setTimeout(() => {
-        commit("changeAge", payload);
-      }, 1000);
+        commit("a/c/changeAge", payload)
+      }, 1000)
     },
   },
-};
+}
