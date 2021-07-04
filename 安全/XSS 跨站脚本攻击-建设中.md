@@ -1,4 +1,4 @@
-# XSS「」
+# XSS「Cross Site Script」
 
 > chrome 发现路径存在异常，会有xss屏蔽功能
 >
