@@ -9,28 +9,30 @@
 > ```jsx
 > 
 > watch: {
-> // 第一种方式
->  watchProps(newVal, oldVal) {
->    this.xx = "111";
->    // dosomething
->  },
+> 	// 第一种方式
+> 	watchProps(newVal, oldVal) {
+> 		this.xx = "111";
+> 		// dosomething
+> },
+>   
 > // 第二种方式，可以兼容 'watchProps.xx.yy' 以前不懂的时候一直通过 computer 把属性返回出来 
 > // 看了同事代码才幡然醒悟。😭😭
->  'watchProps':{
->    handler(newVal, oldVal) {
->        this.xx = "111";
->    		// dosomething
->    },
->     immediate: true, // 立即监听
->     	deep:true // 深度监听
->  }
+> 'watchProps':{
+> 		handler(newVal, oldVal) {
+>     	this.xx = "111";
+> 			// dosomething
+> 	},
+>  	immediate: true, // 立即监听
+>  	deep:true // 深度监听
+> }
+>   
 > } 
 > // 第三种方式 ,var vm = new Vue({})
 > vm.$watch('a.b.c',(newVal,oldVal)=>{
->   	// dosomething
+> 	// dosomething
 > },{
->   deep:true,
->   immediate:truem
+> deep:true,
+> immediate:truem
 > })
 > 
 > deep,immediate 非必传。
