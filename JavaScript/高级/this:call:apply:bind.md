@@ -130,9 +130,10 @@ function _new(ctor, ...args) {
     }
     let obj = {}
     obj.__proto__ = Object.create(ctor.prototype);
+    obj.__proto__.constructor = constructor // 为了让和new基本一致，
     let res = ctor.apply(obj,  [...args]);
 
-    let isObject = typeof res === 'object' && typeof res !== null;
+    let isObject = typeof res === 'object' &&  res !== null;
     let isFunction = typeof res === 'function';
     return isObject || isFunction ? res : obj;
 };
