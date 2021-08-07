@@ -143,6 +143,10 @@ function _new(ctor, ...args) {
 
 由于 apply 和 call 基本原理是差不多的，只是参数存在区别，因此我们将这两个的实现方法放在一起讲。
 
+call是单个参数按照顺序进行一个个放在函数调用里面
+
+apply是一个数组
+
 ```js
 Function.prototype.call = function call(context, ...params) {
   let self = this,
