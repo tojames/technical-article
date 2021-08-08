@@ -189,40 +189,78 @@ axios.all([getUserAccount(), getUserPermissions()])
 可以根据create创建一个实例出来，然后根据自己的需求进行配置
 ```
 
+##### 限制并发数量
+
+```js
+1、解决方案一 使用 https://www.npmjs.com/package/asyncpool
+
+2、手写解决方案
+
+const delay = function delay(interval) {
+    return new Promise((resolve, reject) => {
+        setTimeout(() => {
+            resolve(interval);
+        }, interval);
+    });
+};
+let tasks = [() => {
+    return delay(1000);
+}, () => {
+    return delay(1003);
+}, () => {
+    return delay(1005);
+}, () => {
+    return delay(1002);
+}, () => {
+    return delay(1004);
+}, () => {
+    return delay(1006);
+}];
+
+/*
+ * JS实现Ajax并发请求控制的两大解决方案
+ */
+// tasks：数组，数组包含很多方法，每一个方法执行就是发送一个请求「基于Promise管理」
+
+function createRequest(tasks, pool) {
+    pool = pool || 5;
+    let results = [],
+        together = new Array(pool).fill(null),
+        index = 0;
+
+    // 并发数组，通过promise
+    together = together.map(() => {
+        return new Promise((resolve, reject) => {
+            const run = function run() {
+              // 没有更多任务了，返回出去
+                if (index >= tasks.length) {
+                    resolve();
+                    return;
+                };
+                let old_index = index,
+                    task = tasks[index++];
+                task().then(result => {
+                    results[old_index] = result;
+                    run();
+                }).catch(reason => {
+                    reject(reason);
+                });
+            };
+            run();
+        });
+    });
+    return Promise.all(together).then(() => results);
+} 
 
 
-### 4.跨域
+createRequest(tasks, 2).then(results => {
+    // 都成功，整体才是成功，按顺序存储结果
+    console.log('成功-->', results);
+}).catch(reason => {
+    // 只要有也给失败，整体就是失败
+    console.log('失败-->', reason);
+});
 
-> 同源策略是浏览器的一种安全策略（就是数据返回来了，给你报了一份跨域的错，其实他这样的目的就是为了安全。），所谓同源是指**域名**，**协议**，**端口**完全相同，只有同源的地址才可以相互通过 AJAX 的方式请求。
->
-> 同源或者不同源说的是两个地址之间的关系，不同源地址之间请求我们称之为**跨域请求**
-
-解决方案：
-
-#### 4.1 JSONP
 
 ```
-<script src="url?callback=foo"></script>
-script为什么可以解决跨域的，就是因为他可以解决请求到这个url上面的文件，至于为什么他能去到服务器拿到这个东西，不得而知。实践证明就是他可以解决跨域。然后请求完文件之后还会去执行一下，这个动作就可以在js里面拿到数据了。
 
-```
-
-#### 4.1.2 JQuery对jsonp的支持
-
-```
-其实jquery对jsonp这种通过script请求的方式进行的封装，请求方式也是把dataType改为jsonp就可以了。
-```
-
-#### 4.2 CORS
-
-Cross Origin Resource Share，跨域资源共享
-
-```
-这个是后端来做的。那么前端不需要干任何事情
-```
-
-#### 4.3 服务器反向代理
-
-这个感觉用处也不大。我只知道他的思想，就是我们请求我们家的服务器，不存在跨域的，然后通过服务器再去请求其他服务器的资源。
-
-#### 4.4 方案还是有很多的，但是觉得cors是比较好的方法，发现好用的方法回来补上把。

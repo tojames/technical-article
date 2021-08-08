@@ -1,6 +1,6 @@
 # 利用原生实现ES6
 
-#### 1.forEach
+### 1.forEach
 
 ```js
 // 在数组原型上面添加一个_forEach 的方法， 那么想象一下 arr._forEach(()=>{}),这种格式的，那么传进去的arr，就是this

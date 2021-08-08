@@ -6,7 +6,7 @@
 
 **说白了就是构造函数写起来太麻烦了.用类舒服一些.**
 
-构造函数的写法
+### 构造函数的写法
 
 ```js
 　function Foo(name,age,sex){
@@ -40,7 +40,7 @@
 然后看见上面构造函数的写法,写起来也还行,接下来看下面的
 ```
 
-##### class是构造函数的语法糖。 即 class 的本质是 构造函数。class的继承 extends  本质 为构造函数的原型链的继承。那么虽然用了class关键字,但是还是最后面运行的时候会转换为构造函数运行。
+**class是构造函数的语法糖。 即 class 的本质是 构造函数。class的继承 extends  本质 为构造函数的原型链的继承。那么虽然用了class关键字,但是还是最后面运行的时候会转换为构造函数运行。**
 
 ```js
 class Person{  // 定义一个名字为Person的类
@@ -49,7 +49,11 @@ class Person{  // 定义一个名字为Person的类
 　　constructor(name,age){ // constructor是一个构造方法，用来接收参数
 　　　　this.name = name;  // this代表实例对象
 　　　　this.age = age;
-　　}　
+    		this.#weight = 50 // 加了 # 就是代表私有属性，目前还在提议中
+　　}
+  	#getWeight(){ // 私有方法
+      return this.#weight
+    }
 　　say(){  // 这是一个类的方法，注意千万不要加上function
 　　　　return   this.name + this.age
 　　}
@@ -78,7 +82,7 @@ console.log(p.myname); // 直接调用类里面的get方法然后拿到值
 console.log(p.myname ="Atoe"); // 直接调用类里面的set方法,执行完代码之后,返回设置的值.
 ```
 
-##### 自执行
+### 自执行
 
 ```js
 let p = new class {
@@ -93,7 +97,7 @@ let p = new class {
  // 其实会发现代码少了一些.知道有这么一个操作
 ```
 
-##### 继承
+### 继承
 
 ```js
 1.super([arguments]); 
