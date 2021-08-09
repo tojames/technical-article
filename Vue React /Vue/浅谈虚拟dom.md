@@ -77,7 +77,7 @@ VNode的类型
 	场景1：有文本属性当文本节点发生改变，就修改文本节点。
 	场景2: newVnode有children的情况
 		      oldVnode有children，那么还会继续走更新下一个子节点操作
-		      oldVnode没有children，那么oldVnode 是空标签或者文本节点，文本节点需要先清空变成空标签，然后将							newVnode插入到当前节点下面，渲染到视图
+		      oldVnode没有children，那么oldVnode 是空标签或者文本节点，文本节点需要先清空变成空标签，然后将newVnode插入到当前节点下面，渲染到视图
 	场景3: newVnode没有children的情况
 					那么newVnode可能是空标签或者文本节点。
 					oldVnode有children，先删除子节点，变成空标签，最后看newVnode是空标签还是文本节点。
