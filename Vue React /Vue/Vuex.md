@@ -15,7 +15,7 @@ index 负责主要逻辑
 
 
 
-install 就会执行以下的代码，使得所有的组件都有 this.$store, 全局都可以使用我们的 Store的实例了
+install 就会执行以下的代码，使得所有的组件都有 this.$store, 全局都可以使用我们的Store的实例了
  Vue.mixin({
     beforeCreate() {
       const options = this.$options // 获取optonApi的值
