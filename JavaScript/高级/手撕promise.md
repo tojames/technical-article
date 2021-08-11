@@ -8,9 +8,9 @@
 >
 > 好地计划和维护异步 JavaScript 代码。
 >
-> 总儿言之：promise帮我们解决使用复杂回调函数的方案，并且可以信任结果的。
+> 总儿言之：promise 帮我们解决使用复杂回调函数的方案，并且可以信任结果的。
 
-#### 状态
+### 状态
 
 ```
 一个 Promise有以下几种状态:
@@ -20,7 +20,7 @@
 状态不可逆转。
 ```
 
-## then(..) 和 catch(..)
+### then(..) 和 catch(..)
 
 ```js
 then(..) 和 catch(..) 也会创建并返回一个新的 promise，这个 promise 可以用于实现 Promise 链式流程控制。如果完成或拒绝回调中抛出异常，返回的 promise 是被拒绝的。如果任意一个回调返回非 Promise、非 thenable 的立即值，这个值会被用作返回 promise 的完成值。如果完成处理函数返回一个 promise 或 thenable，那么这个值会被展开，并作为返回 promise 的决议值。
@@ -33,12 +33,10 @@ p.then( fulfilled, rejected );
 p.catch( rejected ); // 或者p.then( null, rejected )
 ```
 
-
-
 ## 使用
 
 ```js
-const p = new Promise( function(resolve,reject){ 
+const p = new Promise( function(resolve,reject){
   resolve() // 用于决议/完成这个promise
   // 1.如果传给 resolve(..) 的是一个非 Promise、非 thenable(对象具有then方法) 的立即值，这个 promise 就会用这个值完成。
   // 2.如果传给 resolve(..) 的是一个真正的 Promise 或 thenable 值，这个值就会被递归展开，并且(要构造的)promise 将取用其最终决议值或状态。
@@ -75,7 +73,7 @@ p.catch((err) => {
 // 同步代码2
 // Error: 这是一个错误
 
-有一种快捷的写法 
+有一种快捷的写法
 const p1 = Promise.resolve(1);
 const p2 = Promise.reject("这是一个错误");
 
@@ -94,24 +92,24 @@ p2.catch((err) => {
 
 // 2.resolve 返回 promise
 const p1 = new Promise((resolve, reject) => {
-        setTimeout(() => {
-          reject(new Error("这是一个错误"));
-          // resolve(1);x
-        }, 1000);
-      });
+  setTimeout(() => {
+    reject(new Error("这是一个错误"));
+    // resolve(1);x
+  }, 1000);
+});
 
 const p2 = new Promise((resolve, reject) => {
-        setTimeout(() => resolve(p1), 1000);
-      });
+  setTimeout(() => resolve(p1), 1000);
+});
 
-      p2.then(
-        (result) => console.log(result),
-        (error) => console.log(error) 
-        // 如果写了里面这个捕获错误的，外面的catch就不会捕获到了。所以一般then 有多层的是很好，或者习惯，都是在外层使用catch捕获错误。
+p2.then(
+  (result) => console.log(result),
+  (error) => console.log(error)
+  // 如果写了里面这个捕获错误的，外面的catch就不会捕获到了。所以一般then 有多层的是很好，或者习惯，都是在外层使用catch捕获错误。
       ) // 1
         .catch((error) => console.log(error)); // 这是一个错误
 
-这种代码尽量少写，存在风险，p2可能很慢，p1报错了，浏览器由报错，然后变成捕获错误，
+这种代码尽量少写，存在风险，p2可能很慢，p1报错了，浏览器有报错，然后变成捕获错误，
 说到底还是捕获错误是一门技术活。
 
 p2中的resolve返回出去的是 p1 ，然后 p1的状态决定p2的状态。 p2.then获取状态。
@@ -122,9 +120,7 @@ p2的resolve方法将p1作为参数，p1的状态决定了p2的状态。如果p1
 
 ```
 
-
-
-#### Promise.all([ .. ]) 和 Promise.race([ .. ])
+### Promise.all([ .. ]) 和 Promise.race([ .. ])
 
 ```js
 都会创建一个 Promise 作为它的返回值。这个 promise 的决议完全由传入的 promise 数组控制。
@@ -137,28 +133,29 @@ const p1 = Promise.resolve(1);
 const p2 = Promise.resolve(p1);
 const p3 = Promise.resolve("Hello World");
 const p4 = Promise.reject("Oops");
-Promise.race([p1, p2, p3, p4]).then(function (msg) {
-  console.log(msg);
-});
-Promise.all([p1, p2, p3, p4]).catch(function (err) {
-  console.error(err);
-});
-Promise.all([p1, p2, p3]).then(function (msgs) {
-  console.log(msgs);
-});
- Promise.all([]).then(function (msgs) {
-  console.log(msgs); // [] 传入空数组，它会立即完成
-});
- Promise.race([]).then(function (msg) {
-  console.log(msg); // 会挂住，且永远不会决议。
- });
-// [] 
+Promise.race([p1, p2, p3, p4]).then(function(msg) {
+  console.log(msg) // 1
+})
+Promise.all([p1, p2, p3, p4]).catch(function(err) {
+  console.log(err) // Oops
+})
+Promise.all([p1, p2, p3]).then(function(msgs) {
+  console.log(msgs) // [1,1,"Hello World"]
+})
+Promise.all([]).then(function(msgs) {
+  console.log(msgs) // [] 传入空数组，它会立即完成
+})
+Promise.race([]).then(function(msg) {
+  console.log(msg) // 会挂住，且永远不会决议。
+})
+// 按照下面的执行顺序
+// []
 // 1
-// "Oops"	
+// "Oops"
 // [1,1,"Hello World"]
 ```
 
-#### Promise.allSettled([ .. ]) 
+### Promise.allSettled([ .. ])
 
 Promise.allSettled 的语法及参数跟 Promise.all 类似，其参数接受一个 Promise 的数组，返回一个新的 Promise。唯一的不同在于，执行完之后不会失败，也就是说当 Promise.allSettled 全部处理完成后，我们可以拿到每个 Promise 的状态，而不管其是否处理成功。
 
@@ -178,7 +175,7 @@ allSettledPromise.then(function (results) {
 
 从上面代码中可以看到，Promise.allSettled 最后返回的是一个数组，记录传进来的参数中每个 Promise 的返回值，这就是和 all 方法不太一样的地方。你也可以根据 all 方法提供的业务场景的代码进行改造，其实也能知道多个请求发出去之后，Promise 最后返回的是每个参数的最终状态。
 
-#### Promise.any([ .. ]) 
+### Promise.any([ .. ])
 
 any 方法返回一个 Promise，只要参数 Promise 实例有一个变成 fulfilled 状态，最后 any 返回的实例就会变成 fulfilled 状态；如果所有参数 Promise 实例都变成 rejected 状态，包装实例就会变成 rejected 状态。
 
@@ -198,15 +195,11 @@ allSettledPromise
 // 2
 ```
 
-从改造后的代码中可以看出，只要其中一个 Promise 变成 fulfilled 状态，那么 any 最后就返回这个 Promise。由于上面 resolved 这个 Promise 已经是 resolve 的了，后面resolved3，rejected都不会继续执行，故最后返回结果为 2。
+从改造后的代码中可以看出，只要其中一个 Promise 变成 fulfilled 状态，那么 any 最后就返回这个 Promise。由于上面 resolved 这个 Promise 已经是 resolve 的了，后面 resolved3，rejected 都不会继续执行，故最后返回结果为 2。
 
-#### Promise 的性能
+## 手撕 Promise
 
-```
-promise 与传统回调比较的话，确实浪费一些时间，因为promise里面做了很多动作，所以性能稍微低一点的，但是带来的是编程效率的提高。显然promise是值得推荐的。
-```
-
-#### Promise/A+
+### Promise/A+
 
 **[promisesaplus](https://promisesaplus.com/)**
 
@@ -218,11 +211,13 @@ class Promise {
     if (typeof executor !== "function") {
       throw new TypeError(`Promise resolver ${executor} is not a function`);
     }
+    // 初始化状态，会调函数。
     this.initState();
-
+    // 执行函数，并通过把resolve和reject传递出去，提供用户调用，并且执行改变状态
     try {
       executor(this.resolve, this.reject);
     } catch (error) {
+      // 到用户写executor出问题了，可以捕获到错误
       this.reject(e);
     }
   }
@@ -233,6 +228,7 @@ class Promise {
     this.onFulfilledCallback = []; // 成功的回调
     this.onRejectedCallback = []; // 失败的回调
   };
+  // 将状态改为fulfilled,并且执行onFulfilledCallback函数
   resolve = (value) => {
     if (this.state === Promise.PENDING) {
       this.state = Promise.FULFILLED;
@@ -240,7 +236,7 @@ class Promise {
       this.onFulfilledCallback.forEach((item) => item(value));
     }
   };
-
+  //  将状态改为rejected,并且执行onRejectedCallback函数
   reject = (reason) => {
     if (this.state === Promise.PENDING) {
       this.state = Promise.REJECTED;
@@ -249,6 +245,7 @@ class Promise {
     }
   };
 
+  // 当用户执行完了resolve/reject后，调用了then。
   then = (onFulfilled, onRejected) => {
     // 参数校检
     if (typeof onFulfilled !== "function") {
@@ -396,3 +393,56 @@ module.exports = Promise;
 代码参考 https://github.com/dream2023/blog/edit/master/2%E3%80%81promise%E5%8E%9F%E7%90%86/promise.js
 ```
 
+### Promsie.all
+
+```js
+const myPromiseAll = promises => {
+  return new Promise((resolve, reject) => {
+    let resolves = []
+    const promisesLen = promises.length
+    let promisesI = 0
+    const promiseType = typeof promises
+    // 判断是否为对象  && 是否可迭代
+    if (promiseType === 'object' && Symbol.iterator in promises) {
+      const next = () => {
+        const nowPormise = promises[promisesI]
+        if (nowPormise instanceof Promise) {
+          // 判断是否为Promise
+          nowPormise
+            .then(res => {
+              resolves.push(res)
+              promisesI += 1
+              if (promisesI === promisesLen) {
+                resolve(resolves) // 如果 索引超出边界 resolve
+              } else {
+                next() // 迭代执行
+              }
+            })
+            .catch(err => {
+              reject(err) // 遇到错误 reject
+            })
+        } else {
+          resolves.push(nowPormise)
+          promisesI += 1
+          if (promisesI === promisesLen) {
+            resolve(resolves) // 如果 索引超出边界 resolve
+          } else {
+            next()
+          }
+        }
+      }
+      next()
+    } else {
+      reject(
+        `TypeError: ${promiseType} ${promises} is not iterable (cannot read property Symbol(Symbol.iterator))`
+      )
+    }
+  })
+}
+```
+
+## Promise 的性能
+
+```
+promise 与传统回调比较的话，确实浪费一些时间，因为promise里面做了很多动作，所以性能稍微低一点的，但是带来的是编程效率的提高。显然promise是值得推荐的。
+```
