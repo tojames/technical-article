@@ -2,7 +2,7 @@
 
 
 
-# 什么是CSRF？
+## 什么是CSRF？
 
 > 跨站请求伪造，冒用Cookie中的信息，发起请求攻击。
 >
@@ -10,22 +10,22 @@
 
 
 
-# 场景
+## 场景
 
 > 当用户已经登录成功了一个网站，然后通过被诱导进了第三方网站「钓鱼网站」，
 > 第三方网站，其实拿不到用户cookie，只是用户跳转过去了自动提交表单，提交的接口是用户登陆的网站接口，因为提交表单的信息是同源的原因会自动将cookie数据给后台，后台则正常走逻辑将用户提交的表单信息，可以通过抓包，或者浏览器查看即可知道，就可以自己伪造一个表单请求了。
-> 而且这里也不会触发同源策略，因为只是表单请求，同源策略是针对ajax
+> 而且这里也不会触发同源策略，因为只是表单请求。
 
 
 
-# CSRF攻击类型
+## CSRF攻击类型
 
 ```
 1.GET类型的CSRF，img标签 script。
 	![](https://awps-assets.meituan.net/mit-x/blog-images-bundle-2018b/ff0cdbee.example/withdraw?amount=10000&for=hacker)
 	在受害者访问含有这个img的页面后，浏览器会自动向http://bank.example/withdraw?account=xiaoming&amount=10000&for=hacker发出一次HTTP请求。bank.example就会收到包含受害者登录信息的一次跨域请求。
 	
-2.post类型的SCRF 表单中的post请求
+2.post类型的CSRF 表单中的post请求
  <form action="http://bank.example/withdraw" method=POST>
     <input type="hidden" name="account" value="xiaoming" />
     <input type="hidden" name="amount" value="10000" />
@@ -39,34 +39,11 @@
   重磅消息！！
   <a/>
   只要用户点击了，就会被攻击成功
-  
-  
-
-
-1.添加验证码
-2.后台增加判断请求头来源 referer。这个也可以伪造
-3.token
-
-双重cookie
-他意思是在提交前先用js读取用于验证的cookie值加入到提交字段。这样就形成了双提交（验证字段有两份，一份在cookie中，一份在POST或URL中）。显然单纯的csrf只能让请求中带有cookie但是并不能读取cookie加入到POST或URL中。
-
-
-阻止不明外域的访问
-	同源检测
-Samesite Cookie 
-提交时要求附加本域才能获取的信息
-CSRF Token
-双重Cookie验证
-
-Samesite Cookie
-Google 起草了一份草案来改进 HTTP 协议，那就是为 Set-Cookie 响应头新增 SameSite 属性，它用来标明这个 cookie 是个“同站 cookie”，同站 cookie 只能作为第一方 cookie，不能作为第三方 cookie。SameSite 有两个属性值，分别是 Strict 和 Lax
-严格模式，表明这个 cookie 在任何情况下都不可能作为第三方 cookie，绝无例外。Set-Cookie: foo=1; SameSite=Strict
-宽松模式，比 Strict 放宽了点限制：假如这个请求是我上面总结的那种同步请求（改变了当前页面或者打开了新页面）且同时是个 GET 请求（因为从语义上说 GET 是读取操作，比 POST 更安全），则这个 cookie 可以作为第三方 cookie。SameSite=Strict
 ```
 
 
 
-# CSRF的特点
+## CSRF的特点
 
 ```
 攻击一般发起在第三方网站，而不是被攻击的网站。被攻击的网站无法防止攻击发生。
@@ -78,13 +55,12 @@ CSRF通常是跨域的，因为外域通常更容易被攻击者掌控。但是�
 
 
 
-# 防护策略
+## 防护策略
 
 ```
 CSRF通常从第三方网站发起，被攻击的网站无法防止攻击发生，只能通过增强自己网站针对CSRF的防护能力来提升安全性。
 
-上文中讲了CSRF的两个特点：
-
+CSRF的两个特点：
 - CSRF（通常）发生在第三方域名。
 - CSRF攻击者不能获取到Cookie等信息，只是使用。
 
@@ -107,21 +83,22 @@ CSRF通常从第三方网站发起，被攻击的网站无法防止攻击发生�
 Origin Header
 Referer Header
 这两个Header在浏览器发起请求时，大多数情况会自动带上，并且不能由前端自定义内容。 服务器可以通过解析这两个Header中的域名，确定请求的来源域。
+
 使用Origin Header确定来源域名
-在部分与CSRF有关的请求中，请求的Header中会携带Origin字段。字段内包含请求的域名（不包含path及query）。
+	在部分与CSRF有关的请求中，请求的Header中会携带Origin字段。字段内包含请求的域名（不包含path及query）。
 如果Origin存在，那么直接使用Origin中的字段确认来源域名就可以。
 但是Origin在以下两种情况下并不存在：
 IE11同源策略： IE 11 不会在跨站CORS请求上添加Origin标头，Referer头将仍然是唯一的标识。最根本原因是因为IE 11对同源的定义和其他浏览器有不同，有两个主要的区别，可以参考MDN Same-origin_policy#IE_Exceptions
 302重定向： 在302重定向之后Origin不包含在重定向的请求中，因为Origin可能会被认为是其他来源的敏感信息。对于302重定向的情况来说都是定向到新的服务器上的URL，因此浏览器不想将Origin泄漏到新的服务器上。
 
 使用Referer Header确定来源域名
-根据HTTP协议，在HTTP头中有一个字段叫Referer，记录了该HTTP请求的来源地址。 对于Ajax请求，图片和script等资源请求，Referer为发起请求的页面地址。对于页面跳转，Referer为打开页面历史记录的前一个页面地址。因此我们使用Referer中链接的Origin部分可以得知请求的来源域名。
+	根据HTTP协议，在HTTP头中有一个字段叫Referer，记录了该HTTP请求的来源地址。 对于Ajax请求，图片和script等资源请求，Referer为发起请求的页面地址。对于页面跳转，Referer为打开页面历史记录的前一个页面地址。因此我们使用Referer中链接的Origin部分可以得知请求的来源域名。
 
 这种方法并非万无一失，Referer的值是由浏览器提供的，虽然HTTP协议上有明确的要求，但是每个浏览器对于Referer的具体实现可能有差别，并不能保证浏览器自身没有安全漏洞。使用验证 Referer 值的方法，就是把安全性都依赖于第三方（即浏览器）来保障，从理论上来讲，这样并不是很安全。在部分情况下，攻击者可以隐藏，甚至修改自己请求的Referer。
 
 
 Samesite Cookie属性
-防止CSRF攻击的办法已经有上面的预防措施。为了从源头上解决这个问题，Google起草了一份草案来改进HTTP协议，那就是为Set-Cookie响应头新增Samesite属性，它用来标明这个 Cookie是个“同站 Cookie”，同站Cookie只能作为第一方Cookie，不能作为第三方Cookie，Samesite 有两个属性值，分别是 Strict 和 Lax，下面分别讲解：
+	防止CSRF攻击的办法已经有上面的预防措施。为了从源头上解决这个问题，Google起草了一份草案来改进HTTP协议，那就是为Set-Cookie响应头新增Samesite属性，它用来标明这个 Cookie是个“同站 Cookie”，同站Cookie只能作为第一方Cookie，不能作为第三方Cookie，Samesite 有三个属性值，分别是 Strict 和 Lax，None下面分别讲解：
 
 Samesite=Strict
 这种称为严格模式，表明这个 Cookie 在任何情况下都不可能作为第三方 Cookie，绝无例外。比如说 b.com 设置了如下 Cookie：
@@ -196,7 +173,9 @@ Cookie中增加了额外的字段。
 为了确保Cookie传输安全，采用这种防御方式的最好确保用整站HTTPS的方式，如果还没切HTTPS的使用这种方式也会有风险。
 ```
 
-# 防止网站被利用
+
+
+## 防止网站被利用
 
 前面所说的，都是被攻击的网站如何做好防护。而非防止攻击的发生，CSRF的攻击可以来自：
 
@@ -212,11 +191,15 @@ Cookie中增加了额外的字段。
 - 对于用户上传的图片，进行转存或者校验。不要直接使用用户填写的图片链接。
 - 当前用户打开其他用户填写的链接时，需告知风险（这也是很多论坛不允许直接在内容中发布外域链接的原因之一，不仅仅是为了用户留存，也有安全考虑）。
 
-# CSRF其他防范措施
+
+
+## CSRF其他防范措施
 
 对于一线的程序员同学，我们可以通过各种防护策略来防御CSRF，对于QA、SRE、安全负责人等同学，我们可以做哪些事情来提升安全性呢？
 
-# CSRF测试
+
+
+## CSRF测试
 
 CSRFTester是一款CSRF漏洞的测试工具，CSRFTester工具的测试原理大概是这样的，使用代理抓取我们在浏览器中访问过的所有的连接以及所有的表单等信息，通过在CSRFTester中修改相应的表单等信息，重新提交，相当于一次伪造客户端请求，如果修改后的测试请求成功被网站服务器接受，则说明存在CSRF漏洞，当然此款工具也可以被用来进行CSRF攻击。 CSRFTester使用方法大致分下面几个步骤：
 
@@ -236,7 +219,9 @@ CSRFTester默认使用Localhost上的端口8008作为其代理，如果代理配
 
 首先必须选择“报告类型”。报告类型决定了我们希望受害者浏览器如何提交先前记录的请求。目前有5种可能的报告：表单、iFrame、IMG、XHR和链接。一旦选择了报告类型，我们可以选择在浏览器中启动新生成的报告，最后根据报告的情况进行对应的排查和修复。
 
-# CSRF监控
+
+
+## CSRF监控
 
 对于一个比较复杂的网站系统，某些项目、页面、接口漏掉了CSRF防护措施是很可能的。
 
@@ -249,12 +234,16 @@ CSRF攻击有着比较明显的特征：
 
 我们可以在网站的代理层监控所有的接口请求，如果请求符合上面的特征，就可以认为请求有CSRF攻击嫌疑。我们可以提醒对应的页面和项目负责人，检查或者 Review其CSRF防护策略。
 
-# 个人用户CSRF安全的建议
+
+
+## 个人用户CSRF安全的建议
 
 经常上网的个人用户，可以采用以下方法来保护自己：
 
 - 使用网页版邮件的浏览邮件或者新闻也会带来额外的风险，因为查看邮件或者新闻消息有可能导致恶意代码的攻击。
 - 尽量不要打开可疑的链接，一定要打开时，使用不常用的浏览器。
+
+
 
 # 总结
 
