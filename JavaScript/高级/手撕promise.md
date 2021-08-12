@@ -439,6 +439,22 @@ const myPromiseAll = promises => {
     }
   })
 }
+
+// 测试用例
+const promise1 = Promise.resolve(3)
+const promise2 = 42
+const promise3 = new Promise((resolve, reject) => {
+  setTimeout(resolve, 100, "foo")
+})
+const promise4 = new Promise((resolve, reject) => setTimeout(reject, 101, "reject"))
+
+// Promise.all([promise1, promise2, promise3]).then((values) => console.log(values))
+// Promise.all([promise1, promise4, promise3]).catch((err) => console.log(err))
+// Promise.all(8).catch((err) => console.log(err))
+
+myPromiseAll([promise1, promise2, promise3]).then((values) => console.log(values))
+myPromiseAll([promise1, promise4, promise3]).catch((err) => console.log(err))
+myPromiseAll(8).catch((err) => console.log(err))
 ```
 
 ## Promise 的性能
