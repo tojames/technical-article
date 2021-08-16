@@ -124,28 +124,29 @@ new 关键字执行之后总是会返回一个对象
 	让实例可以访问构造函数原型（constructor.prototype）所在原型链上的属性；
 	构造函数返回的最后结果是引用数据类型。
 
-function _new(ctor, ...args) {
-    if(typeof ctor !== 'function') {
-      throw 'ctor must be a function';
+ function _new(ctor, ...args) {
+    if (typeof ctor !== "function") {
+      throw "ctor must be a function"
     }
     let obj = {}
-    obj.__proto__ = Object.create(ctor.prototype);
-    obj.__proto__.constructor = constructor // 为了让和new基本一致，
-    let res = ctor.apply(obj,  [...args]);
-
-    let isObject = typeof res === 'object' &&  res !== null;
-    let isFunction = typeof res === 'function';
-    return isObject || isFunction ? res : obj;
-};
+    // 创建一个新对象，使用现有的对象来提供新创建的对象的__proto__
+    // obj.__proto__ = Object.create(ctor.prototype).__proto__
+    obj = Object.create(ctor.prototype)
+    // console.log(Object.create(ctor.prototype).__proto__ === ctor.prototype) // true
+    let res = ctor.apply(obj, [...args])
+    let isObject = typeof res === "object" && res !== null
+    let isFunction = typeof res === "function"
+    return isObject || isFunction ? res : obj
+  }
 ```
 
 #### 手撕 apply、call、bind
 
 由于 apply 和 call 基本原理是差不多的，只是参数存在区别，因此我们将这两个的实现方法放在一起讲。
 
-call是单个参数按照顺序进行一个个放在函数调用里面
+call 是单个参数按照顺序进行一个个放在函数调用里面
 
-apply是一个数组
+apply 是一个数组
 
 ```js
 Function.prototype.call = function call(context, ...params) {
@@ -168,7 +169,6 @@ Function.prototype.call = function call(context, ...params) {
 // /g 表示该表达式将用来在输入字符串中查找所有可能的匹配，返回的结果可以是多个。如果不加/g最多只会匹配一个
 //  /i  表示匹配的时候不区分大小写
 // /m 表示多行匹配，什么是多行匹配呢？就是匹配换行符两端的潜在匹配。影响正则中的^$符号
-
 ;(function () {
   var slice = Array.prototype.slice
   Function.prototype.bind = function () {
