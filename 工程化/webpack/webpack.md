@@ -149,7 +149,7 @@ Webpack开启监听模式，有两种方式：
 
 ####  Webpack 的热更新原理
 
-![HMR流程图](../imgs/HMR流程图.jpg)
+![HMR流程图](../../static/images/HMR流程图.jpg)
 
 ```
 https://zhuanlan.zhihu.com/p/30669007
