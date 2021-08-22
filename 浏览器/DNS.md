@@ -36,7 +36,7 @@
 
    1.4 本地DNS服务器，如果没有，继续找，到第2步。
 
-   ![image-20210822144437503](../../static/images/image-20210822144437503.png)
+   <img src="images/image-20210822162844465.png" alt="image-20210822162844465" style="zoom:50%;" />
 
 2. 如果缓存没有找到，那就需要本地DNS服务器去其他域名服务器上面找称为迭代查询。
 
@@ -54,13 +54,11 @@
 
    ​	2.2.2  上级如果不能解析则继续请求上上级，知道找到为止。	
 
-<img src="../../static/images/image-20210822144503330.png" alt="image-20210822144503330" style="zoom:50%;" />
 
 
 
 
-
-![image-20210822162727244](images/image-20210822162727244.png)
+<img src="images/image-20210822162727244.png" alt="image-20210822162727244" style="zoom:50%;" />
 
 ### DNS应该怎么优化？
 
@@ -96,10 +94,10 @@ off：关闭
 
 **相关名词的解释**
 
-![image-20210822145931810](../../static/images/image-20210822145931810.png)
+<img src="images/image-20210822162914805.png" alt="image-20210822162914805" style="zoom:50%;" />
 
 
 
-<img src="../../static/images/image-20210822150143774.png" alt="image-20210822150143774" style="zoom:50%;" />
+<img src="images/image-20210822162934684.png" alt="image-20210822162934684" style="zoom:50%;" />
 
 参考：https://blog.51cto.com/369369/812889
