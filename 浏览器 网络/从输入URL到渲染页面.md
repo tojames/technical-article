@@ -10,7 +10,7 @@
 
 **整个流程。**
 
-<img src="images/image-20210824113236983.png" alt="image-20210824113236983" style="zoom:50%;" />
+<img src="images/渲染页面整个流程.png" alt="image-20210824113236983" style="zoom:50%;" />
 
 ### 第一步：用户输入
 
