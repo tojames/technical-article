@@ -26,17 +26,13 @@
 
   百度会先返回 307 Internal Redirect，然后在响应头中返回 Location: https://www.baidu.com/。告诉浏览器重新定向到那边去。
 
-  <img src="images/image-20210825183054723.png" alt="image-20210825183054723" style="zoom:50%;" />
-
-  百度会先返回 307 Internal Redirect，然后在响应头中返回 Location: https://www.baidu.com/。告诉浏览器重新定向到那边去。
-
-  <img src="../../static/images/image-20210818113450004.png" alt="image-20210818113450004" style="zoom:50%;" />
+  <img src="images/307InternalRedirect.png" alt="307InternalRedirect" style="zoom:50%;" />
 
 **2.当用户输入关键字并键入回车之后**，检测是否有 beforeunload 事件
 
 这意味着当前页面即将要被替换成新的页面，不过在这个流程继续之前，浏览器还给了当前页面一次执行 beforeunload 事件的机会，beforeunload 事件允许页面在退出之前执行一些数据清理操作，还可以询问用户是否要离开当前页面，比如当前页面可能有未提交完成的表单等情况，因此用户可以通过 beforeunload 事件来取消导航，让浏览器不再执行任何后续工作。
 
-<img src="images/image-20210825183109187.png" alt="image-20210825183109187" style="zoom:50%;" />
+<img src="images/图标加载中页面正式开启加载过程.png" alt="image-20210825183109187" style="zoom:50%;" />
 
 从图中可以看出，当浏览器刚开始加载一个地址之后，标签页上的图标便进入了加载状态。但此时图中页面显示的依然是之前打开的页面内容，并没立即替换为百度首页的页面。因为需要等待**提交文档阶段**「后面解析」，页面内容才会被替换。
 
@@ -98,7 +94,7 @@ Content-Type: application/octet-stream：是一个字节流类型，那么浏览
 
 默认情况下，Chrome 会为每个页面分配一个渲染进程，也就是说，每打开一个新页面就会配套创建一个新的渲染进程。但是，也有一些例外，在某些情况下，浏览器会让多个页面直接运行在同一个渲染进程中。目前测试了掘金、简书、csdn、github、极客时间，只有极客时间是可以多个页面是渲染进程共用的。
 
-<img src="images/image-20210825183124692.png" alt="image-20210825183124692" style="zoom:50%;" />
+<img src="images/文档提交.png" alt="image-20210825183124692" style="zoom:50%;" />
 
 从图中还可以看出 chrome 的架构以及不是 5 个浏览器进程了「浏览器主进程、渲染进程、网络进程、插件进程可能多个、GPU 进程」，当前版本为：92.0.4515.159。
 
@@ -108,7 +104,7 @@ Content-Type: application/octet-stream：是一个字节流类型，那么浏览
 
 > 当浏览器进程确定文档提交了，渲染进程便开始页面解析和子资源加载了，当页面加载完毕渲染进程会发送一个消息给浏览器进程，浏览器接收到消息后，会停止标签图标上的加载动画
 >
-> <img src="images/image-20210825183136547.png" alt="image-20210825183136547" style="zoom:50%;" />
+> <img src="images/页面渲染完成标志.png" alt="image-20210825183136547" style="zoom:50%;" />
 
 详情请查看本目录浏览器渲染流程
 

@@ -36,7 +36,9 @@
 
    1.4 本地DNS服务器，如果没有，继续找，到第2步。
 
-   <img src="images/image-20210822162844465.png" alt="image-20210822162844465" style="zoom:50%;" />
+   
+
+   ![image-20210822162844465](images/DNS的解析递归过程.png)
 
 2. 如果缓存没有找到，那就需要本地DNS服务器去其他域名服务器上面找称为迭代查询。
 
@@ -58,7 +60,7 @@
 
 
 
-<img src="images/image-20210822162727244.png" alt="image-20210822162727244" style="zoom:50%;" />
+<img src="images/DNS迭代解析.png" alt="image-20210822162727244" style="zoom:50%;" />
 
 ### DNS应该怎么优化？
 
@@ -94,10 +96,10 @@ off：关闭
 
 **相关名词的解释**
 
-<img src="images/image-20210822162914805.png" alt="image-20210822162914805" style="zoom:50%;" />
+<img src="images/域名名词解析.png" alt="image-20210822162914805" style="zoom:50%;" />
 
 
 
-<img src="images/image-20210822162934684.png" alt="image-20210822162934684" style="zoom:50%;" />
+<img src="images/域名后缀解析.png" alt="image-20210822162934684" style="zoom:50%;" />
 
 参考：https://blog.51cto.com/369369/812889
