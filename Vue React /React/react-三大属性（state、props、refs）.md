@@ -243,7 +243,8 @@ setState 并不是单纯同步/异步的，它的表现会因调用场景的不�
 
 ```js
 1、传参：当 React 元素为用户自定义组件时，它会将 JSX 所接收的属性（attributes）以及子组件（children）转换为单个对象传递给组件，这个对象被称之为 “props”。
-父组件只要传递参数进来就可以了   let obj = this.state; <Welcome {...obj} />
+父组件只要传递参数进来就可以了  
+let obj = this.state; <Welcome {...obj} />
 class Welcome extends React.Component {
   render() {
     return <h1>Hello, {this.props.name}</h1>;
