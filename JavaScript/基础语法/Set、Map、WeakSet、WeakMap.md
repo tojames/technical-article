@@ -1,5 +1,7 @@
 # Set、Map、WeakSet、WeakMap
 
+> 我们知道以上4种数据结构都是基于Hash Table，搜索他们的查询效率特别高，还有Object对象也是。
+
 ### 1.Set
 
 ****
