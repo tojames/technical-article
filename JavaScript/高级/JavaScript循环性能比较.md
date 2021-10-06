@@ -2,7 +2,7 @@
 
 
 
-**for循环和wihile循环**
+## **for循环和wihile循环**
 
 ```js
 let arr = new Array(999999).fill(0);
@@ -22,7 +22,7 @@ console.timeEnd("While End")
 // 这里将声明变量i 将let 改为 var，两者性能差不多。使用let for会更好，因为for循环里面使用let存在存在块级作用域「用完就释放了」，而while在全局上面定义了，程序执行完了无法释放。就导致了两者性能差不多。
 ```
 
-**forEach**
+## **forEach**
 
 >  函数式编程和命令式编程的区别是什么？
 >
@@ -52,7 +52,7 @@ Array.prototype.forEach = function (callback,context){
 }
 ```
 
-**for in**
+## **for in**
 
 > for in 循环的BUG及解决方案
 >
@@ -64,7 +64,7 @@ Array.prototype.forEach = function (callback,context){
 最慢
 ```
 
-**for of**
+## **for of**
 
 > for of 循环底层机制
 >
