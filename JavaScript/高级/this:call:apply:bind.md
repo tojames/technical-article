@@ -1,4 +1,4 @@
-# 关于 this
+# this
 
 > 我们一开始接触 this 的时候,肯定会有点迷惑得,就是觉得怎么有时候力不从心,感觉不是真正学会.
 >
@@ -9,9 +9,9 @@
 > - 显示绑定
 > - new 关键字
 
-#### 默认绑定
+## 默认绑定
 
-默认绑定的优先级最低,就是后面的都可以去替换他.那么就只要一个 window.在严格模式不会出现默认绑定.
+默认绑定的优先级最低，就是上面描述的中任何一个都可以去替换它。那么就只有一个 window。而且在严格模式不会出现默认绑定。
 我慢慢解释.
 
 ```js
@@ -22,34 +22,33 @@ var a = 1
 foo()
 ```
 
-#### 隐式绑定
+## 隐式绑定
 
-隐式绑定发生在对象.在对象上面会有隐式绑定.
+隐式绑定一般发生在对象上调用的时候。
 
 ```js
 var obj = {
-	name : "Atoe",
-    age : 22,
+	name : "Juice",
+    age : 24,
     method : foo
 }
 function foo(){
-    console.log(this)  //this 指向obj
-    console.log(this.age) // 22
+    console.log(this)  // this 指向obj
+    console.log(this.age) // 24
 }
-obj.method();  //这里验证了那句,谁调用我就,我就指向谁.
+obj.method();  // 这里验证了那句,谁调用我就,我就指向谁.
 
-//我要变了.
+// 我要变了.
 var myMethod = obj.method; // 将obj.method的属性值是一个foo函数 赋值给myMethod,
 myMethod();// 此时myMethod就是foo函数的一个引用,当调用的时候没有出现任何修饰符,那么就是默认绑定,是window.这种情况就出来的丢失隐式绑定
 所以他打印的结果是: window undefined.
-或许你理解不了,我或许可以提供一个方法给你
-	就是真正调用的时候利用对象(这里的是obj)点语法点出来的,那么他的this指向obj，其实你看见这种说法特别多，但不全对啊。
-	我觉得最关键的是，this执行主体，谁把它执行的「和在哪创建&在哪执行都没有必然的关系」。
-  函数执行，看方法前面是否有“点”，没有“点”，this是window「严格模式下是undefined」，有“点”，“点”前面是谁this就是谁
-  这里的“点”是成员访问。
+
+或许你理解不了,我可以提供一个方法给你
+	就是真正调用的时候利用对象(这里的是obj)点语法点出来的,那么他的this指向obj，其实你看见这种说法特别多，但不全对啊。我觉得最关键的是，this执行主体，谁把它执行的，在哪创建，在哪执行都没有必然的关系。函数执行，看方法前面是否有“点”，没有“点”，this是window「严格模式下是undefined」，有“点”，“点”前面是谁this就是谁，这里的“点”是成员访问。
+上面说了这些前提是函数里面没有显示绑定。
 ```
 
-#### 显式绑定
+## 显式绑定
 
 显式绑定就是通过我们自己来改变他的 this 指向,我们通常利用 call apply bind 来改变 this 的指向.这三者的区别不大。
 
@@ -65,12 +64,12 @@ bind(this,参数和 call 是一样的,但是区别就是 bind 只会生成一个
 // 当我们想让this的指向方向改变,或者不受外界隐式应该使用显式绑定
 比如刚刚上面的
 var obj = {
-  name: "Atoe",
-  age: 22,
+  name: "Juice",
+  age: 24,
   method: foo,
 }
 function foo() {
-  //当每次调用foo的时候,我在函数内部将this的指向指向了我希望的obj上面,你外面怎么改也是没有用的.
+  // 当每次调用foo的时候,我在函数内部将this的指向指向了我希望的obj上面,你外面怎么改也是没有用的.
   bar.call(obj) // 这里是会去执行的bar这个函数.
   function bar() {
     console.log(this)
@@ -78,14 +77,14 @@ function foo() {
   }
 }
 
-obj.method() //obj 22
+obj.method() // obj 24
 
 //我要变了.
 var myMethod = obj.method // 将obj.method的属性值是一个foo函数 赋值给myMethod,
-myMethod() // obj 22
+myMethod() // obj 24
 ```
 
-#### new 绑定
+## new 绑定
 
 优先级最高的 new 绑定
 
@@ -97,7 +96,7 @@ myMethod() // obj 22
 - 新对象的 this 构造函数调用的 this
 - 返回一个对象
 
-##### new 原理介绍
+### new 原理介绍
 
 ```js
 new 关键字会进行如下的操作：
@@ -124,23 +123,21 @@ new 关键字执行之后总是会返回一个对象
 	让实例可以访问构造函数原型（constructor.prototype）所在原型链上的属性；
 	构造函数返回的最后结果是引用数据类型。
 
- function _new(ctor, ...args) {
-    if (typeof ctor !== "function") {
-      throw "ctor must be a function"
-    }
-    let obj = {}
-    // 创建一个新对象，使用现有的对象来提供新创建的对象的__proto__
-    // obj.__proto__ = Object.create(ctor.prototype).__proto__
-    obj = Object.create(ctor.prototype)
-    // console.log(Object.create(ctor.prototype).__proto__ === ctor.prototype) // true
-    let res = ctor.apply(obj, [...args])
-    let isObject = typeof res === "object" && res !== null
-    let isFunction = typeof res === "function"
-    return isObject || isFunction ? res : obj
-  }
+function _new(ctor, ...args) {
+   if (typeof ctor !== "function") {
+     throw "ctor must be a function"
+   }
+   let obj = {}
+   // 创建一个新对象，使用现有的对象来提供新创建的对象的__proto__
+   obj.__proto__ = Object.create(ctor.prototype);
+   let res = ctor.apply(obj, [...args])
+   let isObject = typeof res === "object" && res !== null
+   let isFunction = typeof res === "function"
+   return isObject || isFunction ? res : obj
+}
 ```
 
-#### 手撕 apply、call、bind
+## 手撕 apply、call、bind
 
 由于 apply 和 call 基本原理是差不多的，只是参数存在区别，因此我们将这两个的实现方法放在一起讲。
 
@@ -169,7 +166,7 @@ Function.prototype.call = function call(context, ...params) {
 // /g 表示该表达式将用来在输入字符串中查找所有可能的匹配，返回的结果可以是多个。如果不加/g最多只会匹配一个
 //  /i  表示匹配的时候不区分大小写
 // /m 表示多行匹配，什么是多行匹配呢？就是匹配换行符两端的潜在匹配。影响正则中的^$符号
-;(function () {
+(function () {
   var slice = Array.prototype.slice
   Function.prototype.bind = function () {
     var thatFunc = this,
@@ -190,22 +187,10 @@ Function.prototype.call = function call(context, ...params) {
 // 间接调用了apply，返回一个函数出来，还有注意细节，将原型也要改回去
 ```
 
-#### 应用
+## 谈谈你对this的了解及应用场景?
 
 ```js
-/*
- * 谈谈你对this的了解及应用场景?
- *   + this的五种情况分析
- *     this执行主体，谁把它执行的「和在哪创建&在哪执行都没有必然的关系」
- *     Q1:函数执行，看方法前面是否有“点”，没有“点”，this是window「严格模式下是undefined」，有“点”，“点”前面是谁this就是谁
- *     Q2:给当前元素的某个事件行为绑定方法，当事件行为触发，方法中的this是当前元素本身「排除attachEvent」
- *     Q3:构造函数体中的this是当前类的实例
- *     Q4:箭头函数中没有执行主体，所用到的this都是其所处上下文中的this
- *   	 Q5:掌握this的好玩应用：鸭子类型
- *     Q6:继承
- */
-
-// Q1
+// 函数执行，看方法前面是否有“点”，没有“点”，this是window「严格模式下是undefined」，有“点”，“点”前面是谁this就是谁
 const fn = function fn() {
     console.log(this);
 };
@@ -216,12 +201,12 @@ let obj = {
 fn();
 obj.fn();
 
-// Q2
+// 给当前元素的某个事件行为绑定方法，当事件行为触发，方法中的this是当前元素本身「排除attachEvent」
 document.body.addEventListener('click', function () {
     console.log(this);
 });
 
-// Q3
+// 构造函数体中的this是当前类的实例，因为new的时候执行显示绑定中任意一个方法。
 function Factory() {
     this.name = 'Juice-ice';
     this.age = 24;
@@ -229,7 +214,7 @@ function Factory() {
 }
 let f = new Factory;
 
-// Q4
+// 箭头函数中没有执行主体，所用到的this都是其所处上下文中的this
 let demo = {
     name: 'DEMO',
     fn() {
@@ -246,8 +231,6 @@ let demo = {
 };
 demo.fn();
 
-
-// Q5
 // 掌握this的好玩应用：鸭子类型
 // 像鸭子，我们就说他是鸭子 -> 类数组像数组「结构、一些操作...」，我们让其用数组上的方法「不能直接用」
 function func() {
@@ -267,12 +250,11 @@ function func() {
 }
 func(10, 20, 30);
 
-// Q6
 // 	构造函数继承 前面继承有讲的。那么需要补充的是， Parent.call(this);  其实是执行Parent 然后将Parent的属性添加一份到当前的this上面「不包含prototype的方法和属性」。
+看不懂的可以来这里看 https://juejin.cn/post/7017335994961625102 
 
 
-
-// Q7
+// 难度比较高的多层级调用
 var name = "Hello Word";
 function A(x, y) {
   var res = x + y;
@@ -292,7 +274,7 @@ Function.prototype.call(A,60,50); // 空函数，不打印
 Function.prototype.call.call.call(A,80,70); // 同上
 
 
-// Q8
+// 
 let obj = {
   a: 1,
   f () {
@@ -300,7 +282,7 @@ let obj = {
   }
 }
 const r = obj.f.bind({ a: 2 }).bind({ a: 3 }).call({ a: 4 })
-console.log(r)
+console.log(r) // 2
 
 
 (function() {
@@ -327,11 +309,9 @@ let obj = {
 }
 // 复制上面的代码 自己断点
 const r = obj.f.bind({ a: 2 }) // 第一步： 形成了一个闭包，保存在内存中 this指向是{a:2}的闭包
-
 let r2 = r.bind({ a: 3 }) // 第二步：形成了一个闭包，保存在内存中，和第一个闭包不一样的，this指向是{a:3}的闭包
 // 又由于 r 里面是一个闭包，神奇之处就在此，所以返回出去的还是第一步中的闭包
-
-let r3 = r.call({ a: 4 }) // 调用第二步返回的闭包函数，就打印了。
-
+let r3 = r2.call({ a: 4 }) // 调用第一步返回的闭包函数，就打印了。
 console.log(r3)
 ```
+
