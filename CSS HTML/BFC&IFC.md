@@ -28,8 +28,8 @@
 - overflow 的值不为 visible 或 clip。
 - display 的值为 table-cell，table-caption，或 inline-block 中的任意一个。
 - display 的值为 flow-root，或 display 值为 flow-root list-item。
-- display flex items，即 display 的值为 flex 或 inline-flex 的元素的直接子元素（该子元素 display 不为 flex，grid，或 table）。
-- grid items，即 display 的值为 grid 或 inline-grid 的元素的直接子元素（该子元素 display 不为 flex，grid，或 table）。
+- display flex items，即 display 的值为 flex 或 inline-flex 的元素的直接子元素（该子元素 display 不为 flex，grid，或 table）。注意：这个时候disply flex元素盒子 是弹性格式化上下文，然后包裹着块级上下文。
+- grid items，即 display 的值为 grid 或 inline-grid 的元素的直接子元素（该子元素 display 不为 flex，grid，或 table）。注意：这个时候 disply grid元素盒子 是栅格格式化上下文。
 - contain 的值为 layout，content，paint，或 strict 中的任意一个。
 - column-span 设置为 all 的元素。
 
