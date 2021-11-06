@@ -1,6 +1,4 @@
-# css预处理器
-
-## **CSS预处理器**
+# CSS预处理器
 
  CSS预处理器是一种专门的编程语言，用来为CSS增加一些编程特性（CSS本身不是编程语言）。
  不需要考虑浏览器兼容问题，因为CSS预处理器最终编译和输出的仍是标准的CSS样式，只需要看该样式是否被兼容。可以在CSS预处理器中：使用变量、简单逻辑判断、函数等基本编程技巧。
@@ -124,6 +122,8 @@ less 比 sass 语法更加丰富。
 
 stylus大概和sass/less差不多，stylus体现在更加简洁
 
+**使用**
+
 ```js
 1.
 在 uniapp 下使用stylus。 直接下载插件就可以了，插件名为 'stylus编译'
@@ -178,27 +178,60 @@ stylus 比 less 语法更丰富，书写更整洁。
 
 ###  PostCSS
 
-PostCSS 是目前最为流行的 CSS 预/后处理器。PostCSS 本体功能比较单一，它提供一种用 JavaScript 来处理 CSS 的方式。PostCSS 会把 CSS 解析成 AST（Abstract Syntax Tree 抽象语法树），之后由其他插件进行不同的处理。
+> PostCSS 是目前最为流行的 CSS 预处理器。PostCSS 本体功能比较单一，它提供一种用 JavaScript 来处理 CSS 的方式。PostCSS 会把 CSS 解析成 AST（Abstract Syntax Tree 抽象语法树），之后由其他插件进行不同的处理，有点像babel，由众多插件配置而成，还可以自己开发插件。
+>
 
-#### 功能
+**优点**: 插件系统完善，扩展性强、配合插件功能齐全、生态优秀。
 
-PostCSS 本体功能比较单一，大多数的 CSS 处理功能都由插件提供，下面是一些常用的插件：
+**缺点**：配置相对复杂。
 
-- [Autoprefixer](https://github.com/postcss/autoprefixer) 为 CSS 中的属性添加浏览器特定的前缀。
-- [postcss-preset-env](https://github.com/csstools/postcss-preset-env) 根据 `browserslist` 指定的目标浏览器将一些 CSS 的新特性转换为目标浏览器所支持的语法。
-- [cssnano](https://github.com/cssnano/cssnano) 提供 CSS 压缩功能。
-- [postcss-nested](https://github.com/postcss/postcss-nested) 提供 CSS 嵌套功能。
-- [postcss-px-to-viewport](https://github.com/evrone/postcss-px-to-viewport) 提供 px 转 vw 功能。
-- [postcss-custom-properties](https://github.com/postcss/postcss-custom-properties) 支持 CSS 的自定义属性。
+**使用**
 
-#### 优点
+[可以参考官网配置](https://github.com/postcss/postcss#usage)
 
-- 插件系统完善，扩展性强。
-- 配合插件功能齐全。
-- 生态优秀。
+#### 插件
 
-#### 缺点
+截止到目前，PostCSS 有 200 多个插件。你可以在 [插件列表](https://github.com/postcss/postcss/blob/main/docs/plugins.md) 或 [搜索目录](http://postcss.parts/) 找到它们。 下方的列表是我们最喜欢的插件 - 它们很好地演示了我们可以用 PostCSS 做些什么。
 
-- 配置相对复杂。
+其实**语法**就是我们所配置的插件，所以postcss要求配置相对熟悉需要较高的学习成本
 
-### 
+##### 解决全局 CSS 的问题
+
+- [`postcss-use`](https://github.com/postcss/postcss-use) 允许你在 CSS 里明确地设置 PostCSS 插件，并且只在当前文件执行它们。
+- [`postcss-modules`](https://github.com/outpunk/postcss-modules) 和 [`react-css-modules`](https://github.com/gajus/react-css-modules) 可以自动以组件为单位隔绝 CSS 选择器。
+- [`postcss-autoreset`](https://github.com/maximkoretskiy/postcss-autoreset) 是全局样式重置的又一个选择，它更适用于分离的组件。
+- [`postcss-initial`](https://github.com/maximkoretskiy/postcss-initial) 添加了 `all: initial` 的支持，重置了所有继承的样式。
+- [`cq-prolyfill`](https://github.com/ausi/cq-prolyfill) 添加了容器查询的支持，允许添加响应于父元素宽度的样式.
+
+##### 提前使用先进的 CSS 特性
+
+- **[`autoprefixer`](https://github.com/postcss/autoprefixer) 添加了 vendor 浏览器前缀，它使用 Can I Use 上面的数据。**
+- **[`postcss-preset-env`](https://github.com/jonathantneal/postcss-preset-env) 根据 `browserslist` 指定的目标浏览器将一些 CSS 的新特性转换为目标浏览器所支持的语法。**
+
+##### 更佳的 CSS 可读性
+
+- [`precss`](https://github.com/jonathantneal/precss) 囊括了许多插件来支持类似 Sass 的特性，比如 CSS 变量，套嵌，mixins 等。
+- [`postcss-sorting`](https://github.com/hudochenkov/postcss-sorting) 给规则的内容以及@规则排序。
+- [`postcss-utilities`](https://github.com/ismamz/postcss-utilities) 囊括了最常用的简写方式和书写帮助。
+- [`short`](https://github.com/jonathantneal/postcss-short) 添加并拓展了大量的缩写属性。
+- **[postcss-nested](https://github.com/postcss/postcss-nested) 提供 CSS 嵌套功能。**
+
+##### 图片和字体
+
+- [`postcss-assets`](https://github.com/assetsjs/postcss-assets) 可以插入图片尺寸和内联文件。
+- [`postcss-sprites`](https://github.com/2createStudio/postcss-sprites) 能生成雪碧图。
+- [`font-magician`](https://github.com/jonathantneal/postcss-font-magician) 生成所有在 CSS 里需要的 `@font-face` 规则。
+- [`postcss-inline-svg`](https://github.com/TrySound/postcss-inline-svg) 允许你内联 SVG 并定制它的样式。
+- [`postcss-write-svg`](https://github.com/jonathantneal/postcss-write-svg) 允许你在 CSS 里写简单的 SVG。
+
+##### 其它
+
+- [`postcss-rtl`](https://github.com/vkalinichev/postcss-rtl) 在单个 CSS 文件里组合了两个方向（左到右，右到左）的样式。
+- **[`cssnano`](http://cssnano.co/) 是一个模块化的 CSS 压缩器。**
+- **[postcss-px-to-viewport](https://github.com/evrone/postcss-px-to-viewport) 提供 px 转 vw 功能。**
+- **[postcss-custom-properties](https://github.com/postcss/postcss-custom-properties) 支持 CSS 的自定义属性。**
+- [`lost`](https://github.com/peterramsing/lost) 是一个功能强大的 `calc()` 栅格系统。
+- [`rtlcss`](https://github.com/MohammadYounes/rtlcss) 镜像翻转 CSS 样式，适用于 right-to-left 的应用场景。
+
+[参考postcss-cn](https://github.com/postcss/postcss/blob/main/docs/README-cn.md)
+
