@@ -1,25 +1,35 @@
 # CSRF「Cross-site request forgery」
 
-我们知道了同源策略可以隔离各个站点之间的 DOM 交互、页面数据和网络通信，虽然严格的同源策略会带来更多的安全，但是也束缚了 Web。**这就需要在安全和自由之间找到一个平衡点，所以我们默认页面中可以引用任意第三方资源**，然后又引入 CSP 策略来加以限制；默认 XMLHttpRequest 和 Fetch 不能跨站请求资源，然后又通过 CORS 策略来支持其跨域。
+我们知道了同源策略可以隔离各个站点之间的 DOM 交互、页面数据和网络通信，虽然严格的同源策略会带来更多的安全，但是也束缚了 Web。**这就需要在安全和自由之间找到一个平衡点，所以我们默认页面中可以引用任意第三方资源**，然后又引入 CSP 策略来加以限制；默认 XMLHttpRequest 和 Fetch、iframe 不能跨站请求资源，然后又通过 CORS 策略来支持其跨域。
 
 所以安全性降低了，为了更好的技术应用，同时也带来了更多的安全隐患，如XSS，CSRF。
+
+
+
+
 
 ## 什么是CSRF？
 
 > 跨站请求伪造，冒用Cookie中的信息，发起请求攻击。
 >
-> CSRF（Cross-site request forgery）跨站请求伪造：攻击者诱导受害者进入第三方网站，在第三方网站中，向被攻击网站发送跨站请求。利用受害者在被攻击网站已经获取的注册凭证，绕过后台的用户验证，达到冒充用户对被攻击的网站执行某项操作的目的。
+> CSRF（Cross-site request forgery）跨站请求伪造：攻击者诱导受害者进入第三方网站，在第三方网站中，向被攻击网站发送跨站请求。利用受害者在被攻击网站已经获取的Cookie凭证，绕过后台的用户验证，达到冒充用户对被攻击的网站执行某项操作的目的。
 
 
 
-## CSRF攻击过程
+### CSRF攻击过程
 
-> 满足了上面的必要条件才可以触发
+> 黑客首先先研究准备攻击的网站，然后找到漏洞，并把自己伪装成用户。
 
-1. 当用户已经登录成功了一个网站
-2. 然后通过被诱导进了第三方网站「钓鱼网站」
-3. 跳转过去了自动提交表单，冒用受害者信息
-4. 后台则正常走逻辑将用户提交的表单信息进行处理
+1. 肇事者伪造一个转账接口
+2. 肇事者嵌入这个请求到网站，和以某种形式「攻击类型」发送给已登陆用户
+3. 用户不经意的触发了伪造的请求
+4. 后台则正常走逻辑将用户提交的表单信息进行处理，向肇事者转账成功
+
+![csrf-cross-site-request-forgery](images/csrf-cross-site-request-forgery.png)
+
+[图片来自](https://www.imperva.com/learn/application-security/csrf-cross-site-request-forgery/) 
+
+
 
 
 
@@ -27,7 +37,7 @@
 
 #### GET类型
 
-img标签 script。
+img标签 中藏着的script。
 
 ```html
 <!DOCTYPE html>
@@ -43,7 +53,7 @@ img标签 script。
 
 #### POST类型
 
-表单中的post请求
+当发现接口只支持POST请求，那就模拟一个POST攻击
 
 ```html
 <form action="http://bank.com/withdraw" method=POST>
@@ -52,18 +62,17 @@ img标签 script。
     <input type="hidden" name="for" value="hacker" />
 </form>
 <script> document.forms[0].submit(); </script> 
+
 访问该页面后，表单会自动提交，相当于模拟用户完成了一次POST操作。
-
-
 ```
 
 #### 引诱用户点击
 
-a标签
+a标签，各种诱惑性的信息
 
-```
-链接类型的CSRF a标签
+```html
 <a href="http://bank.com/withdraw?amount=1000&for=hacker" taget="_blank">重磅消息！！<a/>
+  
 只要用户点击了，就会被攻击成功
 ```
 
@@ -92,7 +101,13 @@ CSRF通常是跨域的，因为外域通常更容易被攻击者掌控。但是�
 
 ## 防护策略
 
-> CSRF通常从第三方网站发起，被攻击的网站无法防止攻击发生，只能通过增强自己网站针对CSRF的防护能力来提升安全性。
+> 有许多有效的方法可以防护 CSRF 攻击。从用户的角度来看，预防是保护登录凭据并拒绝未经授权的参与者访问应用程序的问题。从网站的角度来看，是一个复杂的处理方案，可以参考下面
+
+
+
+### 网站的防护策略
+
+> CSRF通常从第三方网站发起，被攻击的网站无法防止攻击发生，只能通过增强自己网站针对CSRF的防护能力来提升安全性。可以从发起请求，cookie的安全性，cookie的替代方案，再到接口是否存在CSRF漏洞，网站呈现相应不安全提示，这些方面下手
 
 根据上面总结的特点，制定防护策略，如下。
 
@@ -130,13 +145,15 @@ IE11同源策略： IE 11 不会在跨站CORS请求上添加Origin标头，Refer
 
 这种称为严格模式，表明这个 Cookie 在任何情况下都不可能作为第三方 Cookie，绝无例外。比如说 b.com 设置了如下 Cookie：
 
-我们在 a.com 下发起对 b.com 的任意请求，foo 这个 Cookie 都不会被包含在 Cookie 请求头中，但 bar 会。举个实际的例子就是，假如淘宝网站用来识别用户登录与否的 Cookie 被设置成了 Samesite=Strict，那么用户从百度搜索页面甚至天猫页面的链接点击进入淘宝后，淘宝都不会是登录状态，因为淘宝的服务器不会接受到那个 Cookie，其它网站发起的对淘宝的任意请求都不会带上那个 Cookie。
-
 ```
 Set-Cookie: foo=1; Samesite=Strict
 Set-Cookie: bar=2; Samesite=Lax
 Set-Cookie: baz=3
 ```
+
+我们在 a.com 下发起对 b.com 的任意请求，foo 这个 Cookie 都不会被包含在 Cookie 请求头中，但 bar 会。举个实际的例子就是，假如淘宝网站用来识别用户登录与否的 Cookie 被设置成了 Samesite=Strict，那么用户从百度搜索页面甚至天猫页面的链接点击进入淘宝后，淘宝都不会是登录状态，因为淘宝的服务器不会接受到那个 Cookie，其它网站发起的对淘宝的任意请求都不会带上那个 Cookie。
+
+
 
 **Samesite=Lax**
 这种称为宽松模式，比 Strict 放宽了点限制：假如这个请求是这种请求（改变了当前页面或者打开了新页面）且同时是个GET请求，则这个Cookie可以作为第三方Cookie。比如说 b.com设置了如下Cookie：
@@ -199,7 +216,7 @@ token是一个比较有效的CSRF防护方法，只要页面没有XSS漏洞泄�
 
 
 
-## 个人用户CSRF安全的建议
+## 个人防护策略
 
 经常上网的个人用户，可以采用以下方法来保护自己：
 
