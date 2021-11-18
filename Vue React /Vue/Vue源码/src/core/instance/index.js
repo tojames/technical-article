@@ -9,7 +9,7 @@ function Vue(options) {
   if (process.env.NODE_ENV !== "production" && !(this instanceof Vue)) {
     warn("Vue is a constructor and should be called with the `new` keyword");
   }
-  // 这个方法在哪里调用的，干嘛的。
+  // 初始化生命周期
   this._init(options);
 }
 
