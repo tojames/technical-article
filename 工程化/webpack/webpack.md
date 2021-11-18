@@ -17,7 +17,7 @@
 ### loader
 
 ```
-webpack只能处理JavaScript的模块，如果要处理其他类别的文件，需要使用loader进行转换，它是指用来将一段代码转换成另一段代码的webpack转换器，如sass转换为css，并且转换为 commonJS 规范的文件后才能被webpack处理。
+webpack只能处理JavaScript的模块，如果要处理其他类别的文件，需要使用loader进行转换，它是指用来将一段代码转换成另一段代码的转换器，如sass转换为css，并且转换为 commonJS 规范的文件后才能被webpack处理。
 
 多个loader的执行顺序是 右到左「数组」，从下到上执行「对象」，可以设置 pre normal post
 

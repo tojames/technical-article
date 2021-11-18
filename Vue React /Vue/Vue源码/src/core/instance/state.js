@@ -348,11 +348,14 @@ function initMethods(vm: Component, methods: Object) {
   }
 }
 
+// 初始化Watch
+// watch 为用户书写watch
 function initWatch(vm: Component, watch: Object) {
   for (const key in watch) {
     const handler = watch[key];
     if (Array.isArray(handler)) {
       for (let i = 0; i < handler.length; i++) {
+        // 创建watch，并且把回调函数传递进去
         createWatcher(vm, key, handler[i]);
       }
     } else {
@@ -361,19 +364,23 @@ function initWatch(vm: Component, watch: Object) {
   }
 }
 
+// 创建watch
 function createWatcher(
   vm: Component,
   expOrFn: string | Function,
   handler: any,
   options?: Object
 ) {
+  // 如果传进来是一个对象
   if (isPlainObject(handler)) {
-    options = handler;
+    options = handler; // options接受到了
     handler = handler.handler;
   }
+  // 如果是字符串 就是可以让我们写“a.b.c”这样的格式
   if (typeof handler === "string") {
     handler = vm[handler];
   }
+  // 去走watch方法
   return vm.$watch(expOrFn, handler, options);
 }
 
@@ -408,6 +415,7 @@ export function stateMixin(Vue: Class<Component>) {
   Vue.prototype.$set = set;
   Vue.prototype.$delete = del;
 
+  
   Vue.prototype.$watch = function (
     expOrFn: string | Function,
     cb: any,
@@ -415,12 +423,15 @@ export function stateMixin(Vue: Class<Component>) {
   ): Function {
     const vm: Component = this;
     debugger;
+    // 这里还留下了一个 用户可以通过 vm.$watch("xx",()....)的调用方法
     if (isPlainObject(cb)) {
       return createWatcher(vm, expOrFn, cb, options);
     }
     options = options || {};
     options.user = true;
+    // 在这里才真正去 watcher累里面进行监听
     const watcher = new Watcher(vm, expOrFn, cb, options); // 创建watcher，数据更新调用cb
+    // 如果是immediate为true的话，立即执行传进来的回调函数
     if (options.immediate) {
       try {
         cb.call(vm, watcher.value);
