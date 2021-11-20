@@ -315,3 +315,41 @@ provide/inject
 渲染组件的extend render $mount
 
 说实话我也不太懂原理，等我看来源码我再来补充吧。
+
+## **对动态组件&&异步组件的理解**
+
+```js
+让多个组件使用同一个挂载点，并动态切换，这就是动态组件。
+
+https://cn.vuejs.org/v2/guide/components-dynamic-async.html
+https://segmentfault.com/a/1190000012138052
+异步组件的功能就是，当我们的项目很大的时候，加载特别慢，可以考虑使用异步组件「不是特别重要的组件可以使用这种方式」来加载（需要的时候才去加载）。
+可以减少内存开销，加快渲染速度。
+
+使用
+来自vue官网
+const AsyncComponent = () => ({
+  // 需要加载的组件 (应该是一个 `Promise` 对象)
+  component: import('./MyComponent.vue'),
+  // 异步组件加载时使用的组件
+  loading: LoadingComponent,
+  // 加载失败时使用的组件
+  error: ErrorComponent,
+  // 展示加载时组件的延时时间。默认值是 200 (毫秒)
+  delay: 200,
+  // 如果提供了超时时间且组件加载也超时了，
+  // 则使用加载失败时使用的组件。默认值是：`Infinity`
+  timeout: 3000
+})
+```
+
+## **组件中写name选项有什么作用**
+
+```
+1.项目使用keep-alive时，可搭配组件name进行缓存过滤
+2.DOM做递归组件时需要调用自身name
+3.vue-devtools调试工具里显示的组见名称是由vue中组件name决定的
+```
+
+
+

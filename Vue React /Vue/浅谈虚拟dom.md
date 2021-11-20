@@ -108,3 +108,37 @@ VNode的类型
 
 ```
 
+
+
+### 1. **diff 中为什么要用 key** **(图解**)
+
+<img src="images/image-20210514091951593.png" alt="image-20210514091951593" style="zoom:50%;" />
+
+```js
+如果有key的情况下，可以更好的判断组件是否相等， 就可以就地服用。
+如果没有key的话，只能通过patch去对比，造成性能浪费。
+
+// 判断节点是否相等
+function sameVnode(a, b) {
+  return (
+    a.key === b.key &&
+    ((a.tag === b.tag &&
+      a.isComment === b.isComment &&
+      isDef(a.data) === isDef(b.data) &&
+      sameInputType(a, b)) ||
+      (isTrue(a.isAsyncPlaceholder) &&
+        a.asyncFactory === b.asyncFactory &&
+        isUndef(b.asyncFactory.error)))
+  );
+}
+```
+
+### **2.描述组件渲染和更新过程**
+
+<img src="images/image-20210514092238800.png" alt="image-20210514092238800" style="zoom:50%;" />
+
+```
+理解:
+渲染组件时，会通过 Vue.extend 方法构建子组件的构造函数，并进行实例化。最终手动调用 $mount() 进行挂载。更新组件时会进行 patchVnode 流程.核心就是diff算法
+```
+
