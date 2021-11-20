@@ -96,6 +96,7 @@ export function initInternalComponent(
   }
 }
 
+// 属性合并和继承
 export function resolveConstructorOptions(Ctor: Class<Component>) {
   let options = Ctor.options;
   if (Ctor.super) {

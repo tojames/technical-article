@@ -6,6 +6,7 @@
  *
  * modified by Evan You (@yyx990803)
  *
+ * // 不做类型检查
  * Not type-checking this because this file is perf-critical and the cost
  * of making flow understand it is not worth it.
  */
@@ -46,6 +47,7 @@ function sameVnode(a, b) {
   );
 }
 
+// 判断 input 输入内容是否一致
 function sameInputType(a, b) {
   if (a.tag !== "input") return true;
   let i;
@@ -54,6 +56,7 @@ function sameInputType(a, b) {
   return typeA === typeB || (isTextInputType(typeA) && isTextInputType(typeB));
 }
 
+// 如果有 key 则返回 map映射的 key-val 键值对
 function createKeyToOldIdx(children, beginIdx, endIdx) {
   let i, key;
   const map = {};
