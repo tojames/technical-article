@@ -513,7 +513,7 @@ function updateChildren(
 
 
 
-## **描述组件渲染和更新过程**
+## **组件渲染和更新过程**
 
 <img src="images/image-20210514092238800.png" alt="image-20210514092238800" style="zoom:50%;" />
 
