@@ -35,25 +35,30 @@ export function toggleObserving(value: boolean) {
  * object's property keys into getter/setters that
  * collect dependencies and dispatch updates.
  */
+// 这是一个监听数据的发起函数，通过 getter/setter 去处理
 export class Observer {
-  // new Observer(value)
-  value: any;
-  dep: Dep;
+  value: any; // 监听值
+  dep: Dep; // 收集依赖
   vmCount: number; // number of vms that have this object as root $data
 
   constructor(value: any) {
     this.value = value;
-    this.dep = new Dep(); // 给所有对象类型增加dep属性
-    this.vmCount = 0;
+    this.dep = new Dep(); // 给当前Observer 增加dep属性
+    this.vmCount = 0; // 当前监听数据的数量
+    //  Define a property,将数据都定义在 __ob__ 上
     def(value, "__ob__", this);
     if (Array.isArray(value)) {
+      // 判断 能不能使用 __proto__
       if (hasProto) {
+        // 将数组的方法进行监听，当用户使用数组改变data中的数组的时候就会触发 setter
         protoAugment(value, arrayMethods);
       } else {
         copyAugment(value, arrayMethods, arrayKeys);
       }
+      // 监听数组的，这个方法的原理就是递归监听数据里面的每一项
       this.observeArray(value);
     } else {
+      // 监听对象/普通值
       this.walk(value);
     }
   }
@@ -63,6 +68,7 @@ export class Observer {
    * getter/setters. This method should only be called when
    * value type is Object.
    */
+  // 如果是对象的话，走defineReactive，最后面都会走这里
   walk(obj: Object) {
     const keys = Object.keys(obj);
     for (let i = 0; i < keys.length; i++) {
@@ -73,6 +79,7 @@ export class Observer {
   /**
    * Observe a list of Array items.
    */
+  // 是数组的话
   observeArray(items: Array<any>) {
     for (let i = 0, l = items.length; i < l; i++) {
       observe(items[i]);
@@ -114,9 +121,12 @@ export function observe(value: any, asRootData: ?boolean): Observer | void {
     return;
   }
   let ob: Observer | void;
+  // 如果该值已经被 observer 了，直接返回即可
   if (hasOwn(value, "__ob__") && value.__ob__ instanceof Observer) {
     ob = value.__ob__;
-  } else if (
+  }
+  // 判断符合监听规则的数据
+  else if (
     shouldObserve &&
     !isServerRendering() &&
     (Array.isArray(value) || isPlainObject(value)) &&
@@ -126,6 +136,7 @@ export function observe(value: any, asRootData: ?boolean): Observer | void {
     ob = new Observer(value);
   }
   if (asRootData && ob) {
+    // 监听的数量+1
     ob.vmCount++;
   }
   return ob;
@@ -134,7 +145,8 @@ export function observe(value: any, asRootData: ?boolean): Observer | void {
 /**
  * Define a reactive property on an Object.
  */
-export function defineReactive( // 定义响应式数据
+// 定义响应式数据
+export function defineReactive(
   obj: Object,
   key: string,
   val: any,
@@ -142,7 +154,15 @@ export function defineReactive( // 定义响应式数据
   shallow?: boolean
 ) {
   const dep = new Dep();
-  // 如果不可以配置直接return
+  // Object.getOwnPropertyDescriptor获取当前对象的描述
+  // {
+  //   configurable: true
+  //   enumerable: true
+  //   value: 1
+  //   writable: true
+  // }
+  // 如果不可以配置直接return，property.configurable === false
+
   const property = Object.getOwnPropertyDescriptor(obj, key);
   if (property && property.configurable === false) {
     return;
@@ -154,14 +174,16 @@ export function defineReactive( // 定义响应式数据
   if ((!getter || setter) && arguments.length === 2) {
     val = obj[key];
   }
-  // 对数据进行观测
+  // 对子数据进行观测
   let childOb = !shallow && observe(val);
+  // 核心方法 Object.defineProperty 去监听数据的变化
   Object.defineProperty(obj, key, {
     enumerable: true,
     configurable: true,
     get: function reactiveGetter() {
       // 取数据时进行依赖收集
       const value = getter ? getter.call(obj) : val;
+      // 全局收集依赖对象
       if (Dep.target) {
         dep.depend(); // dep中收集的是watcher
         if (childOb) {
@@ -193,7 +215,8 @@ export function defineReactive( // 定义响应式数据
         val = newVal;
       }
       childOb = !shallow && observe(newVal);
-      dep.notify(); // 让watcher去更新
+      // getter收集到的状态，让watcher去更新
+      dep.notify();
     },
   });
 }

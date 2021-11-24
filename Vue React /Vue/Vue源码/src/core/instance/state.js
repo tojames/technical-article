@@ -197,7 +197,8 @@ function initData(vm: Component) {
             `Use prop default value instead.`,
           vm
         );
-    } else if (!isReserved(key)) { // _ 或者 $ 开头的key是无法被代理的
+    } else if (!isReserved(key)) { // _ 或者 $ 开头的key是无法被代理的，因为他们都是私有的属性，比如$store、$router
+      // 这行代码的作用是为了把监听的数据代理到了 data 上面，方便我们使用this方法
       proxy(vm, `_data`, key);
     }
   }
