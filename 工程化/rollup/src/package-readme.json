@@ -1,0 +1,21 @@
+{
+  "name": "rollup-study",
+  "version": "1.0.0",
+  "description": "这是果汁学习rollup的练习",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "dev":"rollup -c -w", // rollpu：打包 -c： 当前配置 -w：观察文件
+  },
+  "keywords": [
+    "没有关键字"
+  ],
+  "author": "果汁",
+  "license": "ISC",
+  "devDependencies": {
+    "rollup": "^2.60.1", // 用来rollup打包第三方的开发库，webpack打包项目的
+    "rollup-plugin-babel": "^4.4.0", // 通过 rollup和babel建立桥梁，可以将新的语法打包到成es5
+    "@babel/core": "^7.16.0", // babel核心包
+    "@babel/preset-env": "^7.16.4", // bable预设
+    "rollup-plugin-serve": "^1.1.0" // 开启一个rollup本地服务
+}

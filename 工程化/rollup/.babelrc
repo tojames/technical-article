@@ -1,0 +1,6 @@
+{
+  "presets": [
+    // 把es6 转换为es5
+    "@babel/preset-env"
+  ]
+}

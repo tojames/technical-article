@@ -1,0 +1,22 @@
+{
+  "name": "rollup-study",
+  "version": "1.0.0",
+  "description": "这是果汁学习rollup的练习",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "dev":"rollup -c -w"
+  },
+  "keywords": [
+    "没有关键字"
+  ],
+  "author": "果汁",
+  "license": "ISC",
+  "devDependencies": {
+    "rollup": "^2.60.1", 
+    "rollup-plugin-babel": "^4.4.0", 
+    "@babel/core": "^7.16.0",
+    "@babel/preset-env": "^7.16.4", 
+    "rollup-plugin-serve": "^1.1.0" 
+}
+}
