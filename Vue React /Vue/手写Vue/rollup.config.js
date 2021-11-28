@@ -1,5 +1,5 @@
-import babel from "rollup-plugin-babel";
-import serve from "rollup-plugin-serve";
+import babel from "rollup-plugin-babel"
+import serve from "rollup-plugin-serve"
 
 export default {
   input: "./src/index.js", // 入口文件，以这个入口文件打包库,不用绝对路径
@@ -22,4 +22,4 @@ export default {
       openPage: "index.html", // 当前打开的页面
     }),
   ],
-};
+}
