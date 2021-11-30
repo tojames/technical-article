@@ -146,44 +146,26 @@ call 是单个参数按照顺序进行一个个放在函数调用里面
 apply 是一个数组
 
 ```js
-Function.prototype.call = function call(context, ...params) {
-  let self = this,
-    key = Symbol("KEY"),
-    result
-  // 装箱，为了让context可以兼容非function 对象调用。
-  context == null ? (context = window) : null
-  !/^(object|function)$/i.test(typeof context) ? (context = Object(context)) : null
+Function.prototype._call = function(context, ...args) {
+  let key = Symbol('key')
 
-  context[key] = self
-  result = context[key](...params)
+  context[key] = this
+  let res = context[key](...args)
   delete context[key]
-  return result
+  return res
 }
 
 // func.call(thisArg, param1, param2)
 // 目的就是将 func 这个方法添加到 thisArg 下面，然后执行方法，接着删除这个属性，并把这个函数执行的结果返回出来，做到和普通函数一摸一样。
 
-// /g 表示该表达式将用来在输入字符串中查找所有可能的匹配，返回的结果可以是多个。如果不加/g最多只会匹配一个
-//  /i  表示匹配的时候不区分大小写
-// /m 表示多行匹配，什么是多行匹配呢？就是匹配换行符两端的潜在匹配。影响正则中的^$符号
-(function () {
-  var slice = Array.prototype.slice
-  Function.prototype.bind = function () {
-    var thatFunc = this,
-      thatArg = arguments[0]
-    var args = slice.call(arguments, 1)
-    if (typeof thatFunc !== "function") {
-      // closest thing possible to the ECMAScript 5
-      // internal IsCallable function
-      throw new TypeError("Function.prototype.bind - " + "what is trying to be bound is not callable")
-    }
-    return function () {
-      var funcArgs = args.concat(slice.call(arguments))
-      return thatFunc.apply(thatArg, funcArgs)
-    }
-  }
-})()
 
+Function.prototype._bind = function(context, ...args) {
+  let key = Symbol('key')
+  context[key] = this
+  return function() {
+    return context[key]._call(context, ...args)
+  }
+}
 // 间接调用了apply，返回一个函数出来，还有注意细节，将原型也要改回去
 ```
 
