@@ -33,6 +33,7 @@ export function def(data, key, value) {
   })
 }
 
+// 生命周期合并策略，使用数组返回方法
 const LIFECYCLE_HOOKS = [
   "beforeCreate",
   "created",
@@ -63,9 +64,11 @@ LIFECYCLE_HOOKS.forEach((hook) => {
 
 export function mergeOptions(parent, child) {
   const options = {}
+  // 遍历父亲
   for (let key in parent) {
     mergeField(key)
   }
+  // 遍历儿子，这里可能会有重复
   for (let key in child) {
     //  如果已经合并过了就不需要再次合并了
     if (!parent.hasOwnProperty(key)) {
@@ -78,6 +81,7 @@ export function mergeOptions(parent, child) {
       return (options[key] = strats[key](parent[key], child[key]))
     }
     if (typeof parent[key] === "object" && typeof child[key] === "object") {
+      // 出现重复就会覆盖
       options[key] = {
         ...parent[key],
         ...child[key],
@@ -85,6 +89,7 @@ export function mergeOptions(parent, child) {
     } else if (child[key] == null) {
       options[key] = parent[key]
     } else {
+      // 父亲为null或者普通值，直接使用child[key]即可
       options[key] = child[key]
     }
   }

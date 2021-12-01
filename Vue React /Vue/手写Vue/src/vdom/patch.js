@@ -7,6 +7,8 @@ export function patch(oldVnode, vnode) {
   parentElm.insertBefore(el, oldVnode.nextSibling)
   // 删除老节点
   parentElm.removeChild(oldVnode)
+
+  return el
 }
 
 function createElm(vnode) {

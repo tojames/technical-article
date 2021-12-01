@@ -8,7 +8,9 @@ export function initMixin(Vue) {
   // 初始化方法
   Vue.prototype._init = function (options) {
     const vm = this
-    vm.$options = options
+    // vm.$options = options
+    // 将用户传递的 和 全局的进行一个合并
+    vm.$options = mergeOptions(vm.constructor.options, options)
 
     // Vue 响应式数据原理
     // 参考MVVM，不是MVVM

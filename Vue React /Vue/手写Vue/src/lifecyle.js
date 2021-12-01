@@ -3,7 +3,7 @@ import Watcher from "./observer/watcher"
 
 export function lifecycleMiXin(Vue) {
   Vue.prototype._update = function (vnode) {
-    console.log(vnode, "vnode")
+    // console.log(vnode, "vnode")
     let vm = this
     patch(vm.$el, vnode)
   }
