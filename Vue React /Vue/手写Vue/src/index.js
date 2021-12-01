@@ -1,6 +1,3 @@
-// export const fn = () => {
-//   console.log("这是rollup");
-// };
 import { initMixin } from "./init"
 import { lifecycleMiXin } from "./lifecyle"
 import { renderMiXin } from "./vdom/index"
@@ -13,9 +10,9 @@ function Vue(options) {
 
 // 写成一个个插件，对原形进行扩展。
 
-initMixin(Vue)
-lifecycleMiXin(Vue)
-renderMiXin(Vue)
+initMixin(Vue) // 执行挂载操作
+lifecycleMiXin(Vue) // 生命周期，和真正渲染
+renderMiXin(Vue) // 将template 转为ast
 
 // 初始化全局的api
 initGlobalAPI(Vue)

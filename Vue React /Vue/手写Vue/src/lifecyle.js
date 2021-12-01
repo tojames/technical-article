@@ -5,7 +5,8 @@ export function lifecycleMiXin(Vue) {
   Vue.prototype._update = function (vnode) {
     // console.log(vnode, "vnode")
     let vm = this
-    patch(vm.$el, vnode)
+    // 每次都用新的el
+    vm.$el = patch(vm.$el, vnode)
   }
 }
 
@@ -23,8 +24,15 @@ export function mountComponent(vm, el) {
     // 返回的是虚拟dom
     vm._update(vm._render())
   }
-  // 渲染watcher 每个组件都有一个watcher
-  new Watcher(vm, updateComponent, () => {}, true) // true表示他是一个渲染watcher
+  // 渲染watcher 每个组件都有一个watcher,true表示他是一个渲染watcher
+  new Watcher(
+    vm,
+    updateComponent,
+    () => {
+      callHook(vm, "beforeUpdate")
+    },
+    true
+  )
   callHook(vm, "mounted")
 }
 
