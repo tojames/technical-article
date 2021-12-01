@@ -8,7 +8,10 @@
   </head>
 
   <body>
-    <div id="app" style="color: red">hello <span>word</span></div>
+    <div id="app" style="color: red">
+      hello word
+      <span> {{ a.a}} ，{{b}}</span>
+    </div>
   </body>
   <script src="./dist/umd/vue.js"></script>
   <script>
@@ -17,20 +20,23 @@
       data() {
         return {
           a: { a: 1 },
-          b: [],
+          b: "我是B",
           c: [{ c: 1 }],
-        }
+        };
       },
       // render(h) {
       //   // 相当于createElement
       //   return h("div", { id: "app" }, "hello")
       // },
       // template: `<div id="app">hello</div>`,
-    })
-    // console.log(vm._data, "vm._data")
+    });
+
     // console.log(vm._data.b.push(1), "vm._data");
     // console.log((vm._data.c[0].c = 2), "vm._data");
-    vm.a = 1
+    setTimeout(() => {
+      vm.b = "你是小b";
+    }, 1000);
+    // vm._update(vm._render());
     // console.log((vm.b = 2), "vm._data");
   </script>
 </html>
