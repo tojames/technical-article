@@ -202,3 +202,32 @@ console.log(s.getFatherProp())
 Son.getFatherStaticMethod() // Hi,我是static父类 Son.
 ```
 
+
+
+## 练习题
+
+```js
+1.class A {
+      static a = 1
+      b = 2
+      fn() {}
+      f = () => {}
+}
+const a = new A()
+ console.log( a ) 
+
+{
+  b: 2,
+  f: () => {},
+   // 这个是原型
+   [[Prototype]]:{
+     constructor: class A
+		 fn: ƒ fn()
+   } 
+}
+
+// b = 2 放在实例上，是一种语法
+// 箭头函数this指向外层，所以new的时候，f就会在a实例上
+// 普通方法就放在原型链上
+```
+

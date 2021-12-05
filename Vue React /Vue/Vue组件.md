@@ -1,5 +1,46 @@
 # 组件
 
+## 组件的作用
+
+> 复用、方便维护，合理拆分组件可以在Vue底层的更新问题，每个组件都有一个watch，可以减少对比。
+
+## Vue.extend
+
+> 组件的初始化是靠Vue.extend ,通过寄生组合继承然后调用 _init()方法初始化组件，vue中，它其实把所有的渲染以组件为单位，不断的嵌套
+
+源码解析
+
+```js
+路径： core/global-api/extend.js, 省略部分代码
+
+Vue.extend = function (extendOptions: Object): Function {
+  // 传递进来的参数，就是options API格式的参数
+  extendOptions = extendOptions || {}
+  // Vue
+  const Super = this
+  // sub就是组件的方法，它就像Vue入口一样 执行init方法
+  const Sub = function VueComponent (options) {
+    this._init(options)
+  }
+  // 寄生组合继承
+  Sub.prototype = Object.create(Super.prototype)
+  Sub.prototype.constructor = Sub
+  Sub.cid = cid++
+  // 合并处理
+  Sub.options = mergeOptions(
+    Super.options,
+    extendOptions
+  )
+
+  // 将Sub返回出去
+  return Sub
+}
+
+然后提供给 createComponent方法使用，就可以将这个 Sub里面options参数进行初始化，和调用 installComponentHooks 最后创建虚拟节点，返回出去。这样一个组件就完成了，等着挂载就可以了。
+```
+
+
+
 prop验证的type类型有哪几种
 
 ```js
