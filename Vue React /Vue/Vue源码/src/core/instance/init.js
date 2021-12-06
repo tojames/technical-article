@@ -45,14 +45,16 @@ export function initMixin(Vue: Class<Component>) {
     }
     /* istanbul ignore else */
     if (process.env.NODE_ENV !== "production") {
+      // 代理vm，里面的逻辑好像不太理解这个操作，最后面不支持 new Proxy 还是  vm._renderProxy = vm
       initProxy(vm);
     } else {
+      // 如果是生产环境 则将当前实例赋值，
       vm._renderProxy = vm;
     }
     // expose real self
     vm._self = vm;
-    initLifecycle(vm);
-    initEvents(vm);
+    initLifecycle(vm); // 初始化各种属性
+    initEvents(vm); // 初始话事件，并且监听父组件的事件，当子组件传值给父组件的时候
     initRender(vm); // vm.$slots
     callHook(vm, "beforeCreate");
     initInjections(vm); // resolve injections before data/props
