@@ -1,7 +1,3 @@
-问题1 getData
-问题2 proxy 和 observe 什么关系
-
-
 /* @flow */
 import config from "../config"; // 一大堆的配置信息
 import Watcher from "../observer/watcher"; // 监听器
@@ -36,16 +32,14 @@ import {
  *
  */
 
-
 /**
  * Check if a string starts with $ or _  检查字符串开头第一个字符是否是 $ or _
- * 
+ *
  * export function isReserved (str: string): boolean {
  *  const c = (str + '').charCodeAt(0)
  *  return c === 0x24 || c === 0x5F
  * }
-*/
-
+ */
 
 /**
  *  hyphenate：
@@ -54,7 +48,7 @@ import {
  * export const hyphenate = cached((str: string): string => {
  *   return str.replace(hyphenateRE, '-$1').toLowerCase()
  * })
- * 
+ *
  */
 
 import {
@@ -189,7 +183,7 @@ function initData(vm: Component) {
         );
       }
     }
-     // 判断 props 是否已经存在data中的key，存在，则警告
+    // 判断 props 是否已经存在data中的key，存在，则警告
     if (props && hasOwn(props, key)) {
       process.env.NODE_ENV !== "production" &&
         warn(
@@ -197,7 +191,8 @@ function initData(vm: Component) {
             `Use prop default value instead.`,
           vm
         );
-    } else if (!isReserved(key)) { // _ 或者 $ 开头的key是无法被代理的，因为他们都是私有的属性，比如$store、$router
+    } else if (!isReserved(key)) {
+      // _ 或者 $ 开头的key是无法被代理的，因为他们都是私有的属性，比如$store、$router
       // 这行代码的作用是为了把监听的数据代理到了 data 上面，方便我们使用this方法
       proxy(vm, `_data`, key);
     }
@@ -253,10 +248,13 @@ function initComputed(vm: Component, computed: Object) {
       // 如果 data 中已经有了 key 则警告
       if (key in vm.$data) {
         warn(`The computed property "${key}" is already defined in data.`, vm);
-      } 
+      }
       // 如果 prop 中已经有了 key 则警告
       else if (vm.$options.props && key in vm.$options.props) {
-        warn(`The computed property "${key}" is already defined as a prop.`,vm );
+        warn(
+          `The computed property "${key}" is already defined as a prop.`,
+          vm
+        );
       }
       // 如果 computed 和 method 重名会怎么样？ 答案是method会被替换，因为computed声明在method后面
     }
@@ -268,7 +266,7 @@ export function defineComputed(
   key: string,
   userDef: Object | Function
 ) {
-  const shouldCache = !isServerRendering(); // 
+  const shouldCache = !isServerRendering(); //
   if (typeof userDef === "function") {
     sharedPropertyDefinition.get = shouldCache
       ? createComputedGetter(key)
@@ -385,7 +383,6 @@ function createWatcher(
   return vm.$watch(expOrFn, handler, options);
 }
 
-
 export function stateMixin(Vue: Class<Component>) {
   // flow somehow has problems with directly declared definition object
   // when using Object.defineProperty, so we have to procedurally build up
@@ -398,6 +395,7 @@ export function stateMixin(Vue: Class<Component>) {
   propsDef.get = function () {
     return this._props;
   };
+  // 警告data被替换
   if (process.env.NODE_ENV !== "production") {
     dataDef.set = function () {
       warn(
@@ -406,6 +404,7 @@ export function stateMixin(Vue: Class<Component>) {
         this
       );
     };
+    // 警告属性是只读的
     propsDef.set = function () {
       warn(`$props is readonly.`, this);
     };
@@ -416,21 +415,19 @@ export function stateMixin(Vue: Class<Component>) {
   Vue.prototype.$set = set;
   Vue.prototype.$delete = del;
 
-  
   Vue.prototype.$watch = function (
     expOrFn: string | Function,
     cb: any,
     options?: Object
   ): Function {
     const vm: Component = this;
-    debugger;
     // 这里还留下了一个 用户可以通过 vm.$watch("xx",()....)的调用方法
     if (isPlainObject(cb)) {
       return createWatcher(vm, expOrFn, cb, options);
     }
     options = options || {};
     options.user = true;
-    // 在这里才真正去 watcher累里面进行监听
+    // 在这里才真正去 watcher类里面进行监听
     const watcher = new Watcher(vm, expOrFn, cb, options); // 创建watcher，数据更新调用cb
     // 如果是immediate为true的话，立即执行传进来的回调函数
     if (options.immediate) {

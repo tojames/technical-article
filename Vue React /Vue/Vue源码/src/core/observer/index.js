@@ -227,7 +227,7 @@ export function defineReactive(
  * already exist.
  */
 export function set(target: Array<any> | Object, key: any, val: any): any {
-  // 1.是开发环境 target 没定义或者是基础类型则报错
+  // 1.开发环境 target 没定义或者是基础类型则报错
   if (
     process.env.NODE_ENV !== "production" &&
     (isUndef(target) || isPrimitive(target))
@@ -236,7 +236,7 @@ export function set(target: Array<any> | Object, key: any, val: any): any {
       `Cannot set reactive property on undefined, null, or primitive value: ${(target: any)}`
     );
   }
-  // 2.如果是数组 Vue.set(array,1,100); 调用我们重写的splice方法 (这样可以更新视图)
+  // 2.如果是数组 Vue.set(array,1,100); 调用重写的splice方法 (这样可以更新视图)
   if (Array.isArray(target) && isValidArrayIndex(key)) {
     target.length = Math.max(target.length, key);
     target.splice(key, 1, val);
@@ -281,6 +281,7 @@ export function del(target: Array<any> | Object, key: any) {
       `Cannot delete reactive property on undefined, null, or primitive value: ${(target: any)}`
     );
   }
+  // 如果是数组的话，直接删除一项即可，splice是重写过的
   if (Array.isArray(target) && isValidArrayIndex(key)) {
     target.splice(key, 1);
     return;
@@ -297,10 +298,12 @@ export function del(target: Array<any> | Object, key: any) {
   if (!hasOwn(target, key)) {
     return;
   }
+  // 是对象的，直接删除即可
   delete target[key];
   if (!ob) {
     return;
   }
+  // 通知更新
   ob.dep.notify();
 }
 
