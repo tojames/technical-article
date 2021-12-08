@@ -11,6 +11,8 @@ import { updateListeners } from "../vdom/helpers/index";
 
 export function initEvents(vm: Component) {
   vm._events = Object.create(null); // 实现发布订阅模式
+  // 这个参数的作用的是
+  // 当我们使用 this.$emit('update:xxx', yyy) 就可以触发方法了，不需要传递回调函数，改变参数
   vm._hasHookEvent = false;
   // init parent attached events
   const listeners = vm.$options._parentListeners; // 所有的事件

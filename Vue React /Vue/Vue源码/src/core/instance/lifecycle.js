@@ -42,17 +42,25 @@ export function initLifecycle(vm: Component) {
     parent.$children.push(vm); // 让父实例记住当前组件实例
   }
 
-  vm.$parent = parent; // 增加$parent属性 指向父实例
+  // 增加$parent属性 指向父实例
+  vm.$parent = parent;
+  // 根实例
   vm.$root = parent ? parent.$root : vm;
-
+  // 子组件
   vm.$children = [];
+  // 记录dom
   vm.$refs = {};
-
+  // 初始化用来存放 watch 的变量
   vm._watcher = null;
+  // 初始化记录组件是否活动，	表示keep-alive中组件状态
   vm._inactive = null;
+  // 表示keep-alive中组件状态的属性
   vm._directInactive = false;
+  //	当前实例是否完成挂载(对应生命周期图示中的mounted)。
   vm._isMounted = false;
+  // 当前实例是否已经被销毁(对应生命周期图示中的destroyed)。
   vm._isDestroyed = false;
+  // 当前实例是否正在被销毁,还没有销毁完成(介于生命周期图示中deforeDestroy和destroyed之间)。
   vm._isBeingDestroyed = false;
 }
 
@@ -150,6 +158,7 @@ export function mountComponent(
   vm.$el = el;
   if (!vm.$options.render) {
     vm.$options.render = createEmptyVNode;
+    // 判断Vue的版本是runtime的时候，需要使用v-loader「会将模版转换成render函数」 或者使用完整版处理
     if (process.env.NODE_ENV !== "production") {
       /* istanbul ignore if */
       if (
@@ -171,6 +180,7 @@ export function mountComponent(
       }
     }
   }
+  // 可以准备挂载了调用 beforeMount 钩子函数
   callHook(vm, "beforeMount");
 
   let updateComponent;
@@ -183,11 +193,13 @@ export function mountComponent(
       const endTag = `vue-perf-end:${id}`;
 
       mark(startTag);
+      // 渲染得到虚拟节点
       const vnode = vm._render();
       mark(endTag);
       measure(`vue ${name} render`, startTag, endTag);
 
       mark(startTag);
+      // 更新节点
       vm._update(vnode, hydrating);
       mark(endTag);
       measure(`vue ${name} patch`, startTag, endTag);
@@ -220,6 +232,7 @@ export function mountComponent(
   // mounted is called for render-created child components in its inserted hook
   if (vm.$vnode == null) {
     vm._isMounted = true;
+    // 已经挂载完毕触发 mounted 钩子函数
     callHook(vm, "mounted");
   }
   return vm;

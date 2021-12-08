@@ -14,8 +14,8 @@ Vue 是一个构造函数，通过给Vue原型和Vue函数添加函数以及对�
 initMixin(Vue); // 初始化组件，各种参数，挂载参数。
 stateMixin(Vue); // 初始化数据相关的实例方法，下面介绍
 eventsMixin(Vue); // 事件方法的初始化 $on、$off、$once 、$emit
-lifecycleMixin(Vue);
-renderMixin(Vue);
+lifecycleMixin(Vue); // 生命周期初始化，$forceUpdate $destroy
+renderMixin(Vue); // $nextTick _render方法
 ```
 
 
