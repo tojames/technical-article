@@ -30,6 +30,7 @@ renderMixin(Vue);
 
   set
   在对象上设置属性。 如果该属性不存在，则添加新属性并触发更改通知。
+
 ```js
 export function set(target, key, val) {
   // 如果是数组 Vue.set(array,1,100); 调用重写的splice方法 (这样可以更新视图)
@@ -306,5 +307,11 @@ Vue.version
 
 
 
+## 指令
 
+v-if
+
+v-for
+
+v-on
 
