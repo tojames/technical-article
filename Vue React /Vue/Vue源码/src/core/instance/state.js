@@ -441,6 +441,7 @@ export function stateMixin(Vue: Class<Component>) {
         );
       }
     }
+    // 返回一个闭包去关闭定时器，一般是Vue内部销毁watch时调用的
     return function unwatchFn() {
       watcher.teardown();
     };

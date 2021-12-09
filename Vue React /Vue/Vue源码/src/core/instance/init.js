@@ -13,6 +13,7 @@ import { extend, mergeOptions, formatComponentName } from "../util/index";
 let uid = 0;
 
 export function initMixin(Vue: Class<Component>) {
+  // 向Vue原型挂载 私有方法 _init
   Vue.prototype._init = function (options?: Object) {
     const vm: Component = this;
     // a uid
@@ -27,17 +28,18 @@ export function initMixin(Vue: Class<Component>) {
     }
 
     // a flag to avoid this being observed
+    // 如果有_isVue的属性的话就不监听
     vm._isVue = true;
     // merge options
     if (options && options._isComponent) {
-      // 是组件 就会调用组件的初始化
       // optimize internal component instantiation
       // since dynamic options merging is pretty slow, and none of the
       // internal component options needs special treatment.
+      // 合并参数
       initInternalComponent(vm, options); // _ renderChildren
     } else {
+      // 合并属性
       vm.$options = mergeOptions(
-        // 属性合并
         resolveConstructorOptions(vm.constructor),
         options || {},
         vm
@@ -55,12 +57,12 @@ export function initMixin(Vue: Class<Component>) {
     vm._self = vm;
     initLifecycle(vm); // 初始化各种属性
     initEvents(vm); // 初始话事件，并且监听父组件的事件，当子组件传值给父组件的时候
-    initRender(vm); // vm.$slots
-    callHook(vm, "beforeCreate");
-    initInjections(vm); // resolve injections before data/props
-    initState(vm);
-    initProvide(vm); // resolve provide after data/props
-    callHook(vm, "created");
+    initRender(vm); // $slots  $attrs $listeners 创建虚拟节点
+    callHook(vm, "beforeCreate"); // 调用beforeCreate 钩子函数
+    initInjections(vm); // 初始化祖父节点注入数据，实现可以监听
+    initState(vm); // 初始化状态
+    initProvide(vm); // 在当前组件提供数据到全局上
+    callHook(vm, "created"); // 调用created 钩子函数
 
     /* istanbul ignore if */
     if (process.env.NODE_ENV !== "production" && config.performance && mark) {
@@ -72,6 +74,8 @@ export function initMixin(Vue: Class<Component>) {
     // 如果存在el元素则开始挂载元素
     if (vm.$options.el) {
       vm.$mount(vm.$options.el);
+      // core/instance/lifecycle
+      // 其实是调用的 mountComponent
     }
   };
 }

@@ -20,8 +20,6 @@
 
 满足下面任意一条即可触发BFC规则
 
-
-
 - <html>  根元素。
 - float 的值不为 none。
 - position 的值不为 relative 或 static。
