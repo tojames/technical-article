@@ -35,6 +35,7 @@ Vue.prototype.$mount = function (
 
   const options = this.$options;
   // resolve template/el and convert to render function
+  // 解析 template/el and 转换为 render函数
   if (!options.render) {
     let template = options.template;
     if (template) {
@@ -78,6 +79,7 @@ Vue.prototype.$mount = function (
         },
         this
       );
+      // 给options添加render属性来存储render函数
       options.render = render;
       options.staticRenderFns = staticRenderFns;
 

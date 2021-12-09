@@ -38,7 +38,7 @@ export function initMixin(Vue: Class<Component>) {
       // 合并参数
       initInternalComponent(vm, options); // _ renderChildren
     } else {
-      // 属性合并
+      // 合并属性
       vm.$options = mergeOptions(
         resolveConstructorOptions(vm.constructor),
         options || {},

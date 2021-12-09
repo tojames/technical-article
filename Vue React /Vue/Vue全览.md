@@ -1,17 +1,19 @@
 # Vue全览
 
 我尝试一下将Vue，以一个图谱的形式展现出来。
-Vue 是一个构造函数，通过给Vue原型和Vue函数添加函数以及对象，这样就可以拓展Vue，如下;
-注意 `_` 开头的变量为 Vue的私有变量， `$`开头的为Vue暴露出来的原型方法
+
+Vue 是一个构造函数，通过给Vue原型和Vue函数添加函数以及对象，这样就可以拓展Vue，代码如下。
+
+注意 `_` 开头的变量为 Vue的私有变量， `$`开头的为Vue暴露出来的原型方法/属性
 
 ```js
-  function Vue(options) {
+function Vue(options) {
   // 初始化生命周期
   this._init(options);
 }
 
 
-initMixin(Vue); // 初始化组件，各种参数，挂载参数。
+initMixin(Vue); // 初始化组件，各种参数，挂载组件。
 stateMixin(Vue); // 初始化数据相关的实例方法，下面介绍
 eventsMixin(Vue); // 事件方法的初始化 $on、$off、$once 、$emit
 lifecycleMixin(Vue); // 生命周期初始化，$forceUpdate $destroy
@@ -20,16 +22,101 @@ renderMixin(Vue); // $nextTick _render方法
 
 
 
-## 数据相关的实例方法 
+## initMixin	
 
-在 stateMixin(Vue) 方法中以下数据实例的方法都会被挂载到Vue实例上面。
+想详细了解这个方法，可以去看这篇文章
+
+这个方法做了初始化组件到挂载的整个过程。
+
+- 初始化大量的参数比如`$parent`、`$root`
+- 初始化事件
+- 初始化render函数创建元素的方法，插槽「缺解析插槽的文章」
+- 初始化 inject
+- 初始化 State，数据双向绑定
+- 初始化 provide
+- 挂载元素，需要经过模版编译过程「缺模版编译的文章」
+
+
+
+## stateMixin
+
+在上面的initMixin已经初始化 State，但是还有其他操作数据的方法，比如`$set`、`$del`、`$watch`这些全局方法还没有处理。
+
+这些方法比较简单，就不另外分文章出来解析。
+
+```js
+export function stateMixin(Vue: Class<Component>) {
+  // flow somehow has problems with directly declared definition object
+  // when using Object.defineProperty, so we have to procedurally build up
+  // the object here.
+  const dataDef = {};
+  dataDef.get = function () {
+    return this._data;
+  };
+  const propsDef = {};
+  propsDef.get = function () {
+    return this._props;
+  };
+  // 警告data被替换
+  if (process.env.NODE_ENV !== "production") {
+    dataDef.set = function () {
+      warn(
+        "Avoid replacing instance root $data. " +
+          "Use nested data properties instead.",
+        this
+      );
+    };
+    // 警告属性是只读的
+    propsDef.set = function () {
+      warn(`$props is readonly.`, this);
+    };
+  }
+  Object.defineProperty(Vue.prototype, "$data", dataDef);
+  Object.defineProperty(Vue.prototype, "$props", propsDef);
 
   Vue.prototype.$set = set;
-  Vue.prototype.$delete = del; 
-  Vue.prototype.$watch = ()=>{} 这个可以看 我之前写那篇文章
+  Vue.prototype.$delete = del;
 
-  set
-  在对象上设置属性。 如果该属性不存在，则添加新属性并触发更改通知。
+  Vue.prototype.$watch = function (
+    expOrFn: string | Function,
+    cb: any,
+    options?: Object
+  ): Function {
+    const vm: Component = this;
+    // 这里还留下了一个 用户可以通过 vm.$watch("xx",()....)的调用方法
+    if (isPlainObject(cb)) {
+      return createWatcher(vm, expOrFn, cb, options);
+    }
+    options = options || {};
+    options.user = true;
+    // 在这里才真正去 watcher类里面进行监听
+    const watcher = new Watcher(vm, expOrFn, cb, options); // 创建watcher，数据更新调用cb
+    // 如果是immediate为true的话，立即执行传进来的回调函数
+    if (options.immediate) {
+      try {
+        cb.call(vm, watcher.value);
+      } catch (error) {
+        handleError(
+          error,
+          vm,
+          `callback for immediate watcher "${watcher.expression}"`
+        );
+      }
+    }
+    // 返回一个闭包去关闭定时器，一般是Vue内部销毁watch时调用的
+    return function unwatchFn() {
+      watcher.teardown();
+    };
+  };
+}
+```
+
+
+
+###   set
+
+> 在对象上设置属性。 如果该属性不存在，则添加新属性并触发更改通知。
+
 ```js
 export function set(target, key, val) {
   // 如果是数组 Vue.set(array,1,100); 调用重写的splice方法 (这样可以更新视图)
@@ -66,7 +153,10 @@ export function set(target, key, val) {
 }
 ```
 
-del 提供删除响应数据的办法
+### del
+
+>  提供删除响应数据的办法
+
 ```js
 export function del(target, key) {
   // 如果是数组的话，直接删除一项即可，splice是重写过的
@@ -88,15 +178,12 @@ export function del(target, key) {
 ```
 
 
-## 事件相关的方法
 
-$on
+## eventsMixin
 
-$off
+> 事件方法的初始化` $on`、`$off`、`$once` 、`$emit`
 
-$once 
 
-$emit
 
 ```js
 export function initEvents(vm: Component) {
@@ -262,6 +349,12 @@ export function eventsMixin(Vue: Class<Component>) {
 }
 
 ```
+
+
+
+## lifecycleMixin
+
+> 
 
 
 

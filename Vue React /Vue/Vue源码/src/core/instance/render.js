@@ -6,7 +6,7 @@ import {
   emptyObject,
   handleError,
   defineReactive,
-} from "../util/index";
+} from "../ut/il/index";
 
 import { createElement } from "../vdom/create-element";
 import { installRenderHelpers } from "./render-helpers/index";
