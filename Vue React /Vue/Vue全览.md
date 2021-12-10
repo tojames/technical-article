@@ -305,50 +305,249 @@ export function eventsMixin(Vue: Class<Component>) {
 }
 ```
 
+
+
 ## lifecycleMixin
 
->
+> 在这个方法主要是挂载了  `_update`用于更新组件操作，`$forceUpdate`用于强制更新组件、`$destroy`用于销毁组件
 
-## 生命周期的实例方法
+注意 `$nextTick` 、`$mount` 也是关于生命周期的全局函数
 
-$forceUpdate
+`$mount`  在 initMixin中已经挂载完毕了，可以在 initMiXin详细介绍中了解。
 
-$destory
+`$nextTick` 在renderMixin中挂载，在下面可以查看。
 
-$nextTick
+```js
+// 生命周期混合
+export function lifecycleMixin(Vue: Class<Component>) {
+  // 组件更新方法，用于内部使用
+  Vue.prototype._update = function (vnode: VNode, hydrating?: boolean) {
+    const vm: Component = this;
+    // 以前的dom元素
+    const prevEl = vm.$el;
+    // 以前的虚拟节点
+    const prevVnode = vm._vnode;
+    // 将vm设置为活跃组件，存在全局变量，返回一个闭包，设置上一个组件变回全局组件，应用于slot
+    const restoreActiveInstance = setActiveInstance(vm);
+    // 新的虚拟节点
+    vm._vnode = vnode;
+    // Vue.prototype.__patch__ is injected in entry points
+    // based on the rendering backend used.
+    // 如果不存在 prevVnode，那就直接渲染即可，因为 patch算法 判断有没有传旧节点进来。
+    // patch：core/vdom/patch
+    if (!prevVnode) {
+      // initial render
+      vm.$el = vm.__patch__(vm.$el, vnode, hydrating, false /* removeOnly */);
+    } else {
+      // updates
+      vm.$el = vm.__patch__(prevVnode, vnode);
+    }
+    // 重新把刚刚旧组件设置为激活的组件
+    restoreActiveInstance();
+    // update __vue__ reference
+    // 清空 __vue__ 占用的缓存
+    if (prevEl) {
+      prevEl.__vue__ = null;
+    }
+    if (vm.$el) {
+      vm.$el.__vue__ = vm;
+    }
+    // if parent is an HOC「high order component高阶组件」, update its $el as well
+    if (vm.$vnode && vm.$parent && vm.$vnode === vm.$parent._vnode) {
+      vm.$parent.$el = vm.$el;
+    }
+    // updated hook is called by the scheduler to ensure that children are
+    // updated in a parent's updated hook.
+  };
 
-$mount
+  // 更新组件
+  Vue.prototype.$forceUpdate = function () {
+    const vm: Component = this;
+    // 拿到渲染 watcher 去将至更新
+    if (vm._watcher) {
+      vm._watcher.update();
+    }
+  };
 
-## 全局 API 的实现原理
+  // 销毁组件
+  Vue.prototype.$destroy = function () {
+    const vm: Component = this;
+    // 如果是正在销毁的话，避免重复执行
+    if (vm._isBeingDestroyed) {
+      return;
+    }
+    callHook(vm, "beforeDestroy");
+    vm._isBeingDestroyed = true;
+    // remove self from parent
+    const parent = vm.$parent;
+    // 在父组件移除子组件
+    if (parent && !parent._isBeingDestroyed && !vm.$options.abstract) {
+      remove(parent.$children, vm);
+    }
+    // teardown watchers
+    // 如果有watch的话就会销毁所有的watch
+    if (vm._watcher) {
+      vm._watcher.teardown();
+    }
+    let i = vm._watchers.length;
+    while (i--) {
+      vm._watchers[i].teardown();
+    }
+    // remove reference from data ob
+    // frozen object may not have observer.
+    // 监听data数量 --
+    if (vm._data.__ob__) {
+      vm._data.__ob__.vmCount--;
+    }
+    // call the last hook...
+    vm._isDestroyed = true;
+    // invoke destroy hooks on current rendered tree
+    // 清空真实节点
+    vm.__patch__(vm._vnode, null);
+    // fire destroyed hook
+    callHook(vm, "destroyed");
+    // turn off all instance listeners.
+    // 销毁所有的事件
+    vm.$off();
+    // remove __vue__ reference
+    if (vm.$el) {
+      vm.$el.__vue__ = null;
+    }
+    // release circular reference (#6759)
+    if (vm.$vnode) {
+      vm.$vnode.parent = null;
+    }
+  };
+}
 
-挂载在 Vue 上的 api
+```
 
-Vue.extend
 
-Vue.nextTick === $nextTick
 
-Veu.set === $set
+## renderMixin
 
-Vue.delete===$delete
+> `$nextTick`在这里定义，还有一个最核心的 _render，将渲染函数生成虚拟dom的方法，它是提供给渲染watch中使用的，因为每一个组件都有一个渲染watch
 
-Vue.directive 重点
 
-Vue.filter
 
-Vue.component
+```js
+export function renderMixin(Vue: Class<Component>) {
+  // install runtime convenience helpers
+  // 给 Vue.prototype 挂载了大量的 helpers 方法
+  installRenderHelpers(Vue.prototype);
+  // 挂载nextTick方法，返回一个执行函数
 
-Vue.use
+  Vue.prototype.$nextTick = function (fn: Function) {
+    return nextTick(fn, this);
+  };
 
-Vue.mixin
+  // 这个方法是提供给渲染watch使用的
+  // mountComponent在这个方法，在core/instance/liftcycle
+  Vue.prototype._render = function (): VNode {
+    const vm: Component = this;
+    // render：为经过模版编译的渲染函数
+    // _parentVnode 为父亲的虚拟节点
+    const { render, _parentVnode } = vm.$options;
+    // 处理插槽
+    if (_parentVnode) {
+      vm.$scopedSlots = normalizeScopedSlots(
+        // {scopedSlots:{defalt:fn}}
+        _parentVnode.data.scopedSlots,
+        vm.$slots,
+        vm.$scopedSlots
+      );
+    }
 
-Vue.compile
+    // set parent vnode. this allows render functions to have access
+    // to the data on the placeholder node.
+    vm.$vnode = _parentVnode;
+    // render self
+    let vnode;
+    try {
+      // There's no need to maintain a stack because all render fns are called
+      // separately from one another. Nested component's render fns are called
+      // when parent component is patched.
+      currentRenderingInstance = vm;
+      // 这个方法调用的是，将渲染函数转换成虚拟dom节点
+      vnode = render.call(vm._renderProxy, vm.$createElement);
+    } catch (e) {
+      handleError(e, vm, `render`);
+      // return error render result,
+      // or previous vnode to prevent render error causing blank component
+      /* istanbul ignore else */
+      if (process.env.NODE_ENV !== "production" && vm.$options.renderError) {
+        try {
+          vnode = vm.$options.renderError.call(
+            vm._renderProxy,
+            vm.$createElement,
+            e
+          );
+        } catch (e) {
+          handleError(e, vm, `renderError`);
+          vnode = vm._vnode;
+        }
+      } else {
+        vnode = vm._vnode;
+      }
+    } finally {
+      currentRenderingInstance = null;
+    }
+    // if the returned array contains only a single node, allow it
+    // 确保虚拟节点是只有一个节点
+    if (Array.isArray(vnode) && vnode.length === 1) {
+      vnode = vnode[0];
+    }
+    // return empty vnode in case the render function errored out
+    if (!(vnode instanceof VNode)) {
+      if (process.env.NODE_ENV !== "production" && Array.isArray(vnode)) {
+        warn(
+          "Multiple root nodes returned from render function. Render function " +
+            "should return a single root node.",
+          vm
+        );
+      }
+      vnode = createEmptyVNode();
+    }
+    // 设置虚拟节点的父亲
+    vnode.parent = _parentVnode;
+    return vnode;
+  };
+}
 
-Vue.version
+```
 
-## 指令
 
-v-if
 
-v-for
+## 小结
 
-v-on
+经过上面的方法Vue的主流程已经运行完毕了，但是漏了很多的方法，并且是很有必要的方法将会放在后面。Vue的每一个组件的初始化都需要经过上述的流程，并且通过父子的关系构成层层联系组成组件系统。
+
+
+
+## 其他的补充
+
+> 补充剩下没有解析到的方法
+
+
+
+### 全局 API 的实现原理
+
+**这些api都是挂载在 Vue 上的**
+
+- Vue.extend
+- Vue.nextTick === $nextTick
+- Veu.set === $set
+- Vue.delete===$delete
+- Vue.directive 重点
+- Vue.filter
+- Vue.component
+- Vue.use
+- Vue.mixin
+- Vue.compile
+- Vue.version
+
+### 指令
+
+- v-if
+- v-for
+- v-on

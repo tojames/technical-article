@@ -88,16 +88,22 @@ export function setCurrentRenderingInstance(vm: Component) {
 
 export function renderMixin(Vue: Class<Component>) {
   // install runtime convenience helpers
+  // 给 Vue.prototype 挂载了大量的 helpers 方法
   installRenderHelpers(Vue.prototype);
+  // 挂载nextTick方法，返回一个执行函数
 
   Vue.prototype.$nextTick = function (fn: Function) {
     return nextTick(fn, this);
   };
 
+  // 这个方法是提供给渲染watch使用的
+  // mountComponent在这个方法，在core/instance/liftcycle
   Vue.prototype._render = function (): VNode {
     const vm: Component = this;
+    // render：为经过模版编译的渲染函数
+    // _parentVnode 为父亲的虚拟节点
     const { render, _parentVnode } = vm.$options;
-
+    // 处理插槽
     if (_parentVnode) {
       vm.$scopedSlots = normalizeScopedSlots(
         // {scopedSlots:{defalt:fn}}
@@ -117,6 +123,7 @@ export function renderMixin(Vue: Class<Component>) {
       // separately from one another. Nested component's render fns are called
       // when parent component is patched.
       currentRenderingInstance = vm;
+      // 这个方法调用的是，将渲染函数转换成虚拟dom节点
       vnode = render.call(vm._renderProxy, vm.$createElement);
     } catch (e) {
       handleError(e, vm, `render`);
@@ -141,6 +148,7 @@ export function renderMixin(Vue: Class<Component>) {
       currentRenderingInstance = null;
     }
     // if the returned array contains only a single node, allow it
+    // 确保虚拟节点是只有一个节点
     if (Array.isArray(vnode) && vnode.length === 1) {
       vnode = vnode[0];
     }
@@ -155,7 +163,7 @@ export function renderMixin(Vue: Class<Component>) {
       }
       vnode = createEmptyVNode();
     }
-    // set parent
+    // 设置虚拟节点的父亲
     vnode.parent = _parentVnode;
     return vnode;
   };

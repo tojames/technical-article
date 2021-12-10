@@ -64,15 +64,23 @@ export function initLifecycle(vm: Component) {
   vm._isBeingDestroyed = false;
 }
 
+// 生命周期混合
 export function lifecycleMixin(Vue: Class<Component>) {
+  // 组件更新方法，用于内部使用
   Vue.prototype._update = function (vnode: VNode, hydrating?: boolean) {
     const vm: Component = this;
+    // 以前的dom元素
     const prevEl = vm.$el;
+    // 以前的虚拟节点
     const prevVnode = vm._vnode;
+    // 将vm设置为活跃组件，存在全局变量，返回一个闭包，设置上一个组件变回全局组件，应用于slot
     const restoreActiveInstance = setActiveInstance(vm);
+    // 新的虚拟节点
     vm._vnode = vnode;
     // Vue.prototype.__patch__ is injected in entry points
     // based on the rendering backend used.
+    // 如果不存在 prevVnode，那就直接渲染即可，因为 patch算法 判断有没有传旧节点进来。
+    // patch：core/vdom/patch
     if (!prevVnode) {
       // initial render
       vm.$el = vm.__patch__(vm.$el, vnode, hydrating, false /* removeOnly */);
@@ -80,15 +88,17 @@ export function lifecycleMixin(Vue: Class<Component>) {
       // updates
       vm.$el = vm.__patch__(prevVnode, vnode);
     }
+    // 重新把刚刚旧组件设置为激活的组件
     restoreActiveInstance();
     // update __vue__ reference
+    // 清空 __vue__ 占用的缓存
     if (prevEl) {
       prevEl.__vue__ = null;
     }
     if (vm.$el) {
       vm.$el.__vue__ = vm;
     }
-    // if parent is an HOC, update its $el as well
+    // if parent is an HOC「high order component高阶组件」, update its $el as well
     if (vm.$vnode && vm.$parent && vm.$vnode === vm.$parent._vnode) {
       vm.$parent.$el = vm.$el;
     }
@@ -96,15 +106,19 @@ export function lifecycleMixin(Vue: Class<Component>) {
     // updated in a parent's updated hook.
   };
 
+  // 更新组件
   Vue.prototype.$forceUpdate = function () {
     const vm: Component = this;
+    // 拿到渲染 watcher 去将至更新
     if (vm._watcher) {
       vm._watcher.update();
     }
   };
 
+  // 销毁组件
   Vue.prototype.$destroy = function () {
     const vm: Component = this;
+    // 如果是正在销毁的话，避免重复执行
     if (vm._isBeingDestroyed) {
       return;
     }
@@ -134,10 +148,12 @@ export function lifecycleMixin(Vue: Class<Component>) {
     // call the last hook...
     vm._isDestroyed = true;
     // invoke destroy hooks on current rendered tree
+    // 清空真实节点
     vm.__patch__(vm._vnode, null);
     // fire destroyed hook
     callHook(vm, "destroyed");
     // turn off all instance listeners.
+    // 销毁所有的事件
     vm.$off();
     // remove __vue__ reference
     if (vm.$el) {
