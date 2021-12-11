@@ -1,6 +1,6 @@
 # initGlobalAPI
 
-> initGlobalAPI 是初始化全局API的，它是先于Vue执行的，所以可以提供全局方法在Vue的执行过程中执行相应的方法。
+> initGlobalAPI 是初始化全局API的，它是先于new Vue执行的，所以可以提供全局方法在Vue的执行过程中执行相应的方法。
 
 
 
@@ -32,13 +32,46 @@ export function initGlobalAPI(Vue: GlobalAPI) {
 
 ## Vue.extend
 
->  这个可以在链接上面 对应到组件那个，但是我不知道它是怎么调用的，回去看书确认一下。
+> 组件的初始化是靠`Vue.extend` ,通过寄生组合继承然后调用 `_init()`方法初始化组件，Vue中，它其实把所有的渲染以组件为单位，不断的嵌套,它怎么调用的呢，它是通过`this.options._base.extend(definition)` 调用的，_base 其实就是Vue
+
+
+
+```js
+路径： core/global-api/extend.js, 省略部分代码
+
+Vue.extend = function (extendOptions: Object): Function {
+  // 传递进来的参数，就是options API格式的参数
+  extendOptions = extendOptions || {}
+  // Vue
+  const Super = this
+  // sub就是组件的方法，它就像Vue入口一样 执行init方法
+  const Sub = function VueComponent (options) {
+    this._init(options)
+  }
+  // 寄生组合继承
+  Sub.prototype = Object.create(Super.prototype)
+  Sub.prototype.constructor = Sub
+  Sub.cid = cid++
+  // 合并处理
+  Sub.options = mergeOptions(
+    Super.options,
+    extendOptions
+  )
+
+  // 将Sub返回出去
+  return Sub
+}
+
+然后提供给 createComponent方法使用，就可以将这个 Sub里面options参数进行初始化，和调用 installComponentHooks 最后创建虚拟节点，返回出去。这样一个组件就完成了，等着挂载就可以了。
+```
+
+
 
 
 
 ## Vue.nextTick
 
-> nextTick 总是在dom更新后执行一些方法，它的原理是有很多的hack的，主要是基于微任务。
+> nextTick 总是在dom更新后执行一些方法，它的原理是有很多的hack的，主要是基于微任务。Promise，MutationObserver，setImmediate，setTimeout 一直往下找机会执行 timerFunc
 
 
 
@@ -131,9 +164,65 @@ Vue.nextTick(function () {
 
 
 
-- Vue.use
-- Vue.mixin
-- Vue.compile
+## Vue.use
+
+> `Vue.use` 是用于给Vue拓展更多的功能的插件，比如`Vue-Router`、`Vuex`。
+>
+> 目的就是往Vue上面添加属性。
+>
+> 安装 Vue.js 插件。如果插件是一个对象，必须提供 `install` 方法。如果插件是一个函数，它会被作为 install 方法。install 方法调用时，会将 Vue 作为参数传入。
+>
+> 该方法需要在调用 `new Vue()` 之前被调用。
+>
+> 当 install 方法被同一个插件多次调用，插件将只会被安装一次。
+
+
+
+```js
+export function initUse(Vue: GlobalAPI) {
+  // Vue.use(xxx,a,b,vc)
+  Vue.use = function (plugin: Function | Object) {
+    // 插件缓存
+    const installedPlugins =
+      this._installedPlugins || (this._installedPlugins = []);
+    // 如果已经有插件 直接返回
+    if (installedPlugins.indexOf(plugin) > -1) {
+      return this;
+    }
+
+    // additional parameters
+    const args = toArray(arguments, 1); // 除了第一项其他的参数整合成数组
+    args.unshift(this); // 将Vue 放入到数组中 // [Vue,a,b,c]
+    // 调用install方法
+    if (typeof plugin.install === "function") {
+      plugin.install.apply(plugin, args);
+    }
+    // 直接调用方法
+    else if (typeof plugin === "function") {
+      plugin.apply(null, args);
+    }
+    installedPlugins.push(plugin); // 缓存插件
+    return this;
+  };
+}
+
+```
+
+
+
+## Vue.mixin
+
+> Vue2.0的混入功能，就是将所以的对象进行合并。
+
+```js
+export function initMixin(Vue: GlobalAPI) {
+  Vue.mixin = function (mixin: Object) {
+    // 全局属性混合
+    this.options = mergeOptions(this.options, mixin); 
+    return this;
+  };
+}
+```
 
 
 
@@ -240,8 +329,21 @@ Vue.directive('my-directive', function () {
 
 
 
-### 指令
+## Vue.compile
 
-- v-if
-- v-for
-- v-on
+> 将一个模板字符串编译成 render 函数。**只在完整版时可用**。
+
+
+
+```js
+var res = Vue.compile('<div><span>{{ msg }}</span></div>')
+
+new Vue({
+  data: {
+    msg: 'hello'
+  },
+  render: res.render,
+  staticRenderFns: res.staticRenderFns
+})
+```
+

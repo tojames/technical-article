@@ -534,4 +534,12 @@ export function renderMixin(Vue: Class<Component>) {
 
 **这些api都是挂载在 Vue 上的**，是在 core/global-api目录下定义的。initGlobalAPI(Vue)
 
-有一篇文章引入
+有一篇全局文章引入
+
+
+
+### 指令
+
+- v-if
+- v-for
+- v-on

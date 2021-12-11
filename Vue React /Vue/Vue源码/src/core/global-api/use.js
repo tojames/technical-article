@@ -8,19 +8,20 @@ export function initUse(Vue: GlobalAPI) {
     // 插件缓存
     const installedPlugins =
       this._installedPlugins || (this._installedPlugins = []);
+    // 如果已经有插件 直接返回
     if (installedPlugins.indexOf(plugin) > -1) {
-      // 如果已经有插件 直接返回
       return this;
     }
 
     // additional parameters
     const args = toArray(arguments, 1); // 除了第一项其他的参数整合成数组
     args.unshift(this); // 将Vue 放入到数组中 // [Vue,a,b,c]
+    // 调用install方法
     if (typeof plugin.install === "function") {
-      // 调用install方法
       plugin.install.apply(plugin, args);
-    } else if (typeof plugin === "function") {
-      // 直接调用方法
+    }
+    // 直接调用方法
+    else if (typeof plugin === "function") {
       plugin.apply(null, args);
     }
     installedPlugins.push(plugin); // 缓存插件
