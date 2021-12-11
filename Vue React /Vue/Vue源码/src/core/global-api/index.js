@@ -54,6 +54,7 @@ export function initGlobalAPI(Vue: GlobalAPI) {
 
   Vue.options = Object.create(null);
   //  ASSET_TYPES = ['component', 'directive', 'filter']
+  // 初始化 components directives filters
   ASSET_TYPES.forEach((type) => {
     Vue.options[type + "s"] = Object.create(null);
   });
@@ -65,7 +66,7 @@ export function initGlobalAPI(Vue: GlobalAPI) {
   extend(Vue.options.components, builtInComponents);
 
   initUse(Vue); // 初始化插件的使用
-  initMixin(Vue); // 混入
+  initMixin(Vue); // 混入,其实原理是参数合并
   initExtend(Vue); // 继承
   initAssetRegisters(Vue); // 注册  'component','directive', 'filter'
 }

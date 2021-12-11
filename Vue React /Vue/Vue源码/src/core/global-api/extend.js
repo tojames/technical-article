@@ -33,7 +33,7 @@ export function initExtend(Vue: GlobalAPI) {
       validateComponentName(name);
     }
 
-    // sub就是组件的方法，它就像Vue入口一样 执行init方法
+    // sub就是组件的方法，它就像Vue入口一样 执行init方法，这样就可以初始化方法了
     const Sub = function VueComponent(options) {
       this._init(options);
     };
@@ -62,12 +62,15 @@ export function initExtend(Vue: GlobalAPI) {
 
     // create asset registers, so extended classes
     // can have their private assets too.
+    // ASSET_TYPES：'component', 'directive', 'filter'
     ASSET_TYPES.forEach(function (type) {
       Sub[type] = Super[type];
     });
     // enable recursive self-lookup
     if (name) {
-      Sub.options.components[name] = Sub; // 记录自己 在组件中递归自己  -> jsx
+      // 记录自己 在组件中递归自己  -> jsx
+      // 这就为什么组件可以使用组件名去调用自己，构成一个循环引用，需要注意死循环
+      Sub.options.components[name] = Sub;
     }
 
     // keep a reference to the super options at extension time.

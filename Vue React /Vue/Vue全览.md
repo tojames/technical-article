@@ -532,22 +532,6 @@ export function renderMixin(Vue: Class<Component>) {
 
 ### 全局 API 的实现原理
 
-**这些api都是挂载在 Vue 上的**
+**这些api都是挂载在 Vue 上的**，是在 core/global-api目录下定义的。initGlobalAPI(Vue)
 
-- Vue.extend
-- Vue.nextTick === $nextTick
-- Veu.set === $set
-- Vue.delete===$delete
-- Vue.directive 重点
-- Vue.filter
-- Vue.component
-- Vue.use
-- Vue.mixin
-- Vue.compile
-- Vue.version
-
-### 指令
-
-- v-if
-- v-for
-- v-on
+有一篇文章引入
