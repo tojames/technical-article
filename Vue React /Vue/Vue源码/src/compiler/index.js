@@ -3,7 +3,7 @@
 import { parse } from "./parser/index"; // 解析器
 import { optimize } from "./optimizer"; // 优化器
 import { generate } from "./codegen/index"; // 生成器
-import { createCompilerCreator } from "./create-compiler";
+import { createCompilerCreator } from "./create-compiler"; // 主要逻辑都在这里执行，
 
 // `createCompilerCreator` allows creating compilers that use alternative
 // parser/optimizer/codegen, e.g the SSR optimizing compiler.
