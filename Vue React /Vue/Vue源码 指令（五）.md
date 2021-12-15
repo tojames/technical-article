@@ -4,9 +4,44 @@ Vue中的指令分为内置指令和自定义指令。
 
 ## 内置指令
 
-分别为 **v-on、v-bind、v-if、v-show、v-for**。
+比如 **v-if、v-show、v-for、v-on、v-bind**。
 
 它们的实现方式是各不相同的，因为它们的能力更加复杂，所以需要底层的算法支持，自定义指令是做不到的。
+
+### v-if
+
+> 在模版编译代码生成阶段生成应该渲染的代码
+
+```js
+<li v-if="show">{{show}}</li>
+<li v-else>{{show}}</li>
+
+代码字符串：show ? _c('li',[_s(show)]):_c('li',[_s(show)])
+v-if只渲染为true 模版
+
+v-show 是通过设置css 属性 display：none 控制的，所以dom元素是渲染出来的。
+```
+
+### v-for
+
+> 在模版编译代码生成阶段生成应该渲染的代码
+
+```js
+<li v-for='item in list'>{{item}}</li>
+
+代码字符串：_l = renderList
+_l((list),function(item){
+  return _c('li',[_v('v-for' + _s(item))])
+})
+```
+
+
+
+### v-on
+
+> 用于绑定事件，核心原理就是通过 addEventListent 绑定方法
+
+
 
 
 
