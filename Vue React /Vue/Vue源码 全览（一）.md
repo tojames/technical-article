@@ -23,7 +23,11 @@ renderMixin(Vue) // $nextTick _render方法
 
 ## initMixin
 
+<<<<<<< HEAD:Vue React /Vue/Vue全览.md
 想详细了解这个方法，可以去看这篇文章「这里有一篇initMixin的文章」
+=======
+想详细了解这个方法[initMixin详解](./Vue源码initMixin（二）.md)
+>>>>>>> a7aab4a0eec7741c37cdc998f1d4a76221f8cad5:Vue React /Vue/Vue源码 全览（一）.md
 
 这个方法做了初始化组件到挂载的整个过程。
 
@@ -31,9 +35,13 @@ renderMixin(Vue) // $nextTick _render方法
 - 初始化事件
 - 初始化 render 函数创建元素的方法，插槽「缺解析插槽的文章」
 - 初始化 inject
+<<<<<<< HEAD:Vue React /Vue/Vue全览.md
 - 初始化 State，数据双向绑定 「会有双向数据绑定的文章」
+=======
+- 初始化 State，[数据双向绑定](./双向数据绑定.md)、[Watch Computed](Vue源码 Watch Computed（八）.md)
+>>>>>>> a7aab4a0eec7741c37cdc998f1d4a76221f8cad5:Vue React /Vue/Vue源码 全览（一）.md
 - 初始化 provide
-- 挂载元素，需要经过模版编译过程「缺模版编译的文章」
+- 挂载元素，需要经过模版编译过程 [Vue源码 模版编译详解](Vue源码 模版编译（四）.md)，之后[Vue虚拟DOM](Vue源码 虚拟DOM（七）.md)渲染真实dom元素。
 
 ## stateMixin
 
@@ -536,12 +544,16 @@ export function renderMixin(Vue: Class<Component>) {
 
 **这些api都是挂载在 Vue 上的**，是在 core/global-api目录下定义的。initGlobalAPI(Vue)
 
-有一篇全局文章引入
+[Vue源码 initGlobalAPI](Vue源码 initGlobalAPI（三）)
 
 
 
 ### 指令
 
-- v-if
-- v-for
-- v-on
+[Vue源码 指令](Vue源码 指令（五）.md)
+
+
+
+### 生命周期
+
+[Vue生命周期](Vue源码 生命周期（六）.md)
