@@ -1,6 +1,8 @@
 # Vue 全览
 
-我尝试一下将 Vue，以一个图谱的形式展现出来。
+[这里是Vue源码，含有大量注释](https://gitee.com/juice-ice/technical-article/tree/master/Vue%20React%20/Vue/Vue%E6%BA%90%E7%A0%81)
+
+我尝试一下将 Vue源码总结一下。
 
 Vue 是一个构造函数，通过给 Vue 原型和 Vue 函数添加函数以及对象，这样就可以拓展 Vue，代码如下。
 
@@ -21,7 +23,7 @@ renderMixin(Vue) // $nextTick _render方法
 
 ## initMixin
 
-想详细了解这个方法，可以去看这篇文章
+想详细了解这个方法，可以去看这篇文章「这里有一篇initMixin的文章」
 
 这个方法做了初始化组件到挂载的整个过程。
 
@@ -29,7 +31,7 @@ renderMixin(Vue) // $nextTick _render方法
 - 初始化事件
 - 初始化 render 函数创建元素的方法，插槽「缺解析插槽的文章」
 - 初始化 inject
-- 初始化 State，数据双向绑定
+- 初始化 State，数据双向绑定 「会有双向数据绑定的文章」
 - 初始化 provide
 - 挂载元素，需要经过模版编译过程「缺模版编译的文章」
 

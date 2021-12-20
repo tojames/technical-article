@@ -1,10 +1,10 @@
-#### react 之 三大属性（state、props、refs）
+# state、props、refs
 
 > 这三大属性都是继承于React.Component，所以直接在组件上面使用即可，按照class的规则使用即可，但是有一些不同的地方需要补充的。
 
 
 
-#### State
+## State
 
 [react-state](https://zh-hans.reactjs.org/docs/state-and-lifecycle.html)
 
@@ -47,7 +47,7 @@
 
 触发setState到底做了什么？思路来着一位大佬叫做 「修言」
 
-![](../../static/images/setState-React15%E7%89%88%E6%9C%AC%E6%B5%81%E7%A8%8B%E5%9B%BE.png)
+![setState-React15版本流程图](images/setState-React15%E7%89%88%E6%9C%AC%E6%B5%81%E7%A8%8B%E5%9B%BE.png)
 
 ```js
 下面基于React15  关于 React 16 之后 Fiber 机制给 setState 带来的改变
@@ -233,7 +233,7 @@ setState 并不是单纯同步/异步的，它的表现会因调用场景的不�
 
 
 
-#### props
+## props
 
 [react-props](https://zh-hans.reactjs.org/docs/components-and-props.html)
 
@@ -271,7 +271,7 @@ class Welcome extends React.Component {
 
 
 
-#### refs 
+## refs 
 
 [react-refs](https://zh-hans.reactjs.org/docs/refs-and-the-dom.html)
 
