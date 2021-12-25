@@ -260,7 +260,5 @@ componentDidCatch(error,info){} // 统计页面的错误，可以发送给后台
 
 ##  HOC（高阶组件）
 
-```
-
-```
+建设中
 
