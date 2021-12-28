@@ -74,3 +74,63 @@ options「暂时没用到过」
 还有更多用法去找 react-redux 官网，上面的基本都是复制，因为讲的特别清晰，我这里只是一个笔记，方便以后查看。
 ```
 
+## useSelector
+
+> 获取sotre对应的数据
+
+```js
+//index.js 在此文件将不通的reudcer进行统一
+import {combineReducers} from 'redux'
+import todoReducer from './todoReducer'
+
+export const reducer = combineReducers({
+    todoReducer : todoReducer
+})
+
+
+//Top.js在此文件获取todoReducer下声明的store的数据
+import {useSelector, useDispatch} from 'react-redux'
+const todos = useSelector(state => state.todoReducer.todos)
+```
+
+
+
+## useDispatch
+
+useDispatch的作用是在子组件中，可以触发对应的reducer的行为操作，进而实现对store的数据更新。具体操作步骤
+
+- 1.`import {useDispatch}from 'react-redux'`
+- 2.在函数组件中定义对象`const dispatch = useDispatch()`
+- 3.`dispatch((type,payload))`的方式传递行为类型和行为所需要的参数
+- 4.`react-redux`会监听行为，改变`store`存储的数据
+
+```js
+//App.js
+import {useSelector, useDispatch} from 'react-redux'
+useEffect(()=>{
+        dispatch({
+            type:actionType.GET_ALL_TODO
+        })
+    }, [dispatch])
+
+// Top.js
+    const dispatch = useDispatch()
+
+    const _handleKeyEvent = (e)=>{
+        const lastTodoId = todos.length === 0 ? 0: todos[todos.length - 1].id
+        if (13 === e.keyCode){
+            const value = inputRef.current.value
+            if (!value.trim()){
+                alert('输入的内容不为空')
+                return
+            }
+            const todo = {id:lastTodoId, title:value, finished:false}
+            dispatch({
+                type: actionType.ADD_ONE_TODO,
+                payload: todo
+            })
+            inputRef.current.value = ''
+        }
+    }
+```
+
