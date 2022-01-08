@@ -107,6 +107,16 @@ function C() {
 }
 ```
 
+## 受控组件&非受控组件
+
+> 对于form表单中提交的数据来说的。
+>
+> 受控组件：通过表单项的状态的改变收集状态的。类似Vue的双向数据绑定，收集到的状态存起来。
+>
+> 非受控组件：当触发事件的时候才获取数据进行提交「先用现取」，就是没有控制表单里面的组件。
+>
+> 受控和非受控的区别在于，状态是什么时候获取的，受控是改变就获取，非受控是提交时获取。
+
 
 
 ## Fragment
@@ -258,7 +268,88 @@ componentDidCatch(error,info){} // 统计页面的错误，可以发送给后台
 祖孙组件（跨级组件）：消息订阅-发布、集中式管理、conText HOC（高阶组件）
 ```
 
+
+
+## lazyLoad&Suspense
+
+> 路由懒加载，一个react中的lazy函数。
+>
+> 需要使用Suspense包裹着路由组件
+
+```TSX
+import React，{ lazy} from 'react'
+
+const Home = lazy(()=>{import ('./Home')})
+// fallback：路由组件在请求过程中显示的组件，当路由组件加载完毕，将会被替换为路由组件。
+<Suspense fallback={<h1>加载ing...</h1>}>
+	<Route path="/home" component={Home} />
+</Suspense> 
+```
+
+
+
 ##  HOC（高阶组件）
 
-建设中
+> Higher-Order Component 是一个函数，接收包装的组件，返回一个增强功能后的组件
+>
+> 高阶组件内部创建一个类组件，在这个类组件中提供复用的状态逻辑代码，通过prop将复用的状态传递给被包装组件后，经过包装组件处理后返回新的组件。
+>
+> 目的：UI和状态逻辑分开，实现状态逻辑复用
+
+```tsx
+// 创建高阶组件
+function withMouse (WrappedComponent) {
+// 该组件提供复用的状态逻辑
+	class Mouse extends React . Component {
+		// 鼠标状态
+		state = {
+			x: 0,
+			y: 0
+    }
+		handleMouseMove = e => {
+			this. setState({
+			x: e.clientX,
+			y: e.clientY
+		})
+
+		// 控制鼠标状态的逻辑
+		componentDidMount() {
+			window.addEventListener ( ' mousemove '，this.handleMouseMove )
+		}
+		componentwillUnmount(){
+			window.removeEventL istener( ' mousemove', this . handleMouseMove)
+		}
+		render(){
+		  return <WrappedComponent {...this.state} {...this.props} >< /WrappedComponent>
+		}
+  }
+
+	Mouse.displayName = `WithMouse${getDisplayName(WrappedComponent)}`
+  
+	return Mouse
+}
+        
+function getDisplayName(WrappedComponent){
+   return WrappedComponent.displayName || WrappedComponent.name || 'Component' ;       
+}
+
+// 用来测试高阶组件
+const Position = props => (
+	<р> 鼠标当前位置:(х:{prpps.x}, у: {props.y})</p>
+      
+// 调用高阶组件得到新的组件     
+const MousePosition = withMouse(Position)
+      
+class App extends React.Component (
+	render( ){
+    return (
+      <div> 
+				<h1>高阶组件< /h1>
+        <MousePosition/>
+			</div>  
+    )
+}
+
+displayName 可以设置组件的名字，为了防止组件复用后，组件名字都叫Mouse
+```
 
