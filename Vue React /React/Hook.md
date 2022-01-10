@@ -347,7 +347,7 @@ const App = props => {
 
 #### useLayoutEffect
 
-> 作用基本和useEffect一致，但是官网推荐使用useEffect
+> useLayoutEffect是同步渲染，useEffect是异步的，如果存在“阻塞渲染”这个同步的需求，那么可以使用 useLayoutEffect，否则都是用useEffect。其他方便这两个api都一致。
 >
 
 ```tsx
