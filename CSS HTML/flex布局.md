@@ -26,7 +26,7 @@ flex-wrap：设置是否换行
 取值
 	nowrap（默认）：不换行。
 	wrap：换行，第一行在上方。
-	wrap-reverse：换行，第一行在下方。
+	wrap-reverse：换行，第一行在上方。
 
 flex-flow:属性是flex-direction属性和flex-wrap属性的简写形式，默认值为row nowrap,不建议使用
 

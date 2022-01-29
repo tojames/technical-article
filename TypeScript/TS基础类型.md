@@ -151,7 +151,7 @@ a2 = [1,2]
 
 #### tuple
 
-> `TypeScript` 新增元组，元组就是固定长度的数组
+> `TypeScript` 新增元组，元组就是固定长度的数组，长度可以不固定
 
 ```ts
 /*
@@ -658,6 +658,30 @@ const result = calculator.add('Semlinker', ' Kakuqo');
 ```
 
 这里需要注意的是，当 TypeScript 编译器处理函数重载时，它会查找重载列表，尝试使用第一个重载定义。 如果匹配的话就使用这个。 因此，在定义重载的时候，一定要把最精确的定义放在最前面。另外在 Calculator 类中，`add(a: Combinable, b: Combinable){ }` 并不是重载列表的一部分，因此对于 add 成员方法来说，我们只定义了四个重载方法。
+
+
+
+### 注意问题
+
+#### 函数参数解构
+
+```ts
+function f({ x: number }) {
+  // Error, x is not defined?
+  console.log(x);
+}
+
+f({ x: 1 });
+上面这种情况是给 f函数 传了一个对象。并不是我们解构，所以 x 会报 undefined。
+
+这种写法才是正确的。
+function f({ x }: { x: number }) {
+  // Error, x is not defined?
+  console.log(x);
+}
+
+f({ x: 1 });
+```
 
 
 
