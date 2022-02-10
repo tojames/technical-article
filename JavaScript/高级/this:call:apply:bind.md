@@ -52,11 +52,12 @@ myMethod();// 此时myMethod就是foo函数的一个引用,当调用的时候没
 
 显式绑定就是通过我们自己来改变他的 this 指向,我们通常利用 call apply bind 来改变 this 的指向.这三者的区别不大。
 
-call(this,只接收一个个的参数,按照顺序接收)
+- call(this,只接收一个个的参数,按照顺序接收)
 
-apply(this,[接收一个数组,把参数都放进去])
+- apply(this,[接收一个数组,把参数都放进去])
 
-bind(this,参数和 call 是一样的,但是区别就是 bind 只会生成一个新的指向函数,不会去执行,call,apply 都会去执行)
+- bind(this,参数和 call 是一样的,但是区别就是 bind 只会生成一个新的指向函数,不会去执行,call,apply 都会去执行)
+
 
 回到主题
 
@@ -64,8 +65,8 @@ bind(this,参数和 call 是一样的,但是区别就是 bind 只会生成一个
 // 当我们想让this的指向方向改变,或者不受外界隐式应该使用显式绑定
 比如刚刚上面的
 var obj = {
-  name: "Juice",
-  age: 24,
+  name: "Hello",
+  age: 18,
   method: foo,
 }
 function foo() {
@@ -77,34 +78,23 @@ function foo() {
   }
 }
 
-obj.method() // obj 24
+obj.method() // obj 18
 
 //我要变了.
 var myMethod = obj.method // 将obj.method的属性值是一个foo函数 赋值给myMethod,
-myMethod() // obj 24
+myMethod() // obj 18
 ```
 
 ## new 绑定
 
 优先级最高的 new 绑定
 
-- 关于 MDN 的描述是：new 运算符创建一个用户定义的对象类型的实例或具有构造函数的内置对象的实例。
-  用户定义的就是我们写的构造函数，内置对象就是一些比如 Date RegExp 等等
-
-- 创建一个全新的对象
-- 新对象指向构造函数调用的原型
-- 新对象的 this 构造函数调用的 this
-- 返回一个对象
+关于 MDN 的描述是：new 运算符创建一个用户定义的对象类型的实例或具有构造函数的内置对象的实例。
+用户定义的就是我们写的构造函数，内置对象就是一些比如 Date RegExp 等等
 
 ### new 原理介绍
 
 ```js
-new 关键字会进行如下的操作：
-	创建一个空的简单JavaScript对象（即{}）；
-	为步骤1新创建的对象添加属性__proto__，将该属性链接至构造函数的原型对象 ；
-	将步骤1新创建的对象作为this的上下文 ；
-	如果该函数没有返回对象，则返回this。
-
 function Person(){
    this.name = 'Jack';
    return {age: 18}
@@ -116,13 +106,14 @@ console.log(p.age) // 18
 
 
 new 关键字执行之后总是会返回一个对象
-要么是实实例对象，要么是return语句指定的对象
+要么是实例对象，要么是return语句指定的对象
 
 原生实现
-	让实例可以访问到私有属性；
-	让实例可以访问构造函数原型（constructor.prototype）所在原型链上的属性；
-	构造函数返回的最后结果是引用数据类型。
-
+new 关键字会进行如下的操作：
+	1.创建一个空的简单JavaScript对象（即{}）
+	2.新创建对象的__proto__，指向构造函数的原型对象
+	3.执行构造函数，新创建对象作为this的上下文，通过apply，call
+	4.如果构造函数没有返回对象，则返回新创建对象。
 function _new(ctor, ...args) {
    if (typeof ctor !== "function") {
      throw "ctor must be a function"
@@ -147,10 +138,9 @@ apply 是一个数组
 
 ```js
 Function.prototype._call = function(context, ...args) {
-  let key = Symbol('key')
-
+  const key = Symbol('key')
   context[key] = this
-  let res = context[key](...args)
+  const res = context[key](...args)
   delete context[key]
   return res
 }
@@ -166,8 +156,10 @@ Function.prototype._bind = function(context, ...args) {
     return context[key]._call(context, ...args)
   }
 }
-// 间接调用了apply，返回一个函数出来，还有注意细节，将原型也要改回去
+// 间接调用了call，返回一个函数出来
 ```
+
+
 
 ## 谈谈你对this的了解及应用场景?
 
@@ -190,8 +182,8 @@ document.body.addEventListener('click', function () {
 
 // 构造函数体中的this是当前类的实例，因为new的时候执行显示绑定中任意一个方法。
 function Factory() {
-    this.name = 'Juice-ice';
-    this.age = 24;
+    this.name = 'Hello';
+    this.age = 18;
     console.log(this);
 }
 let f = new Factory;
@@ -200,14 +192,13 @@ let f = new Factory;
 let demo = {
     name: 'DEMO',
     fn() {
-        console.log(this);
-
+        console.log(this); // demo
         setTimeout(function () {
-            console.log(this);
+            console.log(this); // window
         }, 1000);
 
         setTimeout(() => {
-            console.log(this);
+            console.log(this); demo
         }, 1000);
     }
 };
@@ -295,5 +286,46 @@ let r2 = r.bind({ a: 3 }) // 第二步：形成了一个闭包，保存在内存
 // 又由于 r 里面是一个闭包，神奇之处就在此，所以返回出去的还是第一步中的闭包
 let r3 = r2.call({ a: 4 }) // 调用第一步返回的闭包函数，就打印了。
 console.log(r3)
+
+
+var c = 0;
+var user = {
+  b: {
+    action: () => {
+      console.log(this); // 浏览器全部是window，node是undefined 
+      return this.c;
+    },
+    name: 'b',
+  },
+  c: 1,
+  name: 'user',
+};
+
+var o = user.b;
+var action = user.b.action;
+
+console.log(user.b.action()); // 0
+console.log(o.action()); // 0
+console.log(action()); // 0
+
+var c = 0;
+var user = {
+  b: {
+    action: function () {
+      console.log(this); 
+      return this.c;
+    },
+    name: 'b',
+  },
+  c: 1,
+  name: 'user',
+};
+
+var o = user.b;
+var action = user.b.action;
+
+console.log(user.b.action()); // undefined
+console.log(o.action()); // undefined
+console.log(action()); // 0
 ```
 
