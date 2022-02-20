@@ -299,7 +299,7 @@ function patch(oldVnode, vnode, hydrating, removeOnly) {
 
 ### 更新子节点
 
-> 当 patchVnode 发现当前节点不是那么简单的，还有子节点，那么就需要对比子节点，那么子节点也是节点，那就就会走回去patchVnode 进行对比，直到所以递归出栈。
+> 当 patchVnode 发现当前节点不是那么简单的，还有子节点，那么就需要对比子节点，那么子节点也是节点，那就就会走回去patchVnode 进行对比，直到所有元素递归完就出栈。
 
 
 

@@ -27,7 +27,8 @@ watch: {
 }
 
 } 
-// 第三种方式 ,var vm = new Vue({})
+// 第三种方式
+var vm = new Vue({})
 vm.$watch('a.b.c',(newVal,oldVal)=>{
 	// dosomething
 },{
@@ -175,10 +176,6 @@ function _traverse (val: any, seen: SimpleSet) {
 		} 
 }
 ```
-
-
-
-
 
 
 
