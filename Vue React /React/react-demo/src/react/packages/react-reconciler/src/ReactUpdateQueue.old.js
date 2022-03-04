@@ -206,6 +206,7 @@ export function enqueueUpdate<State>(fiber: Fiber, update: Update<State>) {
   const pending = sharedQueue.pending;
   if (pending === null) {
     // This is the first update. Create a circular list.
+    // 不明白这里为啥要做成循环链表，这不是往后加的链表，是添加到前面的
     update.next = update;
   } else {
     update.next = pending.next;

@@ -642,13 +642,9 @@ function cutOffTailIfNeeded(
   }
 }
 
-function completeWork(
-  current: Fiber | null,
-  workInProgress: Fiber,
-  renderLanes: Lanes,
-): Fiber | null {
+function completeWork(current: Fiber | null, workInProgress: Fiber,renderLanes: Lanes,): Fiber | null {
+   // 取出 Fiber 节点的属性值，存储在 newProps 里
   const newProps = workInProgress.pendingProps;
-
   switch (workInProgress.tag) {
     case IndeterminateComponent:
     case LazyComponent:
@@ -696,18 +692,17 @@ function completeWork(
       updateHostContainer(workInProgress);
       return null;
     }
+    // 创建普通标签
     case HostComponent: {
+      // fiber Stack 出栈
       popHostContext(workInProgress);
+      // rootContainerInstance : <div id='id'></div> 真实的dom元素
       const rootContainerInstance = getRootHostContainer();
+      
       const type = workInProgress.type;
+      // 这个current只会是fiberRootNode下面的那个current，不会为null，其他都为null
       if (current !== null && workInProgress.stateNode != null) {
-        updateHostComponent(
-          current,
-          workInProgress,
-          type,
-          newProps,
-          rootContainerInstance,
-        );
+        updateHostComponent(current, workInProgress,type,newProps, rootContainerInstance );
 
         if (current.ref !== workInProgress.ref) {
           markRef(workInProgress);
@@ -722,52 +717,45 @@ function completeWork(
           // This can happen when we abort work.
           return null;
         }
-
+        // 获取上下文
         const currentHostContext = getHostContext();
         // TODO: Move createInstance to beginWork and keep it on a context
         // "stack" as the parent. Then append children as we go in beginWork
         // or completeWork depending on whether we want to add them top->down or
         // bottom->up. Top->down is faster in IE11.
-        const wasHydrated = popHydrationState(workInProgress);
+        // 浏览器渲染，这里返回 false
+        const wasHydrated = popHydrationState(workInProgress); 
         if (wasHydrated) {
           // TODO: Move this and createInstance step into the beginPhase
           // to consolidate.
-          if (
-            prepareToHydrateHostInstance(
-              workInProgress,
-              rootContainerInstance,
-              currentHostContext,
-            )
-          ) {
+          if ( prepareToHydrateHostInstance(workInProgress,rootContainerInstance,currentHostContext ) ) {
             // If changes to the hydrated node need to be applied at the
             // commit-phase we mark this as such.
             markUpdate(workInProgress);
           }
         } else {
-          const instance = createInstance(
-            type,
-            newProps,
-            rootContainerInstance,
-            currentHostContext,
-            workInProgress,
-          );
-
+          // 里面的逻辑都是在创建dom元素 <p>0</p>
+          // type:返回标签类型，div,p
+          // newProps:如果使用useState(0)=>{children: 0}
+          // currentHostContext:当前host的上下文
+          // 返回每一个含有内容的dom节点
+          const instance = createInstance(type,newProps,rootContainerInstance,  currentHostContext, workInProgress);
+         
+          // appendAllChildren 会尝试把上一步创建好的 DOM 节点挂载到 DOM 树上去
+          // 将 DOM 节点插入到 DOM 树里去，实际上是将子 Fiber 节点所对应的 DOM 节点挂载到其父 Fiber 节点所对应的 DOM 节点里去。
+          // 那将会出现一个问题，如果执行 appendAllChildren 时，父级的 DOM 节点还不存在怎么办？
+          // 比如 <div><h1>hello</h1></div>  h1 节点作为第一个进入 completeWork 的节点，它的父节点 div 对应的 DOM 就尚不存在。
+          // 其实不存在也没关系，反正 h1 DOM 节点被创建后，会作为 h1 Fiber 节点的 stateNode 属性存在，丢不掉的。
+          // 当父节点 div 进入 appendAllChildren 逻辑后，会逐个向下查找并添加自己的后代节点。
           appendAllChildren(instance, workInProgress, false, false);
-
+          // stateNode 用于存储当前 Fiber 节点对应的 DOM 节点
           workInProgress.stateNode = instance;
 
           // Certain renderers require commit-time effects for initial mount.
           // (eg DOM renderer supports auto-focus for certain elements).
           // Make sure such renderers get scheduled for later work.
-          if (
-            finalizeInitialChildren(
-              instance,
-              type,
-              newProps,
-              rootContainerInstance,
-              currentHostContext,
-            )
-          ) {
+          // finalizeInitialChildren 用来为 DOM 节点设置属性
+          if ( finalizeInitialChildren(instance,type,newProps,rootContainerInstance, currentHostContext )) {
             markUpdate(workInProgress);
           }
         }

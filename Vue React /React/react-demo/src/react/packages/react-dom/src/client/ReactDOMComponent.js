@@ -406,13 +406,12 @@ export function createElement(
 ): Element {
   let isCustomComponentTag;
 
-  // We create tags in the namespace of their parent container, except HTML
-  // tags get no namespace.
-  const ownerDocument: Document = getOwnerDocumentFromRootContainer(
-    rootContainerElement,
-  );
+  // We create tags in the namespace of their parent container, except HTMLtags get no namespace.
+  // HTMLtags下面的container 为 #document
+  const ownerDocument: Document = getOwnerDocumentFromRootContainer( rootContainerElement);
   let domElement: Element;
   let namespaceURI = parentNamespace;
+  // namespaceURI === HTML_NAMESPACE === http://www.w3.org/1999/xhtml 
   if (namespaceURI === HTML_NAMESPACE) {
     namespaceURI = getIntrinsicNamespace(type);
   }

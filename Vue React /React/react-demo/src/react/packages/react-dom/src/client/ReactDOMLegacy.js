@@ -112,10 +112,7 @@ function shouldHydrateDueToLegacyHeuristic(container) {
 }
 
 // 做浏览器和服务端判断，非服务端清空内容，调用createLegacyRoot(container，undefined)，去创建 _internalRoot对象
-function legacyCreateRootFromDOMContainer(
-  container: Container,
-  forceHydrate: boolean,
-): RootType {
+function legacyCreateRootFromDOMContainer( container: Container, forceHydrate: boolean,): RootType {
   const shouldHydrate = forceHydrate || shouldHydrateDueToLegacyHeuristic(container); // false
   // First clear any existing content.清空内容
   if (!shouldHydrate) {
@@ -149,15 +146,8 @@ function legacyCreateRootFromDOMContainer(
       );
     }
   }
-
-  return createLegacyRoot(
-    container,
-    shouldHydrate
-      ? {
-          hydrate: true,
-        }
-      : undefined,
-  );
+  //  又是返回一个执行函数
+  return createLegacyRoot( container, shouldHydrate ? { hydrate: true, }  : undefined );
 }
 
 function warnOnInvalidCallback(callback: mixed, callerName: string): void {
@@ -172,6 +162,8 @@ function warnOnInvalidCallback(callback: mixed, callerName: string): void {
     }
   }
 }
+
+
 
 // render的核心方法在这里,render初始化legacyRenderSubtreeIntoContainer( null,element, container, false, callback,)
 function legacyRenderSubtreeIntoContainer(
@@ -191,13 +183,14 @@ function legacyRenderSubtreeIntoContainer(
   // TODO: Without `any` type, Flow says "Property cannot be accessed on any
   // member of intersection type." Whyyyyyy.
   let root: RootType = (container._reactRootContainer: any);
+  // TODO: fiber的根节点，特别重要
   let fiberRoot;
   // 刚进来 root 是 undefined。
   if (!root) {
     // Initial mount
+    // 这里初始化了 以及全局节点fiberRootNode，fiber节点 fiberNode，以及事件初始化处理
     root = container._reactRootContainer = legacyCreateRootFromDOMContainer( container, forceHydrate);
     console.log(root,"root");
-    // debugger
     fiberRoot = root._internalRoot;
     if (typeof callback === 'function') {
       const originalCallback = callback;
@@ -207,11 +200,16 @@ function legacyRenderSubtreeIntoContainer(
       };
     }
     // Initial mount should not be batched.
+    // console.log('children',children); // <App/>
+    // console.log('fiberRoot',fiberRoot); // FiberRootNode
+    // console.log('parentComponent',parentComponent); // parentComponent null
+    // console.log('callback',callback); // callback undefined
+   // 当调用unbatchedUpdates的时候就会调用这个updateContainer，去到 Reconciler中处理更新优先级，更新队列等等问题。
     unbatchedUpdates(() => {
       updateContainer(children, fiberRoot, parentComponent, callback);
     });
   } else {
-    // 这里是更新逻辑
+    // 这里是更新逻辑，逻辑处理的是非首次渲染的情况（即更新），其逻辑除了跳过了初始化工作，与上面基本一致
     fiberRoot = root._internalRoot;
     if (typeof callback === 'function') {
       const originalCallback = callback;
@@ -223,6 +221,10 @@ function legacyRenderSubtreeIntoContainer(
     // Update
     updateContainer(children, fiberRoot, parentComponent, callback);
   }
+  // 返回当前fiberRoot的stateNode，有三种特殊情况
+  // 1.对于FiberNode.current指向的FiberNode，stateNode 为 FiberRootNode
+  // 2.FiberNode 下面的 App 组件中的 stateNode 为 null
+  // 3.App组件下面，对于拥有真实dom节点的节点中的 stateNode 为 dom真实节点，这个最重要
   return getPublicRootInstance(fiberRoot);
 }
 
@@ -315,13 +317,7 @@ export function render(
       );
     }
   }
-  return legacyRenderSubtreeIntoContainer(
-    null,
-    element,
-    container,
-    false,
-    callback,
-  );
+  return legacyRenderSubtreeIntoContainer(null, element, container,false,callback);
 }
 
 export function unstable_renderSubtreeIntoContainer(

@@ -120,32 +120,39 @@ ReactDOMRoot.prototype.unmount = ReactDOMBlockingRoot.prototype.unmount = functi
 // 创建 _internalRoot 的方法。
 function createRootImpl(
   container: Container,
-  tag: RootTag,
-  options: void | RootOptions,
+  tag: RootTag, // 0
+  options: void | RootOptions, // defined
 ) {
   // Tag is either LegacyRoot or Concurrent Root
-  const hydrate = options != null && options.hydrate === true;
-  const hydrationCallbacks = (options != null && options.hydrationOptions) || null;
-  const mutableSources =  (options != null && options.hydrationOptions != null && options.hydrationOptions.mutableSources) || null;
+  const hydrate = options != null && options.hydrate === true; // false
+  const hydrationCallbacks = (options != null && options.hydrationOptions) || null; // null
+  const mutableSources =  (options != null && options.hydrationOptions != null && options.hydrationOptions.mutableSources) || null; // null
   // createContainer(container, 0, false, null);，创建好fiber节点。
   // 区别好 FiberRootNode 是最外层的 和 FiberNode。
   // FiberRootNode.current = FiberNode
   // FiberNode.stateNode = FiberRootNode
   const root = createContainer(container, tag, hydrate, hydrationCallbacks);
 
-  // 这个方法不理解用意
+  /* 
+  作用给container添加属性 '__reactContainer$' + randomKey，将 root.current赋值给它，用于在容器也可以访问current
+  const internalContainerInstanceKey = '__reactContainer$' + randomKey;
+  export function markContainerAsRoot(hostRoot: Fiber, node: Container): void {
+    node[internalContainerInstanceKey] = hostRoot;
+  }
+  */
   markContainerAsRoot(root.current, container);
   const containerNodeType = container.nodeType; // 1
+  // export const enableEagerRootListeners = true;
   if (enableEagerRootListeners) {
-    const rootContainerElement =
-      container.nodeType === COMMENT_NODE ? container.parentNode : container;
+    // container.nodeType:1
+    // COMMENT_NODE:8
+    const rootContainerElement = container.nodeType === COMMENT_NODE ? container.parentNode : container;
+    // 事件系统
     listenToAllSupportedEvents(rootContainerElement);
   } else {
+    // LegacyRoot:0,这里服务端渲染不管
     if (hydrate && tag !== LegacyRoot) {
-      const doc =
-        containerNodeType === DOCUMENT_NODE
-          ? container
-          : container.ownerDocument;
+      const doc = containerNodeType === DOCUMENT_NODE? container  : container.ownerDocument;
       // We need to cast this because Flow doesn't work
       // with the hoisted containerNodeType. If we inline
       // it, then Flow doesn't complain. We intentionally
@@ -158,14 +165,14 @@ function createRootImpl(
       ensureListeningTo(container, 'onMouseEnter', null);
     }
   }
-
+  // 非服务端渲染是没有数据的 mutableSources：null
   if (mutableSources) {
     for (let i = 0; i < mutableSources.length; i++) {
       const mutableSource = mutableSources[i];
       registerMutableSourceForHydration(root, mutableSource);
     }
   }
-
+  // 把刚刚创建的root返回
   return root;
 }
 

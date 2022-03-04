@@ -135,6 +135,7 @@ export function markRenderStopped(): void {
 export function markRenderScheduled(lane: Lane): void {
   if (enableSchedulingProfiler) {
     if (supportsUserTiming) {
+      // console.log( performance,"performance"  );
       performance.mark(`--schedule-render-${formatLanes(lane)}`);
     }
   }

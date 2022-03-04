@@ -62,10 +62,7 @@ export function injectInternals(internals: Object): boolean {
 
 export function onScheduleRoot(root: FiberRoot, children: ReactNodeList) {
   if (__DEV__) {
-    if (
-      injectedHook &&
-      typeof injectedHook.onScheduleFiberRoot === 'function'
-    ) {
+    if (injectedHook && typeof injectedHook.onScheduleFiberRoot === 'function') {
       try {
         injectedHook.onScheduleFiberRoot(rendererID, root, children);
       } catch (err) {

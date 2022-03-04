@@ -7,9 +7,9 @@
  * @flow
  */
 
-import type {AnyNativeEvent} from '../events/PluginModuleType';
+import type {AnyNativeEvent} from './PluginModuleType';
 import type {Container, SuspenseInstance} from '../client/ReactDOMHostConfig';
-import type {DOMEventName} from '../events/DOMEventNames';
+import type {DOMEventName} from './DOMEventNames';
 import type {EventSystemFlags} from './EventSystemFlags';
 import type {FiberRoot} from 'react-reconciler/src/ReactInternalTypes';
 import type {LanePriority} from 'react-reconciler/src/ReactFiberLane';

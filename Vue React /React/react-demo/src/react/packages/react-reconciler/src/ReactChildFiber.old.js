@@ -271,7 +271,11 @@ function resolveLazyType<T, P>(
 // to be able to optimize each path individually by branching early. This needs
 // a compiler or we can do it manually. Helpers that don't need this branching
 // live outside of this function.
+// 这个方法就是打上fiber上面的各种标记的提供给commit阶段统一处理，
+// 这些标记就是新增，删除，移动等操作
+// 入参为 true，意味着其内部逻辑是允许追踪副作用的，因此“打 flags ”这个动作将会生效。
 function ChildReconciler(shouldTrackSideEffects) {
+   // 删除节点的逻辑
   function deleteChild(returnFiber: Fiber, childToDelete: Fiber): void {
     if (!shouldTrackSideEffects) {
       // Noop.
@@ -370,6 +374,7 @@ function ChildReconciler(shouldTrackSideEffects) {
     }
   }
 
+  // 单个节点的插入逻辑
   function placeSingleChild(newFiber: Fiber): Fiber {
     // This is simpler for the single child case. We only need to do a
     // placement for inserting new children.
@@ -1132,14 +1137,20 @@ function ChildReconciler(shouldTrackSideEffects) {
     return created;
   }
 
-  function reconcileSingleElement(
-    returnFiber: Fiber,
-    currentFirstChild: Fiber | null,
-    element: ReactElement,
-    lanes: Lanes,
-  ): Fiber {
-    const key = element.key;
-    let child = currentFirstChild;
+  function reconcileSingleElement( returnFiber: Fiber,  currentFirstChild: Fiber | null, element: ReactElement, lanes: Lanes, ): Fiber {
+    const key = element.key; // null
+    let child = currentFirstChild; // null
+    // console.log(element,"element"); 如下所示
+    /* 
+      $$typeof: Symbol(react.element)
+      key: null
+      props: {}
+      ref: null
+      type: ƒ App()
+      _owner: null
+      _store: {validated: false}
+    */
+
     while (child !== null) {
       // TODO: If key === null and child.key === null, then this only applies to
       // the first item in the list.
@@ -1214,8 +1225,8 @@ function ChildReconciler(shouldTrackSideEffects) {
       }
       child = child.sibling;
     }
-
-    if (element.type === REACT_FRAGMENT_TYPE) {
+    // false
+    if (element.type === REACT_FRAGMENT_TYPE) { // symbolFor('react.fragment');
       const created = createFiberFromFragment(
         element.props.children,
         returnFiber.mode,
@@ -1225,9 +1236,13 @@ function ChildReconciler(shouldTrackSideEffects) {
       created.return = returnFiber;
       return created;
     } else {
+      // 得到createFiberFromElement里面创建的fiber节点
       const created = createFiberFromElement(element, returnFiber.mode, lanes);
+      // ref
       created.ref = coerceRef(returnFiber, currentFirstChild, element);
+      // 新创建的子节点指向父亲
       created.return = returnFiber;
+      // 将新创建出来的元素，返回出去。
       return created;
     }
   }
@@ -1272,11 +1287,12 @@ function ChildReconciler(shouldTrackSideEffects) {
   // itself. They will be added to the side-effect list as we pass through the
   // children and the parent.
   function reconcileChildFibers(
-    returnFiber: Fiber,
-    currentFirstChild: Fiber | null,
-    newChild: any,
-    lanes: Lanes,
+    returnFiber: Fiber, // workInProgress
+    currentFirstChild: Fiber | null, // null
+    newChild: any, // <app />
+    lanes: Lanes, /// 2
   ): Fiber | null {
+
     // This function is not recursive.
     // If the top level item is an array, we treat it as a set of children,
     // not as a fragment. Nested arrays on the other hand will be treated as
@@ -1285,6 +1301,7 @@ function ChildReconciler(shouldTrackSideEffects) {
     // Handle top level unkeyed fragments as if they were arrays.
     // This leads to an ambiguity between <>{[...]}</> and <>...</>.
     // We treat the ambiguous cases above the same.
+    // 判断是否是 fragment，false
     const isUnkeyedTopLevelFragment =
       typeof newChild === 'object' &&
       newChild !== null &&
@@ -1294,20 +1311,14 @@ function ChildReconciler(shouldTrackSideEffects) {
       newChild = newChild.props.children;
     }
 
-    // Handle object types
+    // Handle object types，true
     const isObject = typeof newChild === 'object' && newChild !== null;
 
     if (isObject) {
       switch (newChild.$$typeof) {
-        case REACT_ELEMENT_TYPE:
-          return placeSingleChild(
-            reconcileSingleElement(
-              returnFiber,
-              currentFirstChild,
-              newChild,
-              lanes,
-            ),
-          );
+        case REACT_ELEMENT_TYPE: // symbolFor('react.element')
+        // 打上 Placement 标签 代表新增，reconcileSingleElement返回一个fiber节点
+          return placeSingleChild(reconcileSingleElement( returnFiber, currentFirstChild, newChild, lanes ));
         case REACT_PORTAL_TYPE:
           return placeSingleChild(
             reconcileSinglePortal(
@@ -1409,6 +1420,9 @@ function ChildReconciler(shouldTrackSideEffects) {
   return reconcileChildFibers;
 }
 
+// 它们两个其实非常相似，只是传入的参数不同 
+// ChildReconciler 的返回值是一个名为 reconcileChildFibers 的函数，
+// 这个函数是一个逻辑分发器，它将根据入参的不同，执行不同的 Fiber 节点操作，最终返回不同的目标 Fiber 节点。
 export const reconcileChildFibers = ChildReconciler(true);
 export const mountChildFibers = ChildReconciler(false);
 

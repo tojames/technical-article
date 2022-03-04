@@ -115,46 +115,46 @@ let debugCounter = 1;
 
 // 创建fiber节点
 function FiberNode(
-  tag: WorkTag,
-  pendingProps: mixed,
-  key: null | string,
-  mode: TypeOfMode,
+  tag: WorkTag, // 3
+  pendingProps: mixed, // null
+  key: null | string,// null
+  mode: TypeOfMode, // 8
 ) {
   // Instance
-  this.tag = tag;
-  this.key = key;
+  this.tag = tag; // 定fiber的类型。在reconciliation算法中使用它来确定需要完成的工作
+  this.key = key; // 唯一标识符
   this.elementType = null;
-  this.type = null;
-  this.stateNode = null;
+  this.type = null; // 定义与fiber关联的功能或类。对于类组件，它指向构造函数，对于DOM元素，它指定HTML标记。我经常使用此字段来了解光纤节点与哪些元素相关。
+  this.stateNode = null; // 一般视为真实节点，及时有时候不是
 
   // Fiber
-  this.return = null;
-  this.child = null;
-  this.sibling = null;
-  this.index = 0;
+  this.return = null; // 指向父节点
+  this.child = null; // 指向子节点
+  this.sibling = null; // 指向兄弟节点
+  this.index = 0; // 在这么多兄弟中排行第几
 
-  this.ref = null;
+  this.ref = null; // 操作dom的方法
 
-  this.pendingProps = pendingProps;
-  this.memoizedProps = null;
-  this.updateQueue = null;
-  this.memoizedState = null;
-  this.dependencies = null;
+  this.pendingProps = pendingProps; // 新的变动带来的新的props，即nextProps。
+  this.memoizedProps = null; // 上一次输入更新的Fiber props
+  this.updateQueue = null; // 状态更新，回调和DOM更新的队列，Fiber对应的组件，所产生的update，都会放在该队列中
+  this.memoizedState = null; // 当前屏幕UI对应状态，上一次输入更新的Fiber state
+  this.dependencies = null; // 一个列表，存在该Fiber依赖的contexts，events
 
-  this.mode = mode;
+  this.mode = mode;  // 一棵树上的mode都是8，继承父fiber
 
   // Effects
-  this.flags = NoFlags;
-  this.nextEffect = null;
+  this.flags = NoFlags; // 当前fiber阶段需要进行任务，包括：占位、更新、删除等，一般发生在diff的时候打上标记
+  this.nextEffect = null; // 记录副作用
 
-  this.firstEffect = null;
-  this.lastEffect = null;
+  this.firstEffect = null; // 同上
+  this.lastEffect = null; // 同上
 
-  this.lanes = NoLanes;
-  this.childLanes = NoLanes;
+  this.lanes = NoLanes; // 优先级
+  this.childLanes = NoLanes; // child优先级
 
-  this.alternate = null;
-
+  this.alternate = null; // current fiber指向work in progress fiber;working in progress fiber指向current fiber
+  // enableProfilerTimer：true
   if (enableProfilerTimer) {
     // Note: The following is done to avoid a v8 performance cliff.
     //
@@ -254,19 +254,18 @@ export function resolveLazyComponentTag(Component: Function): WorkTag {
 
 // This is used to create an alternate fiber to do work on.
 export function createWorkInProgress(current: Fiber, pendingProps: any): Fiber {
+  // 这个workInProgress 指向current.alternate;
   let workInProgress = current.alternate;
+  // workInProgress:null
   if (workInProgress === null) {
     // We use a double buffering pooling technique because we know that we'll
     // only ever need at most two versions of a tree. We pool the "other" unused
     // node that we're free to reuse. This is lazily created to avoid allocating
     // extra objects for things that are never updated. It also allow us to
     // reclaim the extra memory if needed.
-    workInProgress = createFiber(
-      current.tag,
-      pendingProps,
-      current.key,
-      current.mode,
-    );
+    // 使用双缓存技术，通过两棵树可以方便复用一些节点，并且可以延迟创建哪些不会更新的对象，同样可以回收一些额外的内存
+    // 创建fiber，和创建fiberNode是同一个方法
+    workInProgress = createFiber( current.tag, pendingProps, current.key, current.mode,);
     workInProgress.elementType = current.elementType;
     workInProgress.type = current.type;
     workInProgress.stateNode = current.stateNode;
@@ -278,7 +277,7 @@ export function createWorkInProgress(current: Fiber, pendingProps: any): Fiber {
       workInProgress._debugOwner = current._debugOwner;
       workInProgress._debugHookTypes = current._debugHookTypes;
     }
-
+    // 双缓存结构
     workInProgress.alternate = current;
     current.alternate = workInProgress;
   } else {
@@ -438,8 +437,10 @@ export function createHostRootFiber(tag: RootTag): Fiber {
   } else if (tag === BlockingRoot) {
     mode = BlockingMode | StrictMode;
   } else {
+    // 初始化会得到0
     mode = NoMode;
   }
+  
 
   if (enableProfilerTimer && isDevToolsPresent) {
     // Always collect profile timings when DevTools are present.
@@ -459,7 +460,8 @@ export function createFiberFromTypeAndProps(
   mode: TypeOfMode,
   lanes: Lanes,
 ): Fiber {
-  let fiberTag = IndeterminateComponent;
+  // export const IndeterminateComponent = 2; // Before we know whether it is function or class
+  let fiberTag = IndeterminateComponent; // 2
   // The resolved type is set if we know what the final type will be. I.e. it's not lazy.
   let resolvedType = type;
   if (typeof type === 'function') {
@@ -583,26 +585,25 @@ export function createFiberFromTypeAndProps(
   return fiber;
 }
 
-export function createFiberFromElement(
-  element: ReactElement,
-  mode: TypeOfMode,
-  lanes: Lanes,
-): Fiber {
+export function createFiberFromElement( element: ReactElement,mode: TypeOfMode, lanes: Lanes): Fiber {
   let owner = null;
   if (__DEV__) {
     owner = element._owner;
   }
+  /* 
+    $$typeof: Symbol(react.element)
+    key: null
+    props: {}
+    ref: null
+    type: ƒ App()
+    _owner: null
+    _store: {validated: false}
+  */
   const type = element.type;
   const key = element.key;
   const pendingProps = element.props;
-  const fiber = createFiberFromTypeAndProps(
-    type,
-    key,
-    pendingProps,
-    owner,
-    mode,
-    lanes,
-  );
+  // 创建fiber节点
+  const fiber = createFiberFromTypeAndProps( type,key,pendingProps,owner,mode, lanes);
   if (__DEV__) {
     fiber._debugSource = element._source;
     fiber._debugOwner = element._owner;

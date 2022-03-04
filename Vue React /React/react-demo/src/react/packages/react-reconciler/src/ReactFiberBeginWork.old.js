@@ -231,23 +231,15 @@ if (__DEV__) {
   didWarnAboutDefaultPropsOnFunctionComponent = {};
 }
 
-export function reconcileChildren(
-  current: Fiber | null,
-  workInProgress: Fiber,
-  nextChildren: any,
-  renderLanes: Lanes,
-) {
+export function reconcileChildren( current: Fiber | null, workInProgress: Fiber,nextChildren: any,renderLanes: Lanes) {
+ // current 第一次进来不为null
   if (current === null) {
     // If this is a fresh new component that hasn't been rendered yet, we
     // won't update its child set by applying minimal side-effects. Instead,
     // we will add them all to the child before it gets rendered. That means
     // we can optimize this reconciliation pass by not tracking side-effects.
-    workInProgress.child = mountChildFibers(
-      workInProgress,
-      null,
-      nextChildren,
-      renderLanes,
-    );
+     // 若 current 为 null，则进入 mountChildFibers 的逻辑
+    workInProgress.child = mountChildFibers(workInProgress, null, nextChildren,renderLanes );
   } else {
     // If the current child is the same as the work in progress, it means that
     // we haven't yet started any work on these children. Therefore, we use
@@ -255,12 +247,9 @@ export function reconcileChildren(
 
     // If we had any progressed work already, that is invalid at this point so
     // let's throw it out.
-    workInProgress.child = reconcileChildFibers(
-      workInProgress,
-      current.child,
-      nextChildren,
-      renderLanes,
-    );
+    // 若 current 不为 null，则进入 reconcileChildFibers 的逻辑
+    // current.child:null，reconcileChildFibers会返回fiber节点，
+    workInProgress.child = reconcileChildFibers( workInProgress, current.child, nextChildren, renderLanes );
   }
 }
 
@@ -1036,13 +1025,10 @@ function finishClassComponent(
 }
 
 function pushHostRootContext(workInProgress) {
-  const root = (workInProgress.stateNode: FiberRoot);
+  // fiberRootNode
+  const root = (workInProgress.stateNode: FiberRoot); 
   if (root.pendingContext) {
-    pushTopLevelContextObject(
-      workInProgress,
-      root.pendingContext,
-      root.pendingContext !== root.context,
-    );
+    pushTopLevelContextObject( workInProgress,root.pendingContext,root.pendingContext !== root.context);
   } else if (root.context) {
     // Should always be set
     pushTopLevelContextObject(workInProgress, root.context, false);
@@ -1051,6 +1037,7 @@ function pushHostRootContext(workInProgress) {
 }
 
 function updateHostRoot(current, workInProgress, renderLanes) {
+  // 把任务推进fiberStack
   pushHostRootContext(workInProgress);
   const updateQueue = workInProgress.updateQueue;
   invariant(
@@ -1062,17 +1049,23 @@ function updateHostRoot(current, workInProgress, renderLanes) {
   const nextProps = workInProgress.pendingProps;
   const prevState = workInProgress.memoizedState;
   const prevChildren = prevState !== null ? prevState.element : null;
+  // 浅克隆一个updateQueue，已经克隆过就不会继续克隆了
   cloneUpdateQueue(current, workInProgress);
+  // 暂时看不懂
   processUpdateQueue(workInProgress, nextProps, null, renderLanes);
   const nextState = workInProgress.memoizedState;
   // Caution: React DevTools currently depends on this property
   // being called "element".
   const nextChildren = nextState.element;
+  
   if (nextChildren === prevChildren) {
+    // 服务端渲染相关
     resetHydrationState();
+    // 暂时不知道干嘛的
     return bailoutOnAlreadyFinishedWork(current, workInProgress, renderLanes);
   }
   const root: FiberRoot = workInProgress.stateNode;
+  // 非服务端渲染，走else
   if (root.hydrate && enterHydrationState(workInProgress)) {
     // If we don't have any current children this might be the first pass.
     // We always try to hydrate. If this isn't a hydration pass there won't
@@ -1113,11 +1106,14 @@ function updateHostRoot(current, workInProgress, renderLanes) {
       node = node.sibling;
     }
   } else {
-    // Otherwise reset hydration state in case we aborted and resumed another
-    // root.
+    // Otherwise reset hydration state in case we aborted and resumed another root.
+    // nextChildren: <app/>
+    // renderLanes:1
+    // Note: workInProgress.child 将会被赋值为fiber节点，但是sibling我还不知道怎么赋值
     reconcileChildren(current, workInProgress, nextChildren, renderLanes);
     resetHydrationState();
   }
+  // 将刚刚创建的child返回出去。
   return workInProgress.child;
 }
 
@@ -2986,11 +2982,7 @@ export function markWorkInProgressReceivedUpdate() {
   didReceiveUpdate = true;
 }
 
-function bailoutOnAlreadyFinishedWork(
-  current: Fiber | null,
-  workInProgress: Fiber,
-  renderLanes: Lanes,
-): Fiber | null {
+function bailoutOnAlreadyFinishedWork(current: Fiber | null,workInProgress: Fiber,renderLanes: Lanes): Fiber | null {
   if (current !== null) {
     // Reuse previous dependencies
     workInProgress.dependencies = current.dependencies;
@@ -3080,11 +3072,16 @@ function remountFiber(
   }
 }
 
+// beginWork 的入参是一对用 alternate 连接起来的 workInProgress 和 current 节点；
+// beginWork 的核心逻辑是根据 fiber 节点（workInProgress）的 tag 属性的不同，调用不同的节点创建函数。
 function beginWork(
   current: Fiber | null,
   workInProgress: Fiber,
   renderLanes: Lanes,
 ): Fiber | null {
+  // current: 一开始是fiberRootNode.current 中fiberNode
+  // workInProgress 当前的fiber，第一次是current
+  // renderLanes:1
   const updateLanes = workInProgress.lanes;
 
   if (__DEV__) {
@@ -3104,30 +3101,34 @@ function beginWork(
       );
     }
   }
-
+  // 1.更新逻辑的时候，current不为null，2.第一次进来的current不为null，因为它是第一个fiberNode节点
   if (current !== null) {
+    // 对比两个props
     const oldProps = current.memoizedProps;
     const newProps = workInProgress.pendingProps;
-
-    if (
-      oldProps !== newProps ||
-      hasLegacyContextChanged() ||
+    // 若 props 更新或者上下文改变，则认为需要"接受更新"
+    if ( oldProps !== newProps || hasLegacyContextChanged() ||
       // Force a re-render if the implementation changed due to hot reload:
       (__DEV__ ? workInProgress.type !== current.type : false)
     ) {
       // If props or context changed, mark the fiber as having performed work.
       // This may be unset if the props are determined to be equal later (memo).
-      didReceiveUpdate = true;
+      didReceiveUpdate = true; // 更新标记
     } else if (!includesSomeLane(renderLanes, updateLanes)) {
+      // 只有fiberNode第一次进来
       didReceiveUpdate = false;
       // This fiber does not have any pending work. Bailout without entering
       // the begin phase. There's still some bookkeeping we that needs to be done
       // in this optimized path, mostly pushing stuff onto the stack.
       switch (workInProgress.tag) {
+        // 根节点将进入这个逻辑
         case HostRoot:
+          // 推进fiberStack
           pushHostRootContext(workInProgress);
+          // 服务端相关
           resetHydrationState();
           break;
+        // dom 标签对应的节点将进入这个逻辑
         case HostComponent:
           pushHostContext(workInProgress);
           break;
@@ -3485,12 +3486,7 @@ function beginWork(
       return updateLegacyHiddenComponent(current, workInProgress, renderLanes);
     }
   }
-  invariant(
-    false,
-    'Unknown unit of work tag (%s). This error is likely caused by a bug in ' +
-      'React. Please file an issue.',
-    workInProgress.tag,
-  );
+  invariant(false, 'Unknown unit of work tag (%s). This error is likely caused by a bug in ' + 'React. Please file an issue.',workInProgress.tag, );
 }
 
 export {beginWork};

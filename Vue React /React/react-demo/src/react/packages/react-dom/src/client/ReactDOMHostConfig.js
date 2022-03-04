@@ -259,40 +259,42 @@ export function resetAfterCommit(containerInfo: Container): void {
   selectionInformation = null;
 }
 
-export function createInstance(
-  type: string,
-  props: Props,
-  rootContainerInstance: Container,
-  hostContext: HostContext,
-  internalInstanceHandle: Object,
-): Instance {
+export function createInstance(type: string,props: Props, rootContainerInstance: Container,hostContext: HostContext,internalInstanceHandle: Object,): Instance {
   let parentNamespace: string;
   if (__DEV__) {
     // TODO: take namespace into account when validating.
+    /*
+      {
+      ancestorInfo: {
+        aTagInScope: null
+        buttonTagInScope: null
+        current: {tag: 'div'}
+        dlItemTagAutoclosing: null
+        formTag: null
+        listItemTagAutoclosing: null
+        nobrTagInScope: null
+        pTagInButtonScope: null
+      }
+      namespace: "http://www.w3.org/1999/xhtml"
+      } 
+    */
     const hostContextDev = ((hostContext: any): HostContextDev);
+    // 校验嵌套
     validateDOMNesting(type, null, hostContextDev.ancestorInfo);
-    if (
-      typeof props.children === 'string' ||
-      typeof props.children === 'number'
-    ) {
+    if ( typeof props.children === 'string' || typeof props.children === 'number') {
       const string = '' + props.children;
-      const ownAncestorInfo = updatedAncestorInfo(
-        hostContextDev.ancestorInfo,
-        type,
-      );
+      const ownAncestorInfo = updatedAncestorInfo(hostContextDev.ancestorInfo, type);
       validateDOMNesting(null, string, ownAncestorInfo);
     }
     parentNamespace = hostContextDev.namespace;
   } else {
     parentNamespace = ((hostContext: any): HostContextProd);
   }
-  const domElement: Instance = createElement(
-    type,
-    props,
-    rootContainerInstance,
-    parentNamespace,
-  );
+  // 创建真实dom元素
+  const domElement: Instance = createElement( type, props,rootContainerInstance, parentNamespace);
+  // 预缓存fiberNode
   precacheFiberNode(internalInstanceHandle, domElement);
+  // domElement ，使用一个随机id作为key添加props值
   updateFiberProps(domElement, props);
   return domElement;
 }

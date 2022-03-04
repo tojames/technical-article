@@ -50,7 +50,7 @@ export function precacheFiberNode(
 ): void {
   (node: any)[internalInstanceKey] = hostInst;
 }
-
+// const internalContainerInstanceKey = '__reactContainer$' + randomKey;
 export function markContainerAsRoot(hostRoot: Fiber, node: Container): void {
   node[internalContainerInstanceKey] = hostRoot;
 }

@@ -320,6 +320,7 @@ const listeningMarker =
     .slice(2);
 
 export function listenToAllSupportedEvents(rootContainerElement: EventTarget) {
+  // console.log(rootContainerElement,"rootContainerElement"); // <div id='root'></div>
   if (enableEagerRootListeners) {
     if ((rootContainerElement: any)[listeningMarker]) {
       // Performance optimization: don't iterate through events
@@ -329,7 +330,11 @@ export function listenToAllSupportedEvents(rootContainerElement: EventTarget) {
       return;
     }
     (rootContainerElement: any)[listeningMarker] = true;
+    // console.log(allNativeEvents,"allNativeEvents"); // 80 个事件 "cancel" ,"click" ,"close" ,"contextmenu" ,"copy" ,"cut" ,"auxclick" ,"dblclick" ...
+    // console.log(nonDelegatedEvents,"nonDelegatedEvents"); // 29个 "cancel", "close", "invalid", "load", "scroll", "toggle", "abort", "canplay" ...
+
     allNativeEvents.forEach(domEventName => {
+      // 非委托事件
       if (!nonDelegatedEvents.has(domEventName)) {
         listenToNativeEvent(
           domEventName,
@@ -348,11 +353,13 @@ export function listenToAllSupportedEvents(rootContainerElement: EventTarget) {
   }
 }
 
+
+
 export function listenToNativeEvent(
-  domEventName: DOMEventName,
-  isCapturePhaseListener: boolean,
-  rootContainerElement: EventTarget,
-  targetElement: Element | null,
+  domEventName: DOMEventName, // 事件名称
+  isCapturePhaseListener: boolean, // 是否捕获
+  rootContainerElement: EventTarget, // 根节点
+  targetElement: Element | null, 
   eventSystemFlags?: EventSystemFlags = 0,
 ): void {
   let target = rootContainerElement;

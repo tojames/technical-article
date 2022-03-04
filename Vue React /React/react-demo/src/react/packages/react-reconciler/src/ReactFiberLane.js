@@ -69,23 +69,33 @@ const OffscreenLanePriority: LanePriority = 1;
 
 export const NoLanePriority: LanePriority = 0;
 
+export const DefaultLane: Lanes = /*                    */ 0b0000000000000000000000000010000;
+
+
+// lane使用31位二进制来表示优先级车道共31条, 位数越小（1的位置越靠右）表示优先级越高
 const TotalLanes = 31;
 
+
+// 没有优先级
 export const NoLanes: Lanes = /*                        */ 0b0000000000000000000000000000000;
 export const NoLane: Lane = /*                          */ 0b0000000000000000000000000000000;
 
+// 同步优先级，表示同步的任务一次只能执行一个，例如：用户的交互事件产生的更新任务
 export const SyncLane: Lane = /*                        */ 0b0000000000000000000000000000001;
 export const SyncBatchedLane: Lane = /*                 */ 0b0000000000000000000000000000010;
 
 export const InputDiscreteHydrationLane: Lane = /*      */ 0b0000000000000000000000000000100;
 const InputDiscreteLanes: Lanes = /*                    */ 0b0000000000000000000000000011000;
 
+// 连续触发优先级，例如：滚动事件，拖动事件等
 const InputContinuousHydrationLane: Lane = /*           */ 0b0000000000000000000000000100000;
 const InputContinuousLanes: Lanes = /*                  */ 0b0000000000000000000000011000000;
 
+// 默认优先级，例如使用setTimeout，请求数据返回等造成的更新
 export const DefaultHydrationLane: Lane = /*            */ 0b0000000000000000000000100000000;
 export const DefaultLanes: Lanes = /*                   */ 0b0000000000000000000111000000000;
 
+// 过度优先级，例如: Suspense、useTransition、useDeferredValue等拥有的优先级
 const TransitionHydrationLane: Lane = /*                */ 0b0000000000000000001000000000000;
 const TransitionLanes: Lanes = /*                       */ 0b0000000001111111110000000000000;
 
@@ -248,7 +258,9 @@ export function lanePriorityToSchedulerPriority(
 
 export function getNextLanes(root: FiberRoot, wipLanes: Lanes): Lanes {
   // Early bailout if there's no pending work left.
-  const pendingLanes = root.pendingLanes;
+  const pendingLanes = root.pendingLanes; // 0
+  // NoLanes:0
+  // NoLanePriority:0
   if (pendingLanes === NoLanes) {
     return_highestLanePriority = NoLanePriority;
     return NoLanes;
@@ -665,10 +677,11 @@ export function markRootUpdated(
   // when considering updates across different priority levels, but isn't
   // sufficient for updates within the same priority, since we want to treat
   // those updates as parallel.
-
+  // 大概意思是，更新还是并发更新，高优先级更新也会有低优先级更新，相同优先级的是平行的。
   // Unsuspend any update at equal or lower priority.
+  // 对于相同优先级，和低优先级，取消暂停
   const higherPriorityLanes = updateLane - 1; // Turns 0b1000 into 0b0111
-
+  // 让这些暂停的 pingedLanes 拥有更高的优先级
   root.suspendedLanes &= higherPriorityLanes;
   root.pingedLanes &= higherPriorityLanes;
 

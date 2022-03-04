@@ -250,33 +250,40 @@ export function createContainer(
 }
 
 export function updateContainer(
-  element: ReactNodeList,
-  container: OpaqueRoot,
-  parentComponent: ?React$Component<any, any>,
-  callback: ?Function,
+  element: ReactNodeList, // <App/>
+  container: OpaqueRoot, // FiberRootNode
+  parentComponent: ?React$Component<any, any>, // null
+  callback: ?Function, // undefined
 ): Lane {
+  // 不知道干嘛
   if (__DEV__) {
     onScheduleRoot(container, element);
   }
-  const current = container.current;
-  const eventTime = requestEventTime();
+  const current = container.current; // 获取fiberNode
+  const eventTime = requestEventTime(); // 当前时间
   if (__DEV__) {
     // $FlowExpectedError - jest isn't a global, and isn't recognized outside of tests
+    // 测试相关
     if ('undefined' !== typeof jest) {
       warnIfUnmockedScheduler(current);
       warnIfNotScopedWithMatchingAct(current);
     }
   }
-  const lane = requestUpdateLane(current);
-
+  // 是一个定义优先级模型，这里是通过各种判断后，返回lane
+  // 这里面的细节并没有太详细了解。
+  const lane = requestUpdateLane(current); // 1
+  // true
   if (enableSchedulingProfiler) {
+    // 给performance打上标记， performance.mark(`--schedule-render-${formatLanes(lane)}`)
     markRenderScheduled(lane);
   }
 
-  const context = getContextForSubtree(parentComponent);
+  const context = getContextForSubtree(parentComponent); // {}
+
   if (container.context === null) {
-    container.context = context;
+    container.context = context; // 一开始fiberRootNode 是null，所以会赋值{}
   } else {
+    // pendingContext 和服务器相关
     container.pendingContext = context;
   }
 
@@ -296,12 +303,23 @@ export function updateContainer(
       );
     }
   }
-
+  // ，创建 update 对象，一个 update 对象代表着一个更新
   const update = createUpdate(eventTime, lane);
+  /* 
+    callback: null,
+    eventTime: 782.8000000007451,
+    lane: 1,
+    next: null,
+    payload:
+    element: {$$typeof: Symbol(react.element), key: null, ref: null, props: {…}, type: ƒ, …},
+    tag: 0
+  */
+
   // Caution: React DevTools currently depends on this property
   // being called "element".
   update.payload = {element};
 
+  // React.render(x,y,cb),中的回调函数
   callback = callback === undefined ? null : callback;
   if (callback !== null) {
     if (__DEV__) {
@@ -315,8 +333,9 @@ export function updateContainer(
     }
     update.callback = callback;
   }
-
+   // 更新链表，是update放在前面
   enqueueUpdate(current, update);
+  // 调度更新当前节点优先级。
   scheduleUpdateOnFiber(current, lane, eventTime);
 
   return lane;
@@ -339,13 +358,15 @@ export {
 export function getPublicRootInstance(
   container: OpaqueRoot,
 ): React$Component<any, any> | PublicInstance | null {
-  const containerFiber = container.current;
+  const containerFiber = container.current; // <App/>
+  // containerFiber.child 就是app组件的child
   if (!containerFiber.child) {
     return null;
   }
   switch (containerFiber.child.tag) {
+    // 如果是HostComponent，那就去获取组件的实例
     case HostComponent:
-      return getPublicInstance(containerFiber.child.stateNode);
+      return getPublicInstance(containerFiber.child.stateNode); // 返回当前实例containerFiber.child.stateNode
     default:
       return containerFiber.child.stateNode;
   }
