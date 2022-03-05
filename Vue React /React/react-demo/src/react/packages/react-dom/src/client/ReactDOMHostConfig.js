@@ -223,8 +223,9 @@ export function getPublicInstance(instance: Instance): * {
 }
 
 export function prepareForCommit(containerInfo: Container): Object | null {
-  eventsEnabled = ReactBrowserEventEmitterIsEnabled();
-  selectionInformation = getSelectionInformation();
+  eventsEnabled = ReactBrowserEventEmitterIsEnabled(); // true
+  selectionInformation = getSelectionInformation(); //  {focusedElem: body  selectionRange: null}
+
   let activeInstance = null;
   if (enableCreateEventHandleAPI) {
     const focusedElem = selectionInformation.focusedElem;
@@ -299,10 +300,7 @@ export function createInstance(type: string,props: Props, rootContainerInstance:
   return domElement;
 }
 
-export function appendInitialChild(
-  parentInstance: Instance,
-  child: Instance | TextInstance,
-): void {
+export function appendInitialChild( parentInstance: Instance,child: Instance | TextInstance): void {
   parentInstance.appendChild(child);
 }
 

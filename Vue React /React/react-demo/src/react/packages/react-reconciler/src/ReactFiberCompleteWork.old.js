@@ -154,17 +154,13 @@ let updateHostText;
 if (supportsMutation) {
   // Mutation mode
 
-  appendAllChildren = function(
-    parent: Instance,
-    workInProgress: Fiber,
-    needsVisibilityToggle: boolean,
-    isHidden: boolean,
-  ) {
+  appendAllChildren = function(parent: Instance,workInProgress: Fiber,needsVisibilityToggle: boolean,isHidden: boolean) {
     // We only have the top Fiber that was created but we need recurse down its
     // children to find all the terminal nodes.
     let node = workInProgress.child;
     while (node !== null) {
       if (node.tag === HostComponent || node.tag === HostText) {
+        // 往parent操作dom添加node.stateNode，这是是在内存操作，不会影响页面
         appendInitialChild(parent, node.stateNode);
       } else if (enableFundamentalAPI && node.tag === FundamentalComponent) {
         appendInitialChild(parent, node.stateNode.instance);
@@ -738,7 +734,7 @@ function completeWork(current: Fiber | null, workInProgress: Fiber,renderLanes: 
           // type:返回标签类型，div,p
           // newProps:如果使用useState(0)=>{children: 0}
           // currentHostContext:当前host的上下文
-          // 返回每一个含有内容的dom节点
+          // 返回每一个含有内容的真实dom节点
           const instance = createInstance(type,newProps,rootContainerInstance,  currentHostContext, workInProgress);
          
           // appendAllChildren 会尝试把上一步创建好的 DOM 节点挂载到 DOM 树上去
@@ -747,6 +743,7 @@ function completeWork(current: Fiber | null, workInProgress: Fiber,renderLanes: 
           // 比如 <div><h1>hello</h1></div>  h1 节点作为第一个进入 completeWork 的节点，它的父节点 div 对应的 DOM 就尚不存在。
           // 其实不存在也没关系，反正 h1 DOM 节点被创建后，会作为 h1 Fiber 节点的 stateNode 属性存在，丢不掉的。
           // 当父节点 div 进入 appendAllChildren 逻辑后，会逐个向下查找并添加自己的后代节点。
+          // 所以最后根节点div，即是app组件下面的div是拥有全部存在内存中dom，
           appendAllChildren(instance, workInProgress, false, false);
           // stateNode 用于存储当前 Fiber 节点对应的 DOM 节点
           workInProgress.stateNode = instance;

@@ -5,9 +5,9 @@ export default function App() {
 
   return (
     <div>
-      <p>{count}</p>
-      <p>2</p>
-      <p>3</p>
+      <div>
+        <p>{count}</p>
+      </div>
 
       <input
         type="button"

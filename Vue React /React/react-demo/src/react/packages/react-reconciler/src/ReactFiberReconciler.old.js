@@ -335,7 +335,7 @@ export function updateContainer(
   }
    // 更新链表，是update放在前面
   enqueueUpdate(current, update);
-  // 调度更新当前节点优先级。
+  // 进去render阶段和提交阶段的入口
   scheduleUpdateOnFiber(current, lane, eventTime);
 
   return lane;

@@ -124,11 +124,33 @@ function reactPriorityToSchedulerPriority(reactPriorityLevel) {
   }
 }
 
-export function runWithPriority<T>(
-  reactPriorityLevel: ReactPriorityLevel,
-  fn: () => T,
-): T {
+// function unstable_runWithPriority(priorityLevel, eventHandler) {
+//   switch (priorityLevel) {
+//     case ImmediatePriority:
+//     case UserBlockingPriority:
+//     case NormalPriority:
+//     case LowPriority:
+//     case IdlePriority:
+//       break;
+//     default:
+//       priorityLevel = NormalPriority;
+//   }
+
+//   var previousPriorityLevel = currentPriorityLevel;
+//   currentPriorityLevel = priorityLevel;
+
+//   try {
+//     return eventHandler();
+//   } finally {
+//     currentPriorityLevel = previousPriorityLevel;
+//   }
+// }
+
+
+export function runWithPriority<T>( reactPriorityLevel: ReactPriorityLevel, fn: () => T,): T {
   const priorityLevel = reactPriorityToSchedulerPriority(reactPriorityLevel);
+ 
+  // 方法体在上面注释
   return Scheduler_runWithPriority(priorityLevel, fn);
 }
 

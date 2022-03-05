@@ -1056,6 +1056,7 @@ function performSyncWorkOnRoot(root) {
 
   // We now have a consistent tree. Because this is a sync render, we
   // will commit it even if something suspended.
+  // 提交阶段
   const finishedWork: Fiber = (root.current.alternate: any);
   root.finishedWork = finishedWork;
   root.finishedLanes = lanes;
@@ -1756,7 +1757,7 @@ function completeUnitOfWork(unitOfWork: Fiber): void {
         stopProfilerTimerIfRunningAndRecordDelta(completedWork, false);
       }
       resetCurrentDebugFiberInDEV();
-      // FIXME: 这点需要深挖，还不太理解
+      // NOTE: next !== null 时候，completeWork找到了 sibling，就下来就开始sibling的工作
       if (next !== null) {
         // Completing this fiber spawned new work. Work on that next.
         workInProgress = next;
@@ -1796,7 +1797,7 @@ function completeUnitOfWork(unitOfWork: Fiber): void {
         // Skip both NoWork and PerformedWork tags when creating the effect
         // list. PerformedWork effect is read by React DevTools but shouldn't be
         // committed.
-        // 不清楚这步的逻辑,但是可以确定的是每次完成后flags > PerformedWork为true，就会在app的firstEffect和移动nextEffect到下一位，用来给下一次更新使用
+        // 收集副作用,每次完成后flags > PerformedWork为true，就会在app的firstEffect和移动nextEffect到下一位，用来给下一次更新使用
         // PerformedWork:1
         // console.log(flags , PerformedWork);
         if (flags > PerformedWork) {
@@ -1828,10 +1829,7 @@ function completeUnitOfWork(unitOfWork: Fiber): void {
         return;
       }
 
-      if (
-        enableProfilerTimer &&
-        (completedWork.mode & ProfileMode) !== NoMode
-      ) {
+      if (  enableProfilerTimer && (completedWork.mode & ProfileMode) !== NoMode ) {
         // Record the render duration for the fiber that errored.
         stopProfilerTimerIfRunningAndRecordDelta(completedWork, false);
 
@@ -1854,8 +1852,6 @@ function completeUnitOfWork(unitOfWork: Fiber): void {
     // 获取当前节点的兄弟节点
     const siblingFiber = completedWork.sibling;
     // 兄弟节点存在
-    // console.log(completedWork,"completedWork");
-    // console.log(siblingFiber,"siblingFiber");
     if (siblingFiber !== null) {
       // If there is more work to do in this returnFiber, do that next.
       // 将 workInProgress 赋值为当前节点的兄弟节点
@@ -1956,13 +1952,12 @@ function resetChildLanes(completedWork: Fiber) {
 
 function commitRoot(root) {
   const renderPriorityLevel = getCurrentPriorityLevel();
-  runWithPriority(
-    ImmediateSchedulerPriority,
-    commitRootImpl.bind(null, root, renderPriorityLevel),
-  );
+  runWithPriority( ImmediateSchedulerPriority, commitRootImpl.bind(null, root, renderPriorityLevel),
+);
   return null;
 }
 
+// 在 commit 阶段中， React 会遍历 effect list 执行所有的副作用，期间会执行更新相关的生命周期、挂载 DOM 等等。
 function commitRootImpl(root, renderPriorityLevel) {
   do {
     // `flushPassiveEffects` will call `flushSyncUpdateQueue` at the end, which
@@ -1971,6 +1966,7 @@ function commitRootImpl(root, renderPriorityLevel) {
     // no more pending effects.
     // TODO: Might be better if `flushPassiveEffects` did not automatically
     // flush synchronous work at the end, to avoid factoring hazards like this.
+    // 循环刷新副作用，看有哪些正在等待的副作用
     flushPassiveEffects();
   } while (rootWithPendingPassiveEffects !== null);
   flushRenderPhaseStrictModeWarningsInDEV();
@@ -1980,19 +1976,19 @@ function commitRootImpl(root, renderPriorityLevel) {
     'Should not already be working.',
   );
 
-  const finishedWork = root.finishedWork;
-  const lanes = root.finishedLanes;
+  const finishedWork = root.finishedWork; // fiberRootNode 下面的 current
+  const lanes = root.finishedLanes; // 1
 
   if (__DEV__) {
     if (enableDebugTracing) {
       logCommitStarted(lanes);
     }
   }
-
+  // 标记 performance.mark(`--commit-start-${formatLanes(lanes)}`);
   if (enableSchedulingProfiler) {
     markCommitStarted(lanes);
   }
-
+  // current 没有内容则返回。
   if (finishedWork === null) {
     if (__DEV__) {
       if (enableDebugTracing) {
@@ -2009,6 +2005,7 @@ function commitRootImpl(root, renderPriorityLevel) {
   root.finishedWork = null;
   root.finishedLanes = NoLanes;
 
+  // 这里都提示 commit 阶段的 finishedWork必须是 root.current,不然就是react的bug
   invariant(
     finishedWork !== root.current,
     'Cannot commit the same tree as before. This error is likely caused by ' +
@@ -2021,12 +2018,14 @@ function commitRootImpl(root, renderPriorityLevel) {
 
   // Update the first and last pending times on this root. The new first
   // pending time is whatever is left on the root fiber.
-  let remainingLanes = mergeLanes(finishedWork.lanes, finishedWork.childLanes);
+  let remainingLanes = mergeLanes(finishedWork.lanes, finishedWork.childLanes); // 0
+  // 对优先级、时间 更新为remainingLanes
   markRootFinished(root, remainingLanes);
 
   // Clear already finished discrete updates in case that a later call of
   // `flushDiscreteUpdates` starts a useless render pass which may cancels
   // a scheduled timeout.
+  // rootsWithPendingDiscreteUpdates: null
   if (rootsWithPendingDiscreteUpdates !== null) {
     if (
       !hasDiscreteLanes(remainingLanes) &&
@@ -2035,7 +2034,7 @@ function commitRootImpl(root, renderPriorityLevel) {
       rootsWithPendingDiscreteUpdates.delete(root);
     }
   }
-
+  // false
   if (root === workInProgressRoot) {
     // We can reset these now that they are finished.
     workInProgressRoot = null;
@@ -2049,6 +2048,9 @@ function commitRootImpl(root, renderPriorityLevel) {
 
   // Get the list of effects.
   let firstEffect;
+  // 常量PerformedWork:1
+  // finishedWork.flags:256 或者其他 比1大的数字
+  // 副作用相关，收集副作用，
   if (finishedWork.flags > PerformedWork) {
     // A fiber's effect list consists only of its children, not itself. So if
     // the root has an effect, we need to add it to the end of the list. The
@@ -2067,6 +2069,7 @@ function commitRootImpl(root, renderPriorityLevel) {
 
   if (firstEffect !== null) {
     let previousLanePriority;
+    // decoupleUpdatePriorityFromScheduler:false
     if (decoupleUpdatePriorityFromScheduler) {
       previousLanePriority = getCurrentUpdateLanePriority();
       setCurrentUpdateLanePriority(SyncLanePriority);
@@ -2082,11 +2085,14 @@ function commitRootImpl(root, renderPriorityLevel) {
     // The commit phase is broken into several sub-phases. We do a separate pass
     // of the effect list for each phase: all mutation effects come before all
     // layout effects, and so on.
+    // commit 阶段会分为不同的阶段
 
     // The first phase a "before mutation" phase. We use this phase to read the
     // state of the host tree right before we mutate it. This is where
     // getSnapshotBeforeUpdate is called.
-    focusedInstanceHandle = prepareForCommit(root.containerInfo);
+    // 第一个阶段为 before mutation，读取组件变更前的状态，针对类组件，调用getSnapshotBeforeUpdate，让我们可以在DOM变更前获取组件实例的信息；
+    // 针对函数组件，异步调度useEffect。
+    focusedInstanceHandle = prepareForCommit(root.containerInfo); // null
     shouldFireAfterActiveInstanceBlur = false;
 
     nextEffect = firstEffect;
@@ -2101,6 +2107,7 @@ function commitRootImpl(root, renderPriorityLevel) {
         }
       } else {
         try {
+          // 没看懂这是做什么
           commitBeforeMutationEffects();
         } catch (error) {
           invariant(nextEffect !== null, 'Should be working on an effect.');
@@ -2113,6 +2120,7 @@ function commitRootImpl(root, renderPriorityLevel) {
     // We no longer need to track the active instance fiber
     focusedInstanceHandle = null;
 
+    // 标记时间 commitTime
     if (enableProfilerTimer) {
       // Mark the current commit time to be shared by all Profilers in this
       // batch. This enables them to be grouped later.
@@ -2120,16 +2128,13 @@ function commitRootImpl(root, renderPriorityLevel) {
     }
 
     // The next phase is the mutation phase, where we mutate the host tree.
+    // 第二个阶段 mutation阶段，负责 DOM 节点的渲染。在渲染过程中，会遍历 effectList，根据 flags（effectTag）的不同，执行不同的 DOM 操作
+    // 针对HostComponent，进行相应的DOM操作；针对类组件，调用componentWillUnmount；针对函数组件，执行useLayoutEffect的销毁函数。
     nextEffect = firstEffect;
     do {
+      // renderPriorityLevel:97
       if (__DEV__) {
-        invokeGuardedCallback(
-          null,
-          commitMutationEffects,
-          null,
-          root,
-          renderPriorityLevel,
-        );
+        invokeGuardedCallback( null, commitMutationEffects, null,  root, renderPriorityLevel);
         if (hasCaughtError()) {
           invariant(nextEffect !== null, 'Should be working on an effect.');
           const error = clearCaughtError();
@@ -2156,11 +2161,17 @@ function commitRootImpl(root, renderPriorityLevel) {
     // the mutation phase, so that the previous tree is still current during
     // componentWillUnmount, but before the layout phase, so that the finished
     // work is current during componentDidMount/Update.
+    // 将  work-in-progress 树 切换成 current tree
     root.current = finishedWork;
 
     // The next phase is the layout phase, where we call effects that read
     // the host tree after it's been mutated. The idiomatic use case for this is
     // layout, but class component lifecycles also fire here for legacy reasons.
+    // 第三个阶段 layout 阶段，处理 DOM 渲染完毕之后的收尾逻辑。比如调用 componentDidMount/componentDidUpdate，
+    // 调用 useLayoutEffect 钩子函数的回调等。除了这些之外，它还会把 fiberRoot 的 current 指针指向 workInProgress Fiber 树。
+    // 在DOM操作完成后，读取组件的状态，针对类组件，调用生命周期componentDidMount和componentDidUpdate，调用setState的回调；
+    // 针对函数组件填充useEffect 的 effect执行数组，并调度useEffect
+    // NOTE: before mutation和layout针对函数组件的useEffect调度是互斥的，只能发起一次调度
     nextEffect = firstEffect;
     do {
       if (__DEV__) {
@@ -2186,7 +2197,8 @@ function commitRootImpl(root, renderPriorityLevel) {
 
     // Tell Scheduler to yield at the end of the frame, so the browser has an
     // opportunity to paint.
-    requestPaint();
+    // 让 Scheduler 退出，浏览器就可以重新绘制，设置一个空的函数
+    requestPaint(); 
 
     if (enableSchedulerTracing) {
       popInteractions(((prevInteractions: any): Set<Interaction>));
@@ -2307,7 +2319,6 @@ function commitRootImpl(root, renderPriorityLevel) {
     if (enableSchedulingProfiler) {
       markCommitStopped();
     }
-
     // This is a legacy edge case. We just committed the initial mount of
     // a ReactDOM.render-ed root inside of batchedUpdates. The commit fired
     // synchronously, but layout updates should be deferred until the end
@@ -2327,7 +2338,6 @@ function commitRootImpl(root, renderPriorityLevel) {
   if (enableSchedulingProfiler) {
     markCommitStopped();
   }
-
   return null;
 }
 
@@ -2377,10 +2387,7 @@ function commitBeforeMutationEffects() {
   }
 }
 
-function commitMutationEffects(
-  root: FiberRoot,
-  renderPriorityLevel: ReactPriorityLevel,
-) {
+function commitMutationEffects( root: FiberRoot, renderPriorityLevel: ReactPriorityLevel) {
   // TODO: Should probably move the bulk of this function to commitWork.
   while (nextEffect !== null) {
     setCurrentDebugFiberInDEV(nextEffect);

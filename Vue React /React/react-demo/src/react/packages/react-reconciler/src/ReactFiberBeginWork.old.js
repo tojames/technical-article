@@ -1128,8 +1128,8 @@ function updateHostComponent(
     tryToClaimNextHydratableInstance(workInProgress);
   }
 
-  const type = workInProgress.type;
-  const nextProps = workInProgress.pendingProps;
+  const type = workInProgress.type; // div
+  const nextProps = workInProgress.pendingProps; // div 的孩子
   const prevProps = current !== null ? current.memoizedProps : null;
 
   let nextChildren = nextProps.children;
@@ -3318,7 +3318,6 @@ function beginWork(
   // sometimes bails out later in the begin phase. This indicates that we should
   // move this assignment out of the common path and into each branch.
   workInProgress.lanes = NoLanes;
-
   switch (workInProgress.tag) {
     case IndeterminateComponent: {
       return mountIndeterminateComponent(
@@ -3368,8 +3367,12 @@ function beginWork(
         renderLanes,
       );
     }
+    // 根节点
     case HostRoot:
+      console.log(workInProgress.pendingProps,"workInProgress");
+      // 这里将workInProgress.child 赋值给下面的一个孩子，还有就是将 pendingProps 赋值为孩子的列表，这样就可以递归找到每一个孩子和兄弟了
       return updateHostRoot(current, workInProgress, renderLanes);
+    // dom 标签 
     case HostComponent:
       return updateHostComponent(current, workInProgress, renderLanes);
     case HostText:
