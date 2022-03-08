@@ -1061,7 +1061,7 @@ function updateHostRoot(current, workInProgress, renderLanes) {
   if (nextChildren === prevChildren) {
     // 服务端渲染相关
     resetHydrationState();
-    // 暂时不知道干嘛的
+    // 节点相同则可以复用节点
     return bailoutOnAlreadyFinishedWork(current, workInProgress, renderLanes);
   }
   const root: FiberRoot = workInProgress.stateNode;
@@ -1086,12 +1086,7 @@ function updateHostRoot(current, workInProgress, renderLanes) {
       }
     }
 
-    const child = mountChildFibers(
-      workInProgress,
-      null,
-      nextChildren,
-      renderLanes,
-    );
+    const child = mountChildFibers(workInProgress,null, nextChildren,renderLanes, );
     workInProgress.child = child;
 
     let node = child;
@@ -1109,7 +1104,7 @@ function updateHostRoot(current, workInProgress, renderLanes) {
     // Otherwise reset hydration state in case we aborted and resumed another root.
     // nextChildren: <app/>
     // renderLanes:1
-    // Note: workInProgress.child 将会被赋值为fiber节点，但是sibling我还不知道怎么赋值
+    // NOTE: workInProgress.child 将会被赋值为fiber节点
     reconcileChildren(current, workInProgress, nextChildren, renderLanes);
     resetHydrationState();
   }
@@ -1345,12 +1340,7 @@ function mountIncompleteClassComponent(
   );
 }
 
-function mountIndeterminateComponent(
-  _current,
-  workInProgress,
-  Component,
-  renderLanes,
-) {
+function mountIndeterminateComponent(_current,workInProgress,Component,renderLanes) {
   if (_current !== null) {
     // An indeterminate component only mounts if it suspended inside a non-
     // concurrent tree, in an inconsistent state. We want to treat it like
@@ -1365,22 +1355,15 @@ function mountIndeterminateComponent(
   const props = workInProgress.pendingProps;
   let context;
   if (!disableLegacyContext) {
-    const unmaskedContext = getUnmaskedContext(
-      workInProgress,
-      Component,
-      false,
-    );
-    context = getMaskedContext(workInProgress, unmaskedContext);
+    const unmaskedContext = getUnmaskedContext(  workInProgress, Component, false); // {}
+    context = getMaskedContext(workInProgress, unmaskedContext); // {}
   }
 
   prepareToReadContext(workInProgress, renderLanes);
   let value;
 
   if (__DEV__) {
-    if (
-      Component.prototype &&
-      typeof Component.prototype.render === 'function'
-    ) {
+    if (Component.prototype && typeof Component.prototype.render === 'function' ) {
       const componentName = getComponentName(Component) || 'Unknown';
 
       if (!didWarnAboutBadClass[componentName]) {
@@ -1400,24 +1383,10 @@ function mountIndeterminateComponent(
 
     setIsRendering(true);
     ReactCurrentOwner.current = workInProgress;
-    value = renderWithHooks(
-      null,
-      workInProgress,
-      Component,
-      props,
-      context,
-      renderLanes,
-    );
+    value = renderWithHooks( null, workInProgress, Component, props, context, renderLanes);
     setIsRendering(false);
   } else {
-    value = renderWithHooks(
-      null,
-      workInProgress,
-      Component,
-      props,
-      context,
-      renderLanes,
-    );
+    value = renderWithHooks(  null,  workInProgress,  Component,  props,  context,  renderLanes);
   }
   // React DevTools reads this flag.
   workInProgress.flags |= PerformedWork;
@@ -3079,6 +3048,7 @@ function beginWork(
   workInProgress: Fiber,
   renderLanes: Lanes,
 ): Fiber | null {
+  
   // current: 一开始是fiberRootNode.current 中fiberNode
   // workInProgress 当前的fiber，第一次是current
   // renderLanes:1
@@ -3106,7 +3076,7 @@ function beginWork(
     // 对比两个props
     const oldProps = current.memoizedProps;
     const newProps = workInProgress.pendingProps;
-    // 若 props 更新或者上下文改变，则认为需要"接受更新"
+    // 若 props 更新、上下文改变或 type 改变了，则认为需要"接受更新"
     if ( oldProps !== newProps || hasLegacyContextChanged() ||
       // Force a re-render if the implementation changed due to hot reload:
       (__DEV__ ? workInProgress.type !== current.type : false)
@@ -3115,20 +3085,15 @@ function beginWork(
       // This may be unset if the props are determined to be equal later (memo).
       didReceiveUpdate = true; // 更新标记
     } else if (!includesSomeLane(renderLanes, updateLanes)) {
-      // 只有fiberNode第一次进来
       didReceiveUpdate = false;
       // This fiber does not have any pending work. Bailout without entering
       // the begin phase. There's still some bookkeeping we that needs to be done
       // in this optimized path, mostly pushing stuff onto the stack.
       switch (workInProgress.tag) {
-        // 根节点将进入这个逻辑
         case HostRoot:
-          // 推进fiberStack
           pushHostRootContext(workInProgress);
-          // 服务端相关
           resetHydrationState();
           break;
-        // dom 标签对应的节点将进入这个逻辑
         case HostComponent:
           pushHostContext(workInProgress);
           break;
@@ -3294,6 +3259,7 @@ function beginWork(
           return updateOffscreenComponent(current, workInProgress, renderLanes);
         }
       }
+      // 以后有了current后，并且满足条件就会复用 current 到 workInProgress
       return bailoutOnAlreadyFinishedWork(current, workInProgress, renderLanes);
     } else {
       if ((current.flags & ForceUpdateForLegacySuspense) !== NoFlags) {
@@ -3305,6 +3271,7 @@ function beginWork(
         // nor legacy context. Set this to false. If an update queue or context
         // consumer produces a changed value, it will set this to true. Otherwise,
         // the component will assume the children have not changed and bail out.
+        // 第一次进来会给更新打上一个不用更新的标记
         didReceiveUpdate = false;
       }
     }
@@ -3318,14 +3285,11 @@ function beginWork(
   // sometimes bails out later in the begin phase. This indicates that we should
   // move this assignment out of the common path and into each branch.
   workInProgress.lanes = NoLanes;
+  
   switch (workInProgress.tag) {
-    case IndeterminateComponent: {
-      return mountIndeterminateComponent(
-        current,
-        workInProgress,
-        workInProgress.type,
-        renderLanes,
-      );
+    // 第二次，当 worikInprogress app 组件 会进来这里,通过 workInProgress.type 调用 Commponet 方法 获取jsx
+    case IndeterminateComponent: { // tag：2,
+      return mountIndeterminateComponent( current, workInProgress,  workInProgress.type, renderLanes,);
     }
     case LazyComponent: {
       const elementType = workInProgress.elementType;
@@ -3367,12 +3331,11 @@ function beginWork(
         renderLanes,
       );
     }
-    // 根节点
+    // 根节点，第一次会进来这里
     case HostRoot:
-      console.log(workInProgress.pendingProps,"workInProgress");
-      // 这里将workInProgress.child 赋值给下面的一个孩子，还有就是将 pendingProps 赋值为孩子的列表，这样就可以递归找到每一个孩子和兄弟了
+      // 创建子节点，这里是创建app
       return updateHostRoot(current, workInProgress, renderLanes);
-    // dom 标签 
+    // 第三次，dom 标签，div标签
     case HostComponent:
       return updateHostComponent(current, workInProgress, renderLanes);
     case HostText:

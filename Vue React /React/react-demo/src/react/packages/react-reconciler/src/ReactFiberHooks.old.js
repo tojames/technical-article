@@ -398,8 +398,7 @@ export function renderWithHooks<Props, SecondArg>(
         : HooksDispatcherOnUpdate;
   }
 
-  let children = Component(props, secondArg);
-
+  let children = Component(props, secondArg); // 在这里可以获取jsx 中的 ReactElement中的元素，也叫做虚拟dom
   // Check if there was a render phase update
   if (didScheduleRenderPhaseUpdateDuringThisPass) {
     // Keep rendering in a loop for as long as render phase updates continue to

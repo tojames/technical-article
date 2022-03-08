@@ -1679,7 +1679,7 @@ function workLoopConcurrent() {
   }
 }
 
-// workInProgress 也就是unitOfWork 一开始是FiberRootNode，然后不断去递归这棵树，当 workInProgress 为null时退出。
+// workInProgress 也就是unitOfWork 一开始是FiberNode，然后不断去递归这棵树，当 workInProgress 为null时退出。
 function performUnitOfWork(unitOfWork: Fiber): void {
   // The current, flushed, state of this fiber is the alternate. Ideally
   // nothing should rely on this, but relying on it here means that we don't
@@ -1735,7 +1735,6 @@ function completeUnitOfWork(unitOfWork: Fiber): void {
     // need an additional field on the work in progress.
     const current = completedWork.alternate;
     const returnFiber = completedWork.return; // 父节点
-
     // Check if the work completed or if something threw.
     if ((completedWork.flags & Incomplete) === NoFlags) {
       setCurrentDebugFiberInDEV(completedWork);
@@ -1757,7 +1756,9 @@ function completeUnitOfWork(unitOfWork: Fiber): void {
         stopProfilerTimerIfRunningAndRecordDelta(completedWork, false);
       }
       resetCurrentDebugFiberInDEV();
-      // NOTE: next !== null 时候，completeWork找到了 sibling，就下来就开始sibling的工作
+      // NOTE: next !== null，completeWork找到了 sibling，返回到 workLoopSync，开启 sibling 的 beginWork 工作
+      // next !== null 这种情况还是比较少的，看见有SuspenseListComponent相关才会，主要逻辑还是在下面通过 sibling 找
+      // next === null，需要返回到找叔叔，后面会有逻辑分析 
       if (next !== null) {
         // Completing this fiber spawned new work. Work on that next.
         workInProgress = next;
@@ -1765,14 +1766,12 @@ function completeUnitOfWork(unitOfWork: Fiber): void {
       }
       // 重制优先级
       resetChildLanes(completedWork);
-
       // Do not append effects to parents if a sibling failed to complete
       if ( returnFiber !== null && (returnFiber.flags & Incomplete) === NoFlags ) {
         // Append all the effects of the subtree and this fiber onto the effect
         // list of the parent. The completion order of the children affects the
         // side-effect order.
-        // 拼接副作用链表
-        // 将有复用做那个的链表拼接在后面，没有就以新的链表为准
+        // 拼接副作用链表,会拼接到 workInProgress 树这个根节点上面
         // 关于副作用这里还需要深刻理解，比如执行useEffect 或者其他生命周期，在不同的组件执行顺序是怎么样的？
         if (returnFiber.firstEffect === null) {
           returnFiber.firstEffect = completedWork.firstEffect;
@@ -1801,8 +1800,6 @@ function completeUnitOfWork(unitOfWork: Fiber): void {
         // PerformedWork:1
         // console.log(flags , PerformedWork);
         if (flags > PerformedWork) {
-          // console.log(returnFiber.lastEffect,"returnFiber.lastEffect");
-          // returnFiber.lastEffect === null
           if (returnFiber.lastEffect !== null) {
             returnFiber.lastEffect.nextEffect = completedWork;
           } else {
@@ -1966,7 +1963,7 @@ function commitRootImpl(root, renderPriorityLevel) {
     // no more pending effects.
     // TODO: Might be better if `flushPassiveEffects` did not automatically
     // flush synchronous work at the end, to avoid factoring hazards like this.
-    // 循环刷新副作用，看有哪些正在等待的副作用
+    // flushPassiveEffects 会在最后调用 flushSyncUpdateQueue，它有时会有副作用， 所以需要循环刷新副作用，知道所有的副作用都执行了
     flushPassiveEffects();
   } while (rootWithPendingPassiveEffects !== null);
   flushRenderPhaseStrictModeWarningsInDEV();

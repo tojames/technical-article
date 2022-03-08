@@ -5,10 +5,10 @@ export default function App() {
 
   return (
     <div>
-      <div>
-        <p>{count}</p>
-      </div>
-
+      <h2> 这是子节点 </h2>
+      <p>
+        <span> 这是孙节点 </span>
+      </p>
       <input
         type="button"
         value="增加"

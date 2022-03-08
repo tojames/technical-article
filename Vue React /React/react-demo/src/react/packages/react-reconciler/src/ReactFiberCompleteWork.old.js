@@ -640,6 +640,7 @@ function cutOffTailIfNeeded(
 
 function completeWork(current: Fiber | null, workInProgress: Fiber,renderLanes: Lanes,): Fiber | null {
    // 取出 Fiber 节点的属性值，存储在 newProps 里
+   console.log(workInProgress.tag,workInProgress.type,"workInProgress.tag");
   const newProps = workInProgress.pendingProps;
   switch (workInProgress.tag) {
     case IndeterminateComponent:
@@ -692,11 +693,10 @@ function completeWork(current: Fiber | null, workInProgress: Fiber,renderLanes: 
     case HostComponent: {
       // fiber Stack 出栈
       popHostContext(workInProgress);
-      // rootContainerInstance : <div id='id'></div> 真实的dom元素
+      // rootContainerInstance : 一直是 <div id='id'></div> 真实的dom元素
       const rootContainerInstance = getRootHostContainer();
       
       const type = workInProgress.type;
-      // 这个current只会是fiberRootNode下面的那个current，不会为null，其他都为null
       if (current !== null && workInProgress.stateNode != null) {
         updateHostComponent(current, workInProgress,type,newProps, rootContainerInstance );
 
@@ -734,7 +734,7 @@ function completeWork(current: Fiber | null, workInProgress: Fiber,renderLanes: 
           // type:返回标签类型，div,p
           // newProps:如果使用useState(0)=>{children: 0}
           // currentHostContext:当前host的上下文
-          // 返回每一个含有内容的真实dom节点
+          // 创建一个含有内容的真实dom节点
           const instance = createInstance(type,newProps,rootContainerInstance,  currentHostContext, workInProgress);
          
           // appendAllChildren 会尝试把上一步创建好的 DOM 节点挂载到 DOM 树上去
