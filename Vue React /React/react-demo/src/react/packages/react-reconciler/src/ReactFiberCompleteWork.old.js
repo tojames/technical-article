@@ -640,7 +640,7 @@ function cutOffTailIfNeeded(
 
 function completeWork(current: Fiber | null, workInProgress: Fiber,renderLanes: Lanes,): Fiber | null {
    // 取出 Fiber 节点的属性值，存储在 newProps 里
-   console.log(workInProgress.tag,workInProgress.type,"workInProgress.tag");
+  //  console.log(workInProgress.tag,workInProgress.type,"workInProgress.tag");
   const newProps = workInProgress.pendingProps;
   switch (workInProgress.tag) {
     case IndeterminateComponent:

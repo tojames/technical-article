@@ -1999,6 +1999,7 @@ function commitRootImpl(root, renderPriorityLevel) {
 
     return null;
   }
+  // 清空 finishedWork、finishedLanes 数据
   root.finishedWork = null;
   root.finishedLanes = NoLanes;
 
@@ -2087,8 +2088,7 @@ function commitRootImpl(root, renderPriorityLevel) {
     // The first phase a "before mutation" phase. We use this phase to read the
     // state of the host tree right before we mutate it. This is where
     // getSnapshotBeforeUpdate is called.
-    // 第一个阶段为 before mutation，读取组件变更前的状态，针对类组件，调用getSnapshotBeforeUpdate，让我们可以在DOM变更前获取组件实例的信息；
-    // 针对函数组件，异步调度useEffect。
+    // 第一个阶段为 before mutation，递归 读取组件变更前的状态，针对类组件，调用getSnapshotBeforeUpdate，让我们可以在DOM变更前获取组件实例的信息；
     focusedInstanceHandle = prepareForCommit(root.containerInfo); // null
     shouldFireAfterActiveInstanceBlur = false;
 
@@ -2104,7 +2104,6 @@ function commitRootImpl(root, renderPriorityLevel) {
         }
       } else {
         try {
-          // 没看懂这是做什么
           commitBeforeMutationEffects();
         } catch (error) {
           invariant(nextEffect !== null, 'Should be working on an effect.');
@@ -2125,8 +2124,8 @@ function commitRootImpl(root, renderPriorityLevel) {
     }
 
     // The next phase is the mutation phase, where we mutate the host tree.
-    // 第二个阶段 mutation阶段，负责 DOM 节点的渲染。在渲染过程中，会遍历 effectList，根据 flags（effectTag）的不同，执行不同的 DOM 操作
-    // 针对HostComponent，进行相应的DOM操作；针对类组件，调用componentWillUnmount；针对函数组件，执行useLayoutEffect的销毁函数。
+    // 第二个阶段 mutation阶段，负责 DOM 节点的渲染。在渲染过程中，会遍历 effectList，根据 flags 的不同，执行不同的 DOM 操作
+    // 针对类组件，调用componentWillUnmount；针对函数组件，执行useLayoutEffect的销毁函数。
     nextEffect = firstEffect;
     do {
       // renderPriorityLevel:97
@@ -2168,7 +2167,6 @@ function commitRootImpl(root, renderPriorityLevel) {
     // 调用 useLayoutEffect 钩子函数的回调等。除了这些之外，它还会把 fiberRoot 的 current 指针指向 workInProgress Fiber 树。
     // 在DOM操作完成后，读取组件的状态，针对类组件，调用生命周期componentDidMount和componentDidUpdate，调用setState的回调；
     // 针对函数组件填充useEffect 的 effect执行数组，并调度useEffect
-    // NOTE: before mutation和layout针对函数组件的useEffect调度是互斥的，只能发起一次调度
     nextEffect = firstEffect;
     do {
       if (__DEV__) {
@@ -2341,7 +2339,7 @@ function commitRootImpl(root, renderPriorityLevel) {
 function commitBeforeMutationEffects() {
   while (nextEffect !== null) {
     const current = nextEffect.alternate;
-
+    // shouldFireAfterActiveInstanceBlur：false， focusedInstanceHandle：null
     if (!shouldFireAfterActiveInstanceBlur && focusedInstanceHandle !== null) {
       if ((nextEffect.flags & Deletion) !== NoFlags) {
         if (doesFiberContain(nextEffect, focusedInstanceHandle)) {
@@ -2364,7 +2362,7 @@ function commitBeforeMutationEffects() {
     const flags = nextEffect.flags;
     if ((flags & Snapshot) !== NoFlags) {
       setCurrentDebugFiberInDEV(nextEffect);
-
+      // 类组件的getSnapshotBeforeUpdate 方法
       commitBeforeMutationEffectOnFiber(current, nextEffect);
 
       resetCurrentDebugFiberInDEV();
@@ -2390,11 +2388,12 @@ function commitMutationEffects( root: FiberRoot, renderPriorityLevel: ReactPrior
     setCurrentDebugFiberInDEV(nextEffect);
 
     const flags = nextEffect.flags;
-
+    // 重置内容
     if (flags & ContentReset) {
       commitResetTextContent(nextEffect);
     }
 
+    // 重置REF
     if (flags & Ref) {
       const current = nextEffect.alternate;
       if (current !== null) {
@@ -2416,6 +2415,7 @@ function commitMutationEffects( root: FiberRoot, renderPriorityLevel: ReactPrior
     const primaryFlags = flags & (Placement | Update | Deletion | Hydrating);
     switch (primaryFlags) {
       case Placement: {
+        // 插入节点
         commitPlacement(nextEffect);
         // Clear the "placement" from effect tag so that we know that this is
         // inserted, before any life-cycles like componentDidMount gets called.
