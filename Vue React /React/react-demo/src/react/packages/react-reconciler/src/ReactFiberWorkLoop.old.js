@@ -1963,7 +1963,7 @@ function commitRootImpl(root, renderPriorityLevel) {
     // no more pending effects.
     // TODO: Might be better if `flushPassiveEffects` did not automatically
     // flush synchronous work at the end, to avoid factoring hazards like this.
-    // flushPassiveEffects 会在最后调用 flushSyncUpdateQueue，它有时会有副作用， 所以需要循环刷新副作用，知道所有的副作用都执行了
+    // flushPassiveEffects 会在最后调用 flushSyncUpdateQueue，它有时会有副作用， 所以需要循环刷新副作用，直到所有的副作用都执行了
     flushPassiveEffects();
   } while (rootWithPendingPassiveEffects !== null);
   flushRenderPhaseStrictModeWarningsInDEV();
@@ -2088,7 +2088,9 @@ function commitRootImpl(root, renderPriorityLevel) {
     // The first phase a "before mutation" phase. We use this phase to read the
     // state of the host tree right before we mutate it. This is where
     // getSnapshotBeforeUpdate is called.
-    // 第一个阶段为 before mutation，递归 读取组件变更前的状态，针对类组件，调用getSnapshotBeforeUpdate，让我们可以在DOM变更前获取组件实例的信息；
+    // 第一个阶段为 before mutation，递归 读取组件变更前的状态。
+    // 类组件，调用getSnapshotBeforeUpdate，让我们可以在DOM变更前获取组件实例的信息；
+    // 函数组件，调用useEffect，关于useEffect执行逻辑有点复杂，后期得对hooks补课
     focusedInstanceHandle = prepareForCommit(root.containerInfo); // null
     shouldFireAfterActiveInstanceBlur = false;
 
@@ -2157,14 +2159,18 @@ function commitRootImpl(root, renderPriorityLevel) {
     // the mutation phase, so that the previous tree is still current during
     // componentWillUnmount, but before the layout phase, so that the finished
     // work is current during componentDidMount/Update.
-    // 将  work-in-progress 树 切换成 current tree
+    // 将  work-in-progress 树 切换成 current tree，
+    // componentWillUnmount会在mutation阶段执行。此时current Fiber树还指向前一次更新的Fiber树，在生命周期钩子内获取的DOM还是更新前的。
+    // componentDidMount和componentDidUpdate会在layout阶段执行。
+    // 此时current Fiber树已经指向更新后的Fiber树，在生命周期钩子内获取的DOM就是更新后的。
+
     root.current = finishedWork;
 
     // The next phase is the layout phase, where we call effects that read
     // the host tree after it's been mutated. The idiomatic use case for this is
     // layout, but class component lifecycles also fire here for legacy reasons.
     // 第三个阶段 layout 阶段，处理 DOM 渲染完毕之后的收尾逻辑。比如调用 componentDidMount/componentDidUpdate，
-    // 调用 useLayoutEffect 钩子函数的回调等。除了这些之外，它还会把 fiberRoot 的 current 指针指向 workInProgress Fiber 树。
+    // 调用 useLayoutEffect 钩子函数的回调等。除了这些之外
     // 在DOM操作完成后，读取组件的状态，针对类组件，调用生命周期componentDidMount和componentDidUpdate，调用setState的回调；
     // 针对函数组件填充useEffect 的 effect执行数组，并调度useEffect
     nextEffect = firstEffect;
@@ -2337,6 +2343,7 @@ function commitRootImpl(root, renderPriorityLevel) {
 }
 
 function commitBeforeMutationEffects() {
+  // 循环副作用链表
   while (nextEffect !== null) {
     const current = nextEffect.alternate;
     // shouldFireAfterActiveInstanceBlur：false， focusedInstanceHandle：null
@@ -2344,6 +2351,7 @@ function commitBeforeMutationEffects() {
       if ((nextEffect.flags & Deletion) !== NoFlags) {
         if (doesFiberContain(nextEffect, focusedInstanceHandle)) {
           shouldFireAfterActiveInstanceBlur = true;
+          // 处理blur
           beforeActiveInstanceBlur();
         }
       } else {
@@ -2367,6 +2375,7 @@ function commitBeforeMutationEffects() {
 
       resetCurrentDebugFiberInDEV();
     }
+    // 调度useEffect
     if ((flags & Passive) !== NoFlags) {
       // If there are passive effects, schedule a callback to flush at
       // the earliest opportunity.
@@ -2393,7 +2402,7 @@ function commitMutationEffects( root: FiberRoot, renderPriorityLevel: ReactPrior
       commitResetTextContent(nextEffect);
     }
 
-    // 重置REF
+    // 更新REF
     if (flags & Ref) {
       const current = nextEffect.alternate;
       if (current !== null) {
@@ -2416,6 +2425,7 @@ function commitMutationEffects( root: FiberRoot, renderPriorityLevel: ReactPrior
     switch (primaryFlags) {
       case Placement: {
         // 插入节点
+        // getHostSibling是一个费时的操作，原因是因为，workInProgress树和dom树层级有可能不一致的，所以就会有跨级的操作，就会有指数级别的费时操作。
         commitPlacement(nextEffect);
         // Clear the "placement" from effect tag so that we know that this is
         // inserted, before any life-cycles like componentDidMount gets called.
@@ -2490,6 +2500,7 @@ function commitLayoutEffects(root: FiberRoot, committedLanes: Lanes) {
       // TODO: This is a temporary solution that allowed us to transition away
       // from React Flare on www.
       if (flags & Ref && nextEffect.tag !== ScopeComponent) {
+        // 给ref属性赋值上新的dom元素
         commitAttachRef(nextEffect);
       }
     } else {

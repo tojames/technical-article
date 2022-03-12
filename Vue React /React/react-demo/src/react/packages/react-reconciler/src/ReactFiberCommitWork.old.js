@@ -466,13 +466,10 @@ function commitLifeCycles(
       // This is done to prevent sibling component effects from interfering with each other,
       // e.g. a destroy function in one component should never override a ref set
       // by a create function in another component during the same commit.
-      if (
-        enableProfilerTimer &&
-        enableProfilerCommitHooks &&
-        finishedWork.mode & ProfileMode
-      ) {
+      if (enableProfilerTimer && enableProfilerCommitHooks &&finishedWork.mode & ProfileMode ) {
         try {
           startLayoutEffectTimer();
+          // 执行useLayoutEffect的回调函数
           commitHookEffectListMount(HookLayout | HookHasEffect, finishedWork);
         } finally {
           recordLayoutEffectDuration(finishedWork);
@@ -480,13 +477,14 @@ function commitLifeCycles(
       } else {
         commitHookEffectListMount(HookLayout | HookHasEffect, finishedWork);
       }
-
+      // 调度useEffect的销毁函数与回调函数
       schedulePassiveEffects(finishedWork);
       return;
     }
     case ClassComponent: {
       const instance = finishedWork.stateNode;
       if (finishedWork.flags & Update) {
+        // Mount 阶段， 触发componentDidMount
         if (current === null) {
           // We could update instance props and state here,
           // but instead we rely on them being set during last render.
@@ -532,7 +530,9 @@ function commitLifeCycles(
           } else {
             instance.componentDidMount();
           }
-        } else {
+        }
+        // Updata 阶段，触发componentDidUpdate
+         else {
           const prevProps =
             finishedWork.elementType === finishedWork.type
               ? current.memoizedProps
