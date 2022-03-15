@@ -431,7 +431,179 @@ function useFriendStatus(friendID) {
 
 
 
- 
+# 源码分析
+
+在 `/packages/react/src/ReactHooks.js` 找到相应的 hook，全部都定义在这个文件中，它们都会被挂载到React实例上面。这样我们就可以通过 `React.useState` 方式调用。
+
+## useState
+
+> 以 `useState` 把 hook 从挂载到更新说清楚，剩余的 `hook` 就类似差不多了。
+
+```tsx
+export function useState<S>(initialState: (() => S) | S,): [S, Dispatch<BasicStateAction<S>>] {
+  const dispatcher = resolveDispatcher();
+  return dispatcher.useState(initialState);
+}
+
+
+function resolveDispatcher() {
+  // 一开始 ReactCurrentDispatcher.current 是为null，会在beginWork的时候将其赋值相应的hook，分为挂载阶段、更新阶段
+  const dispatcher = ReactCurrentDispatcher.current;
+  return dispatcher;
+}
+
+const ReactCurrentDispatcher = {
+  /**
+   * @internal
+   * @type {ReactComponent}
+   */
+  current: (null: null | Dispatcher),
+};
+
+
+在 packages/react-reconciler/src/ReactFiberBeginWork.old.js 中的 beginWork 方法中，有一段这样的代码。
+ switch (workInProgress.tag) {
+    // tag：2,
+    case IndeterminateComponent: {
+      return mountIndeterminateComponent( current, workInProgress,  workInProgress.type, renderLanes,);
+    }
+    ...
+ }   
+
+function mountIndeterminateComponent(_current,workInProgress,Component,renderLanes) {
+  let value;
+  value = renderWithHooks(  null,  workInProgress,  Component,  props,  context,  renderLanes);
+  ...
+}
+  
+// renderWithHooks 才是决定 ReactCurrentDispatcher.current 是决定赋值 挂载的 hook 还是更新的 hook
+export function renderWithHooks<Props, SecondArg>(
+  current: Fiber | null,
+  workInProgress: Fiber,
+  Component: (p: Props, arg: SecondArg) => any,
+  props: Props,
+  secondArg: SecondArg,
+  nextRenderLanes: Lanes,
+): any {
+   // 对 ReactCurrentDispatcher.current 赋值 HooksDispatcherOnMount 或者  HooksDispatcherOnUpdate
+    ReactCurrentDispatcher.current =
+      current === null || current.memoizedState === null
+        ? HooksDispatcherOnMount
+        : HooksDispatcherOnUpdate;
+
+  let children = Component(props, secondArg); // 在这里可以获取jsx 中的 ReactElement中的元素，也叫做虚拟dom
+  return children;
+}
+  
+这样设计有什么好处呢？ 搞那么复杂
+可以组织开发者在非函数组件中使用hook，这样就可以报一下错出来。
+
+
+到这里之后，当我们页面上使用了 useState 之后，就可以出发挂载阶段的代码。也就是 dispatcher.useState(initialState)
+```
+
+###  dispatcher.useState(initialState)
+
+> 调用挂载阶段的 `mountState`。
+>
+
+```tsx
+挂载阶段的 hooks
+const HooksDispatcherOnMount: Dispatcher = {
+  readContext,
+  useCallback: mountCallback,
+  useContext: readContext,
+  useEffect: mountEffect,
+  useImperativeHandle: mountImperativeHandle,
+  useLayoutEffect: mountLayoutEffect,
+  useMemo: mountMemo,
+  useReducer: mountReducer,
+  useRef: mountRef,
+  useState: mountState,
+  useDebugValue: mountDebugValue,
+  useDeferredValue: mountDeferredValue,
+  useTransition: mountTransition,
+  useMutableSource: mountMutableSource,
+  useOpaqueIdentifier: mountOpaqueIdentifier,
+  unstable_isNewReconciler: enableNewReconciler,
+};
+
+更新阶段的hooks
+const HooksDispatcherOnUpdate: Dispatcher = {
+  readContext,
+  useCallback: updateCallback,
+  useContext: readContext,
+  useEffect: updateEffect,
+  useImperativeHandle: updateImperativeHandle,
+  useLayoutEffect: updateLayoutEffect,
+  useMemo: updateMemo,
+  useReducer: updateReducer,
+  useRef: updateRef,
+  useState: updateState,
+  useDebugValue: updateDebugValue,
+  useDeferredValue: updateDeferredValue,
+  useTransition: updateTransition,
+  useMutableSource: updateMutableSource,
+  useOpaqueIdentifier: updateOpaqueIdentifier,
+  unstable_isNewReconciler: enableNewReconciler,
+};
+
+// Hooks 将会挂载到 fiber 下面 memoizedState 字段中. 当前的 workInProgressHook 属于当前的 fiber . 
+let workInProgressHook: Hook | null = null;
+// 正在渲染的Fiber，后面会讲 currentlyRenderingFiber.memoizedState = workInProgressHook 记录 所有的hook构成的链表
+let currentlyRenderingFiber: Fiber = (null: any);
+
+
+// 挂载state
+// 接收一个 S，它可以是函数，必须返回值，也可以是一个值
+// 返回S，和一个 Dispatch
+function mountState<S>( initialState: (() => S) | S,): [S, Dispatch<BasicStateAction<S>>] {
+  // 创建 hook 数据结构，形成 hook 链表，方法在下面展开
+  const hook = mountWorkInProgressHook();
+  // 如果是函数执行，然后获取值
+  if (typeof initialState === 'function') {
+    initialState = initialState();
+  }
+
+  hook.memoizedState = hook.baseState = initialState;
+  const queue = (hook.queue = {
+    pending: null, // queue 中更新的内容
+    dispatch: null, //  更新函数
+    lastRenderedReducer: basicStateReducer, // 用于得到最新的 state
+    lastRenderedState: (initialState: any), // 最后一次得到的 state
+  });
+  // dispatchAction 下面会展开
+  const dispatch: Dispatch<BasicStateAction<S>> = (queue.dispatch = (dispatchAction.bind(
+    null,
+    currentlyRenderingFiber,
+    queue,
+  ): any));
+  return [hook.memoizedState, dispatch];
+}
+
+function mountWorkInProgressHook(): Hook {
+  const hook: Hook = {
+    memoizedState: null, // 记录当前 hook 的值
+    baseState: null, // 记录了被跳过的update节点之前计算出的state
+    baseQueue: null, // 记录了被跳过的baseQueue节点之前遍历过 剩下的 queue
+    queue: null, // 更新的链表
+    next: null, // 指向下一个 hook
+  };
+
+  if (workInProgressHook === null) {
+    // This is the first hook in the list
+    currentlyRenderingFiber.memoizedState = workInProgressHook = hook;
+  } else {
+    // Append to the end of the list
+    workInProgressHook = workInProgressHook.next = hook;
+  }
+  return workInProgressHook;
+}
+
+
+```
+
+
 
 # 问题
 

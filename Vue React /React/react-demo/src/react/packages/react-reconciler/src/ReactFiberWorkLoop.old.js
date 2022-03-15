@@ -1527,7 +1527,7 @@ export function renderHasNotSuspendedYet(): boolean {
 function renderRootSync(root: FiberRoot, lanes: Lanes) {
   const prevExecutionContext = executionContext;
   executionContext |= RenderContext;
-  // 大量的hooks预处理的一个errorCallback
+  // 获取上一个 dispatcher，用户hook
   const prevDispatcher = pushDispatcher();
 
   // If the root or lanes have changed, throw out the existing stack

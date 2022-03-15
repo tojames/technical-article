@@ -339,7 +339,7 @@ function areHookInputsEqual(
   return true;
 }
 
-// 这里是挂载hook等待逻辑
+// 这里是挂载hook等逻辑
 export function renderWithHooks<Props, SecondArg>(
   current: Fiber | null,
   workInProgress: Fiber,
@@ -531,11 +531,11 @@ export function resetHooksAfterThrow(): void {
 
 function mountWorkInProgressHook(): Hook {
   const hook: Hook = {
-    memoizedState: null,
-    baseState: null,
-    baseQueue: null,
-    queue: null,
-    next: null,
+    memoizedState: null, // 记录当前 hook 的值
+    baseState: null, // 记录了被跳过的update节点之前计算出的state
+    baseQueue: null, // 记录了被跳过的baseQueue节点之前遍历过 剩下的 queue
+    queue: null, // 更新的链表
+    next: null, // 指向下一个 hook
   };
 
   if (workInProgressHook === null) {

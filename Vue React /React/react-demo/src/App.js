@@ -9,6 +9,7 @@ export default function App() {
     setCount(2)
     setCount(3)
   }
+  // console.log(React, "React")
   return (
     <div>
       <h2> 这是子节点 </h2>
