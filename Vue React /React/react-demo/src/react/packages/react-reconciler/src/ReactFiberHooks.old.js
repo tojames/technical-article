@@ -339,6 +339,7 @@ function areHookInputsEqual(
   return true;
 }
 
+// 这里是挂载hook等待逻辑
 export function renderWithHooks<Props, SecondArg>(
   current: Fiber | null,
   workInProgress: Fiber,
@@ -392,6 +393,7 @@ export function renderWithHooks<Props, SecondArg>(
       ReactCurrentDispatcher.current = HooksDispatcherOnMountInDEV;
     }
   } else {
+    // 对 ReactCurrentDispatcher.current 赋值 HooksDispatcherOnMount 或者  HooksDispatcherOnUpdate
     ReactCurrentDispatcher.current =
       current === null || current.memoizedState === null
         ? HooksDispatcherOnMount
@@ -530,11 +532,9 @@ export function resetHooksAfterThrow(): void {
 function mountWorkInProgressHook(): Hook {
   const hook: Hook = {
     memoizedState: null,
-
     baseState: null,
     baseQueue: null,
     queue: null,
-
     next: null,
   };
 
@@ -647,11 +647,13 @@ function mountReducer<S, I, A>(
   return [hook.memoizedState, dispatch];
 }
 
+// 更新state主要处理逻辑
 function updateReducer<S, I, A>(
-  reducer: (S, A) => S,
-  initialArg: I,
-  init?: I => S,
+  reducer: (S, A) => S, // basicStateReducer
+  initialArg: I, // 初始值
+  init?: I => S, // undefined
 ): [S, Dispatch<A>] {
+  // 获取更新的hook
   const hook = updateWorkInProgressHook();
   const queue = hook.queue;
   invariant(
@@ -661,12 +663,14 @@ function updateReducer<S, I, A>(
 
   queue.lastRenderedReducer = reducer;
 
+  // 当前正在渲染的 hook，或者可以理解为旧的。
   const current: Hook = (currentHook: any);
 
   // The last rebase update that is NOT part of the base state.
   let baseQueue = current.baseQueue;
 
   // The last pending update that hasn't been processed yet.
+  // 等待更新queue
   const pendingQueue = queue.pending;
   if (pendingQueue !== null) {
     // We have new updates that haven't been processed yet.
@@ -694,6 +698,7 @@ function updateReducer<S, I, A>(
 
   if (baseQueue !== null) {
     // We have a queue to process.
+    // 链表的头部，也就是第一个使用 setState 方法的值
     const first = baseQueue.next;
     let newState = current.baseState;
 
@@ -1109,14 +1114,17 @@ function updateMutableSource<Source, Snapshot>(
   return useMutableSource(hook, source, getSnapshot, subscribe);
 }
 
-function mountState<S>(
-  initialState: (() => S) | S,
-): [S, Dispatch<BasicStateAction<S>>] {
+// 挂载state
+// 接收一个 S，它可以是函数，必须返回值，也可以是一个值
+// 返回S，和一个 Dispatch
+function mountState<S>( initialState: (() => S) | S,): [S, Dispatch<BasicStateAction<S>>] {
+  // 返回当前工作的hook
   const hook = mountWorkInProgressHook();
+  // 如果是函数执行，然后获取值
   if (typeof initialState === 'function') {
-    // $FlowFixMe: Flow doesn't like mixed types
     initialState = initialState();
   }
+
   hook.memoizedState = hook.baseState = initialState;
   const queue = (hook.queue = {
     pending: null,
@@ -1124,9 +1132,7 @@ function mountState<S>(
     lastRenderedReducer: basicStateReducer,
     lastRenderedState: (initialState: any),
   });
-  const dispatch: Dispatch<
-    BasicStateAction<S>,
-  > = (queue.dispatch = (dispatchAction.bind(
+  const dispatch: Dispatch<BasicStateAction<S>> = (queue.dispatch = (dispatchAction.bind(
     null,
     currentlyRenderingFiber,
     queue,
@@ -1134,9 +1140,10 @@ function mountState<S>(
   return [hook.memoizedState, dispatch];
 }
 
-function updateState<S>(
-  initialState: (() => S) | S,
-): [S, Dispatch<BasicStateAction<S>>] {
+// 更新 State
+// 接收一个 S，它可以是函数，必须返回值，也可以是一个值
+// 返回S，和一个 Dispatch
+function updateState<S>(initialState: (() => S) | S,): [S, Dispatch<BasicStateAction<S>>] {
   return updateReducer(basicStateReducer, (initialState: any));
 }
 
@@ -1641,11 +1648,7 @@ function rerenderOpaqueIdentifier(): OpaqueIDType | void {
   return id;
 }
 
-function dispatchAction<S, A>(
-  fiber: Fiber,
-  queue: UpdateQueue<S, A>,
-  action: A,
-) {
+function dispatchAction<S, A>(fiber: Fiber,queue: UpdateQueue<S, A>, action: A) {
   if (__DEV__) {
     if (typeof arguments[3] === 'function') {
       console.error(

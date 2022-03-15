@@ -23,6 +23,7 @@ type BasicStateAction<S> = (S => S) | S;
 type Dispatch<A> = A => void;
 
 function resolveDispatcher() {
+  // 一开始 ReactCurrentDispatcher.current 是为null，会在beginWork的时候将其 赋值相应的hook，挂载阶段的，更新阶段的，
   const dispatcher = ReactCurrentDispatcher.current;
   invariant(
     dispatcher !== null,

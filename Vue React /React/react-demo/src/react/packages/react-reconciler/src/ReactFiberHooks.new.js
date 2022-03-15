@@ -568,26 +568,42 @@ function updateWorkInProgressHook(): Hook {
   // clone, or a work-in-progress hook from a previous render pass that we can
   // use as a base. When we reach the end of the base list, we must switch to
   // the dispatcher used for mounts.
+   // 确定nextCurrentHook的指向
   let nextCurrentHook: null | Hook;
   if (currentHook === null) {
+      // currentHook在函数组件调用完成时会被设置为null，
+    // 这说明组件是刚刚开始重新渲染，刚刚开始调用第一个hook函数。
+    // hooks链表为空
     const current = currentlyRenderingFiber.alternate;
     if (current !== null) {
+       // current节点存在，将nextCurrentHook指向current.memoizedState
       nextCurrentHook = current.memoizedState;
     } else {
       nextCurrentHook = null;
     }
   } else {
+      // 这说明已经不是第一次调用hook函数了，
+    // hooks链表已经有数据，nextCurrentHook指向当前的下一个hook
     nextCurrentHook = currentHook.next;
   }
 
+   // 确定nextWorkInProgressHook的指向
   let nextWorkInProgressHook: null | Hook;
   if (workInProgressHook === null) {
+      // workInProgress.memoizedState在函数组件每次渲染时都会被设置成null，
+    // workInProgressHook在函数组件调用完成时会被设置为null，
+    // 所以当前的判断分支说明现在正调用第一个hook函数，hooks链表为空
+    // 将nextWorkInProgressHook指向workInProgress.memoizedState，为null
     nextWorkInProgressHook = currentlyRenderingFiber.memoizedState;
   } else {
+       // 走到这个分支说明hooks链表已经有元素了，将nextWorkInProgressHook指向
+    // hooks链表的下一个元素
     nextWorkInProgressHook = workInProgressHook.next;
   }
 
   if (nextWorkInProgressHook !== null) {
+       // 依据上面的推导，nextWorkInProgressHook不为空说明hooks链表不为空
+    // 更新workInProgressHook、nextWorkInProgressHook、currentHook
     // There's already a work-in-progress. Reuse it.
     workInProgressHook = nextWorkInProgressHook;
     nextWorkInProgressHook = workInProgressHook.next;
@@ -595,6 +611,8 @@ function updateWorkInProgressHook(): Hook {
     currentHook = nextCurrentHook;
   } else {
     // Clone from the current hook.
+ // 走到这个分支说明hooks链表为空
+    // 刚刚调用第一个hook函数，基于currentHook新建一个hook对象，
 
     invariant(
       nextCurrentHook !== null,
@@ -612,6 +630,7 @@ function updateWorkInProgressHook(): Hook {
       next: null,
     };
 
+      // 依据情况构建hooks链表，更新workInProgressHook指针
     if (workInProgressHook === null) {
       // This is the first hook in the list.
       currentlyRenderingFiber.memoizedState = workInProgressHook = newHook;

@@ -10,23 +10,35 @@
 
 
 
+## 背景
+
+- 告别难以理解的 Class
+
+- 解决业务逻辑难以拆分的问题
+
+- 使状态逻辑复用变得简单可行
+
+- 函数组件从设计思想上来看，更加契合 React 的理念
+
+
+
 ## Hooks 规则
 
-- 只在 React 函数中调用 Hook或者在自定义 Hook 中调用其他 Hook 。
+- 只在 React 函数中调用 Hook或者在自定义 Hooks中调用其他 Hooks。
 
-  - 自定义Hook： JavaScript 函数中调用其他的Hook，不能在包含逻辑语句中，并引入调用的时候必须顶层执行。
+  - 自定义Hooks： JavaScript 函数中调用其他的Hooks，不能在包含逻辑语句中，并引入调用的时候必须顶层执行。
 
-- 只在最顶层使用 Hook，不要在循环，条件或嵌套函数中调用 Hook，推荐启用 eslint-plugin-react-hooks插件进行强制校验。
+- 只在最顶层使用 Hooks，不要在循环，条件或嵌套函数中调用 Hooks，推荐启用 eslint-plugin-react-hooks插件进行强制校验。
 
   
 
-**原因：不要在循环、条件或嵌套函数中调用 Hook。因为hooks 的底层是一个hook 接着一个hook 实例通过链表next连接起来的，但被代码破坏了其执行顺序，或者有些hook并没有执行就会导致 hook的状态对应不起来，就是初始化和更新执行的hook数量不一致时，控制台会提示 rendered fewer hooks than expected.this may be caused by an accidental early return statement。**
+**原因：不要在循环、条件或嵌套函数中调用 Hooks，确保 Hooks 在每次渲染时都保持同样的执行顺序。因为hooks 的底层是一个hook 接着一个hook 实例通过链表next连接起来的，但被代码破坏了其执行顺序，或者有些hook并没有执行就会导致 hook的状态对应不起来，就是初始化和更新执行的hook数量不一致时，控制台会提示 rendered fewer hooks than expected.this may be caused by an accidental early return statement。**
 
 
 
-## React 内置 Hook
+## React 内置 Hooks
 
-### 基础的Hook
+### 基础的Hooks
 
 #### State Hook
 
@@ -79,6 +91,10 @@ Effect Hook 可以让你在函数组件中执行副作用操作「用于模拟�
 componentDidMount() // 组件第一次渲染时就会执行
 componentDidUpdate() // 当第二个参数不传时每次都会触发，或者传入了React.useState(xx)某个值，当值变化时才会触发。
 componentWillUnmount() // 是一个参数的返回值，这里返回了一个回调函数做一些卸载出来
+对于上面的理解无疑是将类组件的思想迁移过来，导致理解起来稍微困难，并且不是特别准确，何不如丢弃它，拥抱新的变化。
+当 [] 中为空时：每次函数组件重新渲染都会重新执行
+当 [ stateValue ]：stateValue值发生变化就会重新执行 useEffect 中的 回调函数
+当 return 不为空时：组件销毁时，做一些清除操作
 ```
 
 #### useContext
@@ -127,7 +143,7 @@ function ThemedButton() {
 }
 ```
 
-### 额外的 Hook
+### 额外的 Hooks
 
 #### useReducer
 
@@ -395,13 +411,13 @@ function useFriendStatus(friendID) {
 }
 ```
 
-## [ahook「非内置Hook」](https://ahooks.js.org/zh-CN/)
+## [ahook「非内置Hooks」](https://ahooks.js.org/zh-CN/)
 
-> 一个阿里出的hook，有很多。
+> 一个阿里出的hooks，有很多。
 
 
 
-# 自定义Hook
+# 自定义Hooks
 
 > hook的思想都是一致的，自定义 Hook，可以按照业务逻辑将组件逻辑提取到可重用的函数中。
 

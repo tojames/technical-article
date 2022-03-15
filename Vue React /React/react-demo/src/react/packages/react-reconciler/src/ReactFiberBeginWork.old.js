@@ -1388,6 +1388,7 @@ function mountIndeterminateComponent(_current,workInProgress,Component,renderLan
   } else {
     value = renderWithHooks(  null,  workInProgress,  Component,  props,  context,  renderLanes);
   }
+
   // React DevTools reads this flag.
   workInProgress.flags |= PerformedWork;
 
