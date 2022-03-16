@@ -362,6 +362,7 @@ export function renderWithHooks<Props, SecondArg>(
       current !== null && current.type !== workInProgress.type;
   }
 
+  // 新增这些属性在 workInProgress 中
   workInProgress.memoizedState = null;
   workInProgress.updateQueue = null;
   workInProgress.lanes = NoLanes;
@@ -400,7 +401,8 @@ export function renderWithHooks<Props, SecondArg>(
         : HooksDispatcherOnUpdate;
   }
 
-  let children = Component(props, secondArg); // 在这里可以获取jsx 中的 ReactElement中的元素，也叫做虚拟dom
+  // 执行函数组件，将同步逻辑全部执行，包括hook，返回jsx 中的 ReactElement中的元素，也叫做虚拟dom
+  let children = Component(props, secondArg);
   // Check if there was a render phase update
   if (didScheduleRenderPhaseUpdateDuringThisPass) {
     // Keep rendering in a loop for as long as render phase updates continue to
@@ -473,6 +475,7 @@ export function renderWithHooks<Props, SecondArg>(
       'early return statement.',
   );
 
+    
   return children;
 }
 
@@ -655,6 +658,7 @@ function updateReducer<S, I, A>(
 ): [S, Dispatch<A>] {
   // 获取更新的hook
   const hook = updateWorkInProgressHook();
+  debugger
   const queue = hook.queue;
   invariant(
     queue !== null,
@@ -667,6 +671,7 @@ function updateReducer<S, I, A>(
   const current: Hook = (currentHook: any);
 
   // The last rebase update that is NOT part of the base state.
+  // baseQueue 是上次更新中断了 剩下的还没有更新的链表
   let baseQueue = current.baseQueue;
 
   // The last pending update that hasn't been processed yet.
@@ -675,6 +680,7 @@ function updateReducer<S, I, A>(
   if (pendingQueue !== null) {
     // We have new updates that haven't been processed yet.
     // We'll add them to the base queue.
+    // 合并链表，上次没有更新完的和这次又有新的链表进来，需要将 新 旧 依次连接起来
     if (baseQueue !== null) {
       // Merge the pending queue and the base queue.
       const baseFirst = baseQueue.next;
@@ -700,6 +706,7 @@ function updateReducer<S, I, A>(
     // We have a queue to process.
     // 链表的头部，也就是第一个使用 setState 方法的值
     const first = baseQueue.next;
+    // 以前的state
     let newState = current.baseState;
 
     let newBaseState = null;
@@ -709,9 +716,7 @@ function updateReducer<S, I, A>(
     do {
       const updateLane = update.lane;
       if (!isSubsetOfLanes(renderLanes, updateLane)) {
-        // Priority is insufficient. Skip this update. If this is the first
-        // skipped update, the previous update/state is the new base
-        // update/state.
+        // 优先级不足. 跳过更新. 之前的 state、update，会作为一个base状态，下次使用
         const clone: Update<S, A> = {
           lane: updateLane,
           action: update.action,
@@ -719,6 +724,7 @@ function updateReducer<S, I, A>(
           eagerState: update.eagerState,
           next: (null: any),
         };
+        // 将低优先级放在 baseQueue 连接起来
         if (newBaseQueueLast === null) {
           newBaseQueueFirst = newBaseQueueLast = clone;
           newBaseState = newState;
@@ -728,14 +734,13 @@ function updateReducer<S, I, A>(
         // Update the remaining priority in the queue.
         // TODO: Don't need to accumulate this. Instead, we can remove
         // renderLanes from the original lanes.
-        currentlyRenderingFiber.lanes = mergeLanes(
-          currentlyRenderingFiber.lanes,
-          updateLane,
-        );
+        // 处理优先级问题
+        currentlyRenderingFiber.lanes = mergeLanes( currentlyRenderingFiber.lanes, updateLane );
         markSkippedUpdateLanes(updateLane);
-      } else {
-        // This update does have sufficient priority.
-
+      } 
+      // 有足够优先级去计算值
+      else {
+        // 如果上次遗留下的 queue
         if (newBaseQueueLast !== null) {
           const clone: Update<S, A> = {
             // This update is going to be committed so we never want uncommit
@@ -751,15 +756,18 @@ function updateReducer<S, I, A>(
         }
 
         // Process this update.
+        // 如果之前有计算好值，直接使用即可。
         if (update.eagerReducer === reducer) {
           // If this update was processed eagerly, and its reducer matches the
           // current reducer, we can use the eagerly computed state.
           newState = ((update.eagerState: any): S);
         } else {
+          // 计算值
           const action = update.action;
           newState = reducer(newState, action);
         }
       }
+      // 下一个链表
       update = update.next;
     } while (update !== null && update !== first);
 
@@ -774,7 +782,7 @@ function updateReducer<S, I, A>(
     if (!is(newState, hook.memoizedState)) {
       markWorkInProgressReceivedUpdate();
     }
-
+    // 更新值 
     hook.memoizedState = newState;
     hook.baseState = newBaseState;
     hook.baseQueue = newBaseQueueLast;
@@ -782,6 +790,7 @@ function updateReducer<S, I, A>(
     queue.lastRenderedState = newState;
   }
 
+  // 返回
   const dispatch: Dispatch<A> = (queue.dispatch: any);
   return [hook.memoizedState, dispatch];
 }
@@ -1648,6 +1657,7 @@ function rerenderOpaqueIdentifier(): OpaqueIDType | void {
   return id;
 }
 
+// 更新触发的起始方法。
 function dispatchAction<S, A>(fiber: Fiber,queue: UpdateQueue<S, A>, action: A) {
   if (__DEV__) {
     if (typeof arguments[3] === 'function') {
@@ -1663,8 +1673,8 @@ function dispatchAction<S, A>(fiber: Fiber,queue: UpdateQueue<S, A>, action: A) 
   const lane = requestUpdateLane(fiber);
 
   const update: Update<S, A> = {
-    lane,
-    action,
+    lane, // 1
+    action, // 对应的值或函数
     eagerReducer: null,
     eagerState: null,
     next: (null: any),
@@ -1737,6 +1747,8 @@ function dispatchAction<S, A>(fiber: Fiber,queue: UpdateQueue<S, A>, action: A) 
         warnIfNotCurrentlyActingUpdatesInDev(fiber);
       }
     }
+
+    // 进入 render 阶段，走更新流程
     scheduleUpdateOnFiber(fiber, lane, eventTime);
   }
 

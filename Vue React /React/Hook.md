@@ -433,7 +433,7 @@ function useFriendStatus(friendID) {
 
 # 源码分析
 
-在 `/packages/react/src/ReactHooks.js` 找到相应的 hook，全部都定义在这个文件中，它们都会被挂载到React实例上面。这样我们就可以通过 `React.useState` 方式调用。
+在 `/packages/react/src/ReactHooks.js` 找到相应的 hook，全部都定义在这个文件中，它们都会被挂载到React实例上面。这样我们就可以通过 `React.useState` 方式调用。但是最后面真正的源码放在 `/packages/react-reconciler/src/ReactFiberHooks.old.js`,下面会解析。
 
 ## useState
 
@@ -460,7 +460,7 @@ const ReactCurrentDispatcher = {
   current: (null: null | Dispatcher),
 };
 
-
+在上面执行完后，你会发现 current === null，要想解决这个问题得从 render 阶段中的 beginWork说出起。
 在 packages/react-reconciler/src/ReactFiberBeginWork.old.js 中的 beginWork 方法中，有一段这样的代码。
  switch (workInProgress.tag) {
     // tag：2,
@@ -491,20 +491,23 @@ export function renderWithHooks<Props, SecondArg>(
         ? HooksDispatcherOnMount
         : HooksDispatcherOnUpdate;
 
-  let children = Component(props, secondArg); // 在这里可以获取jsx 中的 ReactElement中的元素，也叫做虚拟dom
+  // 执行函数组件，将同步逻辑全部执行，包括hook，返回jsx 中的 ReactElement中的元素，也叫做虚拟dom
+  let children = Component(props, secondArg); 
+  // 到这里重新设置 throwInvalidHookError 报错方法。
+  ReactCurrentDispatcher.current = ContextOnlyDispatcher;
   return children;
 }
   
 这样设计有什么好处呢？ 搞那么复杂
-可以组织开发者在非函数组件中使用hook，这样就可以报一下错出来。
+可以限制开发者在非函数组件中使用hook，这样就可以报一下错出来，因为此时 ReactCurrentDispatcher.current 在 Component 函数执行前 挂载的 hook了，当执行完后又把它进行重新设置一些占位的 EroorCallback。
 
 
 到这里之后，当我们页面上使用了 useState 之后，就可以出发挂载阶段的代码。也就是 dispatcher.useState(initialState)
 ```
 
-###  dispatcher.useState(initialState)
+###  挂载 useState
 
-> 调用挂载阶段的 `mountState`。
+> dispatcher.useState(initialState)，调用挂载阶段的 `mountState`，在 `/packages/react-reconciler/src/ReactFiberHooks.old.js`
 >
 
 ```tsx
@@ -572,7 +575,7 @@ function mountState<S>( initialState: (() => S) | S,): [S, Dispatch<BasicStateAc
     lastRenderedReducer: basicStateReducer, // 用于得到最新的 state
     lastRenderedState: (initialState: any), // 最后一次得到的 state
   });
-  // dispatchAction 下面会展开
+  // dispatchAction 下面会在更新阶段展开，这里只需要记住，这里返回出去的是一个经过传递参数绑定后的新函数即可
   const dispatch: Dispatch<BasicStateAction<S>> = (queue.dispatch = (dispatchAction.bind(
     null,
     currentlyRenderingFiber,
@@ -603,7 +606,188 @@ function mountWorkInProgressHook(): Hook {
 
 ```
 
+挂载阶段结束后，数据结构应该长这样。
 
+<img src="images/image-20220316135952583.png" alt="image-20220316135952583" style="zoom:50%;" />
+
+
+
+
+
+### 更新useState
+
+> 状态挂载上去后，那怎么触发更新呢？原因是因为当我们挂载的时候，bind 一个方法，返回一个函数，当时我们函数组件用户主动去触发、或者其他触发方式 调用dispatchAction，就会走下面的逻辑，进而走函数组件重新渲染逻辑，是从`render阶段`开始的。
+
+```tsx
+// 更新触发的起始方法。
+function dispatchAction<S, A>(fiber: Fiber,queue: UpdateQueue<S, A>, action: A) {
+  const update: Update<S, A> = {
+    lane, // 1
+    action, // 对应的值或函数
+    eagerReducer: null,
+    eagerState: null,
+    next: (null: any),
+  };
+
+  // 获取更新的数据
+  const pending = queue.pending;
+  if (pending === null) {
+    // 构建循环链表
+    update.next = update;
+  } else {
+    // 维护好循环链表
+    // 将 update 指向 pedding.next，
+    update.next = pending.next;
+    // pending.next 又重新指向到 update
+    pending.next = update;
+  }
+  // 链表的入口就是上次最新的值
+  queue.pending = update;
+
+  // 进入 render 阶段，走更新流程，后面会批量更新状态的
+  scheduleUpdateOnFiber(fiber, lane, eventTime);
+  }
+}
+
+
+// 更新 State
+// 接收一个 S，它可以是函数，必须返回值，也可以是一个值
+// 返回S，和一个 Dispatch
+function updateState<S>(initialState: (() => S) | S,): [S, Dispatch<BasicStateAction<S>>] {
+  return updateReducer(basicStateReducer, (initialState: any));
+}
+
+
+
+// 更新state主要处理逻辑
+function updateReducer<S, I, A>(
+  reducer: (S, A) => S, // basicStateReducer
+  initialArg: I, // 初始值
+  init?: I => S, // undefined
+): [S, Dispatch<A>] {
+  // 获取更新的hook
+  const hook = updateWorkInProgressHook();
+  debugger
+  const queue = hook.queue;
+  queue.lastRenderedReducer = reducer;
+
+  // 当前正在渲染的 hook，或者可以理解为旧的。
+  const current: Hook = (currentHook: any);
+
+  // The last rebase update that is NOT part of the base state.
+  // baseQueue 是上次更新中断了 剩下的还没有更新的链表
+  let baseQueue = current.baseQueue;
+
+  // The last pending update that hasn't been processed yet.
+  // 等待更新queue
+  const pendingQueue = queue.pending;
+  if (pendingQueue !== null) {
+    // We have new updates that haven't been processed yet.
+    // We'll add them to the base queue.
+    // 合并链表，上次没有更新完的和这次又有新的链表进来，需要将 新 旧 依次连接起来
+    if (baseQueue !== null) {
+      // Merge the pending queue and the base queue.
+      const baseFirst = baseQueue.next;
+      const pendingFirst = pendingQueue.next;
+      baseQueue.next = pendingFirst;
+      pendingQueue.next = baseFirst;
+    }
+    current.baseQueue = baseQueue = pendingQueue;
+    queue.pending = null;
+  }
+
+  if (baseQueue !== null) {
+    // We have a queue to process.
+    // 链表的头部，也就是第一个使用 setState 方法的值
+    const first = baseQueue.next;
+    // 以前的state
+    let newState = current.baseState;
+
+    let newBaseState = null;
+    let newBaseQueueFirst = null;
+    let newBaseQueueLast = null;
+    let update = first;
+    do {
+      const updateLane = update.lane;
+      if (!isSubsetOfLanes(renderLanes, updateLane)) {
+        // 优先级不足. 跳过更新. 之前的 state、update，会作为一个base状态，下次使用
+        const clone: Update<S, A> = {
+          lane: updateLane,
+          action: update.action,
+          eagerReducer: update.eagerReducer,
+          eagerState: update.eagerState,
+          next: (null: any),
+        };
+        // 将低优先级放在 baseQueue 连接起来
+        if (newBaseQueueLast === null) {
+          newBaseQueueFirst = newBaseQueueLast = clone;
+          newBaseState = newState;
+        } else {
+          newBaseQueueLast = newBaseQueueLast.next = clone;
+        }
+        // Update the remaining priority in the queue.
+        // TODO: Don't need to accumulate this. Instead, we can remove
+        // renderLanes from the original lanes.
+        // 处理优先级问题
+        currentlyRenderingFiber.lanes = mergeLanes( currentlyRenderingFiber.lanes, updateLane );
+        markSkippedUpdateLanes(updateLane);
+      } 
+      // 有足够优先级去计算值
+      else {
+        // 如果上次遗留下的 queue
+        if (newBaseQueueLast !== null) {
+          const clone: Update<S, A> = {
+            // This update is going to be committed so we never want uncommit
+            // it. Using NoLane works because 0 is a subset of all bitmasks, so
+            // this will never be skipped by the check above.
+            lane: NoLane,
+            action: update.action,
+            eagerReducer: update.eagerReducer,
+            eagerState: update.eagerState,
+            next: (null: any),
+          };
+          newBaseQueueLast = newBaseQueueLast.next = clone;
+        }
+
+        // Process this update.
+        // 如果之前有计算好值，直接使用即可。
+        if (update.eagerReducer === reducer) {
+          // If this update was processed eagerly, and its reducer matches the
+          // current reducer, we can use the eagerly computed state.
+          newState = ((update.eagerState: any): S);
+        } else {
+          // 计算值
+          const action = update.action;
+          newState = reducer(newState, action);
+        }
+      }
+      // 下一个链表
+      update = update.next;
+    } while (update !== null && update !== first);
+
+    if (newBaseQueueLast === null) {
+      newBaseState = newState;
+    } else {
+      newBaseQueueLast.next = (newBaseQueueFirst: any);
+    }
+
+    // 更新值 
+    hook.memoizedState = newState;
+    hook.baseState = newBaseState;
+    hook.baseQueue = newBaseQueueLast;
+
+    queue.lastRenderedState = newState;
+  }
+
+  // 返回
+  const dispatch: Dispatch<A> = (queue.dispatch: any);
+  return [hook.memoizedState, dispatch];
+}
+```
+
+至此，useState 的更新状态的数据结构应该是这样的。
+
+![image-20220316213322386](images/image-20220316213322386.png)
 
 # 问题
 
