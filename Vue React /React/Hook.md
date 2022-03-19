@@ -440,6 +440,7 @@ function useFriendStatus(friendID) {
 > 以 `useState` 把 hook 从挂载到更新说清楚，剩余的 `hook` 就类似差不多了。
 
 ```tsx
+/packages/react/src/ReactHooks.js
 export function useState<S>(initialState: (() => S) | S,): [S, Dispatch<BasicStateAction<S>>] {
   const dispatcher = resolveDispatcher();
   return dispatcher.useState(initialState);
@@ -507,7 +508,7 @@ export function renderWithHooks<Props, SecondArg>(
 
 ###  挂载 useState
 
-> dispatcher.useState(initialState)，调用挂载阶段的 `mountState`，在 `/packages/react-reconciler/src/ReactFiberHooks.old.js`
+> 调用 `dispatcher.useState(initialState)`，调用挂载阶段的 `mountState`，在 `/packages/react-reconciler/src/ReactFiberHooks.old.js`
 >
 
 ```tsx
