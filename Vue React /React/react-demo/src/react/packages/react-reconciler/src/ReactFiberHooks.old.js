@@ -623,11 +623,7 @@ function basicStateReducer<S>(state: S, action: BasicStateAction<S>): S {
   return typeof action === 'function' ? action(state) : action;
 }
 
-function mountReducer<S, I, A>(
-  reducer: (S, A) => S,
-  initialArg: I,
-  init?: I => S,
-): [S, Dispatch<A>] {
+function mountReducer<S, I, A>(reducer: (S, A) => S,initialArg: I,init?: I => S,): [S, Dispatch<A>] {
   const hook = mountWorkInProgressHook();
   let initialState;
   if (init !== undefined) {
@@ -658,7 +654,6 @@ function updateReducer<S, I, A>(
 ): [S, Dispatch<A>] {
   // 获取更新的hook
   const hook = updateWorkInProgressHook();
-  debugger
   const queue = hook.queue;
   invariant(
     queue !== null,
@@ -1127,7 +1122,7 @@ function updateMutableSource<Source, Snapshot>(
 // 接收一个 S，它可以是函数，必须返回值，也可以是一个值
 // 返回S，和一个 Dispatch
 function mountState<S>( initialState: (() => S) | S,): [S, Dispatch<BasicStateAction<S>>] {
-  // 返回当前工作的hook
+  // 构成hook 链表
   const hook = mountWorkInProgressHook();
   // 如果是函数执行，然后获取值
   if (typeof initialState === 'function') {
@@ -1171,7 +1166,9 @@ function pushEffect(tag, create, destroy, deps) {
     // Circular
     next: (null: any),
   };
+  // 组件更新链表
   let componentUpdateQueue: null | FunctionComponentUpdateQueue = (currentlyRenderingFiber.updateQueue: any);
+  // 在当前函数组件的fiber节点上面 对应的 updateQueue字段，构成一个循环链表，把所有的 useEffect 收集起来
   if (componentUpdateQueue === null) {
     componentUpdateQueue = createFunctionComponentUpdateQueue();
     currentlyRenderingFiber.updateQueue = (componentUpdateQueue: any);
@@ -1194,6 +1191,9 @@ function mountRef<T>(initialValue: T): {|current: T|} {
   const hook = mountWorkInProgressHook();
   const ref = {current: initialValue};
   if (__DEV__) {
+    // Object.seal()方法封闭一个对象，
+    // 阻止添加新属性并将所有现有属性标记为不可配置。
+    // 当前属性的值只要原来是可写的就可以改变。
     Object.seal(ref);
   }
   hook.memoizedState = ref;
@@ -1206,18 +1206,16 @@ function updateRef<T>(initialValue: T): {|current: T|} {
 }
 
 function mountEffectImpl(fiberFlags, hookFlags, create, deps): void {
+  // 构成 hook 链表
   const hook = mountWorkInProgressHook();
   const nextDeps = deps === undefined ? null : deps;
   currentlyRenderingFiber.flags |= fiberFlags;
-  hook.memoizedState = pushEffect(
-    HookHasEffect | hookFlags,
-    create,
-    undefined,
-    nextDeps,
-  );
+  // 将 useEffect 收集起来，并构成一个循环链表，在  fiberNode 下面 updateQueue
+  hook.memoizedState = pushEffect(HookHasEffect | hookFlags,create,undefined,nextDeps);
 }
 
 function updateEffectImpl(fiberFlags, hookFlags, create, deps): void {
+  debugger
   const hook = updateWorkInProgressHook();
   const nextDeps = deps === undefined ? null : deps;
   let destroy = undefined;
@@ -1227,6 +1225,7 @@ function updateEffectImpl(fiberFlags, hookFlags, create, deps): void {
     destroy = prevEffect.destroy;
     if (nextDeps !== null) {
       const prevDeps = prevEffect.deps;
+      // 如果相等 则打上 hookFlags ，在commit 阶段跳过 执行
       if (areHookInputsEqual(nextDeps, prevDeps)) {
         pushEffect(hookFlags, create, destroy, nextDeps);
         return;
@@ -1235,37 +1234,22 @@ function updateEffectImpl(fiberFlags, hookFlags, create, deps): void {
   }
 
   currentlyRenderingFiber.flags |= fiberFlags;
-
-  hook.memoizedState = pushEffect(
-    HookHasEffect | hookFlags,
-    create,
-    destroy,
-    nextDeps,
-  );
+  // HookHasEffect | hookFlags 再次判断是否需要更新，在 commit 阶段处理
+  hook.memoizedState = pushEffect( HookHasEffect | hookFlags, create, destroy,  nextDeps);
 }
-
-function mountEffect(
-  create: () => (() => void) | void,
-  deps: Array<mixed> | void | null,
-): void {
+// export const Update =  0b000000000000000100;
+// export const Passive = /*   */ 0b100;
+function mountEffect(create: () => (() => void) | void,deps: Array<mixed> | void | null): void {
   if (__DEV__) {
     // $FlowExpectedError - jest isn't a global, and isn't recognized outside of tests
     if ('undefined' !== typeof jest) {
       warnIfNotCurrentlyActingEffectsInDEV(currentlyRenderingFiber);
     }
   }
-  return mountEffectImpl(
-    UpdateEffect | PassiveEffect,
-    HookPassive,
-    create,
-    deps,
-  );
+  return mountEffectImpl( UpdateEffect | PassiveEffect, HookPassive, create, deps);
 }
 
-function updateEffect(
-  create: () => (() => void) | void,
-  deps: Array<mixed> | void | null,
-): void {
+function updateEffect(create: () => (() => void) | void,deps: Array<mixed> | void | null): void {
   if (__DEV__) {
     // $FlowExpectedError - jest isn't a global, and isn't recognized outside of tests
     if ('undefined' !== typeof jest) {
@@ -1400,19 +1384,18 @@ function updateCallback<T>(callback: T, deps: Array<mixed> | void | null): T {
   if (prevState !== null) {
     if (nextDeps !== null) {
       const prevDeps: Array<mixed> | null = prevState[1];
+      // 如果值相等，返回上次的 callback
       if (areHookInputsEqual(nextDeps, prevDeps)) {
         return prevState[0];
       }
     }
   }
+  // 不相等，重新返回新的
   hook.memoizedState = [callback, nextDeps];
   return callback;
 }
 
-function mountMemo<T>(
-  nextCreate: () => T,
-  deps: Array<mixed> | void | null,
-): T {
+function mountMemo<T>(nextCreate: () => T, deps: Array<mixed> | void | null): T {
   const hook = mountWorkInProgressHook();
   const nextDeps = deps === undefined ? null : deps;
   const nextValue = nextCreate();
@@ -1420,10 +1403,7 @@ function mountMemo<T>(
   return nextValue;
 }
 
-function updateMemo<T>(
-  nextCreate: () => T,
-  deps: Array<mixed> | void | null,
-): T {
+function updateMemo<T>(nextCreate: () => T,deps: Array<mixed> | void | null): T {
   const hook = updateWorkInProgressHook();
   const nextDeps = deps === undefined ? null : deps;
   const prevState = hook.memoizedState;
@@ -1659,6 +1639,10 @@ function rerenderOpaqueIdentifier(): OpaqueIDType | void {
 
 // 更新触发的起始方法。
 function dispatchAction<S, A>(fiber: Fiber,queue: UpdateQueue<S, A>, action: A) {
+// fiber：hook 挂载的对应的fiber
+// queue：更新列表
+// action：调用 useState 传进来的参数
+// debugger
   if (__DEV__) {
     if (typeof arguments[3] === 'function') {
       console.error(
