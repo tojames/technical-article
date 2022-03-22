@@ -258,6 +258,7 @@ export function ensureListeningTo(
   reactPropEvent: string,
   targetElement: Element | null,
 ): void {
+  console.log(1111);
   if (!enableEagerRootListeners) {
     // If we have a comment node, then use the parent node,
     // which should be an element.
@@ -309,18 +310,15 @@ export function trapClickOnNonInteractiveElement(node: HTMLElement) {
   node.onclick = noop;
 }
 
-function setInitialDOMProperties(
-  tag: string,
-  domElement: Element,
-  rootContainerElement: Element | Document,
-  nextProps: Object,
-  isCustomComponentTag: boolean,
-): void {
+function setInitialDOMProperties( tag: string, domElement: Element, rootContainerElement: Element | Document, nextProps: Object, isCustomComponentTag: boolean): void {
   for (const propKey in nextProps) {
+    // 所有继承了 Object 的对象都会继承到 hasOwnProperty 方法。
+    // 这个方法可以用来检测一个对象是否含有特定的自身属性；和 in 运算符不同，该方法会忽略掉那些从原型链上继承到的属性。
     if (!nextProps.hasOwnProperty(propKey)) {
       continue;
     }
     const nextProp = nextProps[propKey];
+    // 设置CSS
     if (propKey === STYLE) {
       if (__DEV__) {
         if (nextProp) {
@@ -331,7 +329,9 @@ function setInitialDOMProperties(
       }
       // Relies on `updateStylesByID` not mutating `styleUpdates`.
       setValueForStyles(domElement, nextProp);
-    } else if (propKey === DANGEROUSLY_SET_INNER_HTML) {
+    }
+    // 设置 innerHTML 
+    else if (propKey === DANGEROUSLY_SET_INNER_HTML) {
       const nextHtml = nextProp ? nextProp[HTML] : undefined;
       if (nextHtml != null) {
         setInnerHTML(domElement, nextHtml);
@@ -359,11 +359,14 @@ function setInitialDOMProperties(
       // We could have excluded it in the property list instead of
       // adding a special case here, but then it wouldn't be emitted
       // on server rendering (but we *do* want to emit it in SSR).
-    } else if (registrationNameDependencies.hasOwnProperty(propKey)) {
+    }
+    // registrationNameDependencies:所有的注册事件,自定义事件都走这里
+     else if (registrationNameDependencies.hasOwnProperty(propKey)) {
       if (nextProp != null) {
         if (__DEV__ && typeof nextProp !== 'function') {
           warnForInvalidEventListener(propKey, nextProp);
         }
+        // enableEagerRootListeners：true
         if (!enableEagerRootListeners) {
           ensureListeningTo(rootContainerElement, propKey, domElement);
         } else if (propKey === 'onScroll') {
@@ -513,17 +516,12 @@ export function createTextNode(
   );
 }
 
-export function setInitialProperties(
-  domElement: Element,
-  tag: string,
-  rawProps: Object,
-  rootContainerElement: Element | Document,
-): void {
+export function setInitialProperties(domElement: Element,tag: string,rawProps: Object,rootContainerElement: Element | Document,): void {
   const isCustomComponentTag = isCustomComponent(tag, rawProps);
   if (__DEV__) {
+    // 校验 props
     validatePropertiesInDevelopment(tag, rawProps);
   }
-
   // TODO: Make sure that we check isMounted before firing any of these events.
   let props: Object;
   switch (tag) {
@@ -610,19 +608,14 @@ export function setInitialProperties(
         ensureListeningTo(rootContainerElement, 'onChange', domElement);
       }
       break;
+    // 普通标签走这里。
     default:
       props = rawProps;
   }
-
+  // 校验 Props
   assertValidProps(tag, props);
 
-  setInitialDOMProperties(
-    tag,
-    domElement,
-    rootContainerElement,
-    props,
-    isCustomComponentTag,
-  );
+  setInitialDOMProperties( tag, domElement, rootContainerElement, props, isCustomComponentTag);
 
   switch (tag) {
     case 'input':

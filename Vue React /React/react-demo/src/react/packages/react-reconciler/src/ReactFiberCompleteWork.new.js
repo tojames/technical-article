@@ -8,7 +8,7 @@
  */
 
 import type {Fiber} from './ReactInternalTypes';
-import type {Lanes, Lane} from './ReactFiberLane';
+import type {Lanes, Lane} from './ReactFiberLane-origin';
 import type {
   ReactFundamentalComponentInstance,
   ReactScopeInstance,
@@ -158,7 +158,7 @@ import {
   NoLanes,
   includesSomeLane,
   mergeLanes,
-} from './ReactFiberLane';
+} from './ReactFiberLane-origin';
 import {resetChildFibers} from './ReactChildFiber.new';
 import {createScopeInstance} from './ReactFiberScope.new';
 import {transferActualDuration} from './ReactProfilerTimer.new';

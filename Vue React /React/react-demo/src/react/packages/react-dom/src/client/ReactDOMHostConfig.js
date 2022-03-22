@@ -304,13 +304,10 @@ export function appendInitialChild( parentInstance: Instance,child: Instance | T
   parentInstance.appendChild(child);
 }
 
-export function finalizeInitialChildren(
-  domElement: Instance,
-  type: string,
-  props: Props,
-  rootContainerInstance: Container,
-  hostContext: HostContext,
-): boolean {
+export function finalizeInitialChildren(domElement: Instance,type: string,props: Props, rootContainerInstance: Container, hostContext: HostContext): boolean {
+  // domElement: dom 节点
+  // type：标签类型
+  // rootContainerInstance： <div id='root'> ... </div>
   setInitialProperties(domElement, type, props, rootContainerInstance);
   return shouldAutoFocusHostComponent(type, props);
 }

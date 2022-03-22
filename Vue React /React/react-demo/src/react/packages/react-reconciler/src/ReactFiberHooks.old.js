@@ -14,7 +14,7 @@ import type {
   ReactContext,
 } from 'shared/ReactTypes';
 import type {Fiber, Dispatcher} from './ReactInternalTypes';
-import type {Lanes, Lane} from './ReactFiberLane';
+import type {Lanes, Lane} from './ReactFiberLane-origin';
 import type {HookFlags} from './ReactHookEffectTags';
 import type {ReactPriorityLevel} from './ReactInternalTypes';
 import type {FiberRoot} from './ReactInternalTypes';
@@ -42,7 +42,7 @@ import {
   setCurrentUpdateLanePriority,
   higherLanePriority,
   DefaultLanePriority,
-} from './ReactFiberLane';
+} from './ReactFiberLane-origin';
 import {readContext} from './ReactFiberNewContext.old';
 import {
   Update as UpdateEffect,
@@ -1215,7 +1215,7 @@ function mountEffectImpl(fiberFlags, hookFlags, create, deps): void {
 }
 
 function updateEffectImpl(fiberFlags, hookFlags, create, deps): void {
-  debugger
+  // debugger
   const hook = updateWorkInProgressHook();
   const nextDeps = deps === undefined ? null : deps;
   let destroy = undefined;

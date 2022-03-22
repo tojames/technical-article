@@ -1,33 +1,11 @@
-import { useState, useEffect, useReducer, useMemo } from "react"
-
-function reducer(state, action) {
-  switch (action.type) {
-    case "increment":
-      return { count: state.count + 1 }
-    case "decrement":
-      return { count: state.count - 1 }
-    default:
-      throw new Error()
-  }
-}
+import { Component, useState, useEffect, useReducer, useMemo } from "react"
 
 export default function App() {
-  // const [count2, setCount2] = useState(2)
-  // debugger
-  // const [count3State, setCount3] = useReducer(reducer, { count: 0 })
-  const handleCount = () => {
-    // debugger
-    setCount((count) => count + 1)
-    // setCount((count) => count + 2)
-    // setCount((count) => count + 3)
-    // setCount2("第1次赋值")
-    // setCount2("第2次赋值")
-    // setCount2("第3次赋值")
-    // setCount3({ type: "increment" })
+  const handleCount = (e) => {
+    console.log(e.nativeEvent, "nativeEvent")
   }
 
   const [count, setCount] = useState(1)
-  const memo = useMemo(() => count + 1, [])
   // useEffect(() => {
   //   console.log("useEffect")
   //   return () => {
@@ -37,9 +15,9 @@ export default function App() {
   // useEffect(() => {
   //   console.log("useEffect2")
   // }, [])
-  // useEffect(() => {
-  //   console.log("useEffect3")
-  // }, [])
+  useEffect(() => {
+    console.log("useEffect3")
+  }, [])
 
   return (
     <div>
@@ -48,9 +26,19 @@ export default function App() {
         <span> 这是孙节点 </span>
       </p>
       <div>{count}</div>
-      <div>memo：{memo}</div>
       {/* <div>count3 : {count3State.count}</div> */}
       <input type="button" value="增加" onClick={handleCount} />
+      <hr />
     </div>
   )
 }
+
+// class TestClass extends Component {
+//   render() {
+//     return <div>我是类组件</div>
+//   }
+// }
+
+// const TestFn = () => {
+//   return <div>我是类组件</div>
+// }

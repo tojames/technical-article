@@ -12,7 +12,7 @@ import type {BlockComponent} from 'react/src/ReactBlock';
 import type {LazyComponent as LazyComponentType} from 'react/src/ReactLazy';
 import type {Fiber} from './ReactInternalTypes';
 import type {FiberRoot} from './ReactInternalTypes';
-import type {Lanes, Lane} from './ReactFiberLane';
+import type {Lanes, Lane} from './ReactFiberLane-origin';
 import type {MutableSource} from 'shared/ReactTypes';
 import type {
   SuspenseState,
@@ -116,7 +116,7 @@ import {
   removeLanes,
   mergeLanes,
   getBumpedLaneForHydration,
-} from './ReactFiberLane';
+} from './ReactFiberLane-origin';
 import {
   ConcurrentMode,
   NoMode,
@@ -688,13 +688,7 @@ function markRef(current: Fiber | null, workInProgress: Fiber) {
   }
 }
 
-function updateFunctionComponent(
-  current,
-  workInProgress,
-  Component,
-  nextProps: any,
-  renderLanes,
-) {
+function updateFunctionComponent(current,workInProgress,Component,nextProps: any, renderLanes) {
   if (__DEV__) {
     if (workInProgress.type !== workInProgress.elementType) {
       // Lazy component props can't be validated in createElement
@@ -750,14 +744,7 @@ function updateFunctionComponent(
     }
     setIsRendering(false);
   } else {
-    nextChildren = renderWithHooks(
-      current,
-      workInProgress,
-      Component,
-      nextProps,
-      context,
-      renderLanes,
-    );
+    nextChildren = renderWithHooks( current, workInProgress, Component, nextProps, context, renderLanes);
   }
 
   if (current !== null && !didReceiveUpdate) {
@@ -839,14 +826,8 @@ function updateBlock<Props, Data>(
   reconcileChildren(current, workInProgress, nextChildren, renderLanes);
   return workInProgress.child;
 }
-
-function updateClassComponent(
-  current: Fiber | null,
-  workInProgress: Fiber,
-  Component: any,
-  nextProps: any,
-  renderLanes: Lanes,
-) {
+// 挂载、更新 类组件
+function updateClassComponent(current: Fiber | null,workInProgress: Fiber,Component: any,nextProps: any,renderLanes: Lanes) {
   if (__DEV__) {
     if (workInProgress.type !== workInProgress.elementType) {
       // Lazy component props can't be validated in createElement
@@ -875,7 +856,7 @@ function updateClassComponent(
   }
   prepareToReadContext(workInProgress, renderLanes);
 
-  const instance = workInProgress.stateNode;
+  const instance = workInProgress.stateNode; // null 
   let shouldUpdate;
   if (instance === null) {
     if (current !== null) {
@@ -889,34 +870,17 @@ function updateClassComponent(
       workInProgress.flags |= Placement;
     }
     // In the initial pass we might need to construct the instance.
+    // 初始化类组件，并将类组件挂载到 workInProgress 上
     constructClassInstance(workInProgress, Component, nextProps);
     mountClassInstance(workInProgress, Component, nextProps, renderLanes);
     shouldUpdate = true;
   } else if (current === null) {
     // In a resume, we'll already have an instance we can reuse.
-    shouldUpdate = resumeMountClassInstance(
-      workInProgress,
-      Component,
-      nextProps,
-      renderLanes,
-    );
+    shouldUpdate = resumeMountClassInstance(workInProgress,Component,nextProps,renderLanes);
   } else {
-    shouldUpdate = updateClassInstance(
-      current,
-      workInProgress,
-      Component,
-      nextProps,
-      renderLanes,
-    );
+    shouldUpdate = updateClassInstance(current,workInProgress,Component,nextProps,renderLanes);
   }
-  const nextUnitOfWork = finishClassComponent(
-    current,
-    workInProgress,
-    Component,
-    shouldUpdate,
-    hasContext,
-    renderLanes,
-  );
+  const nextUnitOfWork = finishClassComponent( current, workInProgress, Component, shouldUpdate,hasContext, renderLanes );
   if (__DEV__) {
     const inst = workInProgress.stateNode;
     if (shouldUpdate && inst.props !== nextProps) {
@@ -3309,28 +3273,17 @@ function beginWork(
         workInProgress.elementType === Component
           ? unresolvedProps
           : resolveDefaultProps(Component, unresolvedProps);
-      return updateFunctionComponent(
-        current,
-        workInProgress,
-        Component,
-        resolvedProps,
-        renderLanes,
-      );
+      return updateFunctionComponent( current, workInProgress, Component, resolvedProps, renderLanes );
     }
     case ClassComponent: {
+      // 类组件的执行方法
       const Component = workInProgress.type;
       const unresolvedProps = workInProgress.pendingProps;
       const resolvedProps =
         workInProgress.elementType === Component
           ? unresolvedProps
           : resolveDefaultProps(Component, unresolvedProps);
-      return updateClassComponent(
-        current,
-        workInProgress,
-        Component,
-        resolvedProps,
-        renderLanes,
-      );
+      return updateClassComponent(current,workInProgress, Component,resolvedProps, renderLanes);
     }
     // 根节点，第一次会进来这里
     case HostRoot:

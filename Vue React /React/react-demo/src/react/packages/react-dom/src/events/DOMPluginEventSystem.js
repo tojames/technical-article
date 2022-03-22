@@ -292,23 +292,12 @@ function dispatchEventsForPlugins(
   processDispatchQueue(dispatchQueue, eventSystemFlags);
 }
 
-export function listenToNonDelegatedEvent(
-  domEventName: DOMEventName,
-  targetElement: Element,
-): void {
+export function listenToNonDelegatedEvent(domEventName: DOMEventName, targetElement: Element): void {
   const isCapturePhaseListener = false;
-  const listenerSet = getEventListenerSet(targetElement);
-  const listenerSetKey = getListenerSetKey(
-    domEventName,
-    isCapturePhaseListener,
-  );
+  const listenerSet = getEventListenerSet(targetElement); // Set(0) {size: 0}
+  const listenerSetKey = getListenerSetKey(domEventName,isCapturePhaseListener); // "invalid__bubble"
   if (!listenerSet.has(listenerSetKey)) {
-    addTrappedEventListener(
-      targetElement,
-      domEventName,
-      IS_NON_DELEGATED,
-      isCapturePhaseListener,
-    );
+    addTrappedEventListener(targetElement,domEventName,IS_NON_DELEGATED,isCapturePhaseListener);
     listenerSet.add(listenerSetKey);
   }
 }
@@ -1004,9 +993,6 @@ export function accumulateEventHandleNonManagedNodeListeners(
   return listeners;
 }
 
-export function getListenerSetKey(
-  domEventName: DOMEventName,
-  capture: boolean,
-): string {
+export function getListenerSetKey( domEventName: DOMEventName,capture: boolean): string {
   return `${domEventName}__${capture ? 'capture' : 'bubble'}`;
 }

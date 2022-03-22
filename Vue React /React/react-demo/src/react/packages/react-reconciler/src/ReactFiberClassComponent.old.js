@@ -8,7 +8,7 @@
  */
 
 import type {Fiber} from './ReactInternalTypes';
-import type {Lanes} from './ReactFiberLane';
+import type {Lanes} from './ReactFiberLane-origin';
 import type {UpdateQueue} from './ReactUpdateQueue.old';
 
 import * as React from 'react';
@@ -42,7 +42,7 @@ import {
   initializeUpdateQueue,
   cloneUpdateQueue,
 } from './ReactUpdateQueue.old';
-import {NoLanes} from './ReactFiberLane';
+import {NoLanes} from './ReactFiberLane-origin';
 import {
   cacheContext,
   getMaskedContext,
@@ -570,11 +570,7 @@ function adoptClassInstance(workInProgress: Fiber, instance: any): void {
   }
 }
 
-function constructClassInstance(
-  workInProgress: Fiber,
-  ctor: any,
-  props: any,
-): any {
+function constructClassInstance(workInProgress: Fiber,ctor: any,props: any): any {
   let isLegacyContextConsumer = false;
   let unmaskedContext = emptyContextObject;
   let context = emptyContextObject;
@@ -804,16 +800,10 @@ function callComponentWillReceiveProps(
 }
 
 // Invokes the mount life-cycles on a previously never rendered instance.
-function mountClassInstance(
-  workInProgress: Fiber,
-  ctor: any,
-  newProps: any,
-  renderLanes: Lanes,
-): void {
+function mountClassInstance( workInProgress: Fiber,ctor: any,newProps: any,renderLanes: Lanes): void {
   if (__DEV__) {
     checkClassInstance(workInProgress, ctor, newProps);
   }
-
   const instance = workInProgress.stateNode;
   instance.props = newProps;
   instance.state = workInProgress.memoizedState;
