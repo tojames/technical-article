@@ -21,16 +21,13 @@ export default function App() {
 
   return (
     <div>
-      {version}
-      <Dialog></Dialog>
-      <h2> 这是子节点 </h2>
-      <p>
+      <button onClick={handleCount}> 按钮 </button>
+      {/* <p>
         <span> 这是孙节点 </span>
       </p>
       <div>{count}</div>
-      {/* <div>count3 : {count3State.count}</div> */}
       <input type="button" value="增加" onClick={handleCount} />
-      <hr />
+      <hr /> */}
     </div>
   )
 }

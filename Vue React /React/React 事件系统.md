@@ -1,28 +1,38 @@
 # React 事件系统
 
-在 `completeWork` 方法中，做了其中的一件事是给 DOM 节点设置属性（finalizeInitialChildren），正是事件系统的起始点。
 
-`/packages/react-dom/src/client/ReactDOMHostConfig.js`
 
-```tsx
-export function finalizeInitialChildren(domElement: Instance,type: string,props: Props, rootContainerInstance: Container, hostContext: HostContext): boolean {
-  // domElement: dom 节点
-  // type：标签类型
-  // rootContainerInstance： <div id='root'> ... </div>
-  setInitialProperties(domElement, type, props, rootContainerInstance);
-  return shouldAutoFocusHostComponent(type, props);
-}
-```
+## 为什么 React 要有事件系统，原生DOM不行？
 
-# React16
+- 合成事件是 React 自定义的事件对象，它符合W3C规范，在底层抹平了不同浏览器的差异，在上层面向开发者暴露统一的、稳定的、与 DOM 原生事件相同的事件接口。开发者们由此便不必再关注烦琐的兼容性问题，可以专注于业务逻辑的开发。
+- 自研事件系统使 React 牢牢把握住了事件处理的主动权：拿 React 来说，举两个大家都比较熟悉的例子，比如说它想在事件系统中处理 Fiber 相关的优先级概念，或者想把多个事件揉成一个事件（比如 onChange 事件），原生 DOM 会帮它做吗？不会，因为原生讲究的就是个通用性。而 React 想要的则是“量体裁衣”，通过自研事件系统，React 能够从很大程度上干预事件的表现，使其符合自身的需求。
 
-### 合成事件
 
-React 把事件委托到document对象上，当真实DOM元素触发事件，先处理原生事件，然后冒泡到document对象后，再处理React事件。React事件绑定的时刻是在Reconciliation阶段，会在原生事件的绑定前执行。
+
+## fiber 与注册的事件
+
+> 由图知道fiber对象上的。`memoizedProps`和 `pendingProps` 存储的注册的合成事件。
+
+那什么是合成事件呢？
+
+我理解是只要在 `jsx` 上面注册的事件都是合成事件，如果通过 `ref` 注册的事件是原生事件，因为它是通过真实dom节点注册的。
+
+虽然合成事件并不是原生 DOM 事件，但它保存了原生 DOM 事件的引用。当你需要访问原生 DOM 事件对象时，可以通过合成事件对象的 e.nativeEvent 属性获取到它
+
+![image-20220324104807211](images/image-20220324104807211.png)
+
+
+
+# React 16
+
+React16 和 React 17 事件系统是有所改动的，所以分开理解。
+
+- React 把事件委托到document对象上，当真实DOM元素触发事件，先处理原生事件「会被React 底层替换为空函数」，然后冒泡到document对象后，再处理 `React事件`。
+- React事件绑定的是在Reconciliation阶段，会在原生事件的绑定前执行。
 
 目的和优势
 
-- 进行浏览器兼容，React采用顶层事件代理机制，能够磨平各大浏览器的兼容问题
+- 进行浏览器兼容，React采用顶层事件代理机制，能够抹平各大浏览器的兼容问题
 - 事件对象可能会被频繁创建和回收，因此React 引入事件池，在事件池中获得或释放事件对象（React17中被废弃）
 
 ```tsx
@@ -46,7 +56,7 @@ document 事件冒泡
 
 
 
-## 模拟React16的底层
+## 模拟React16 底层
 
 ```html
 <!DOCTYPE html>
@@ -107,8 +117,6 @@ document 事件冒泡
 ```
 
 
-
-![image-20220323074600812](images/image-20220323074600812.png)
 
 # React 17
 
