@@ -797,7 +797,7 @@ function ChildReconciler(shouldTrackSideEffects) {
     }
     // diff 后的新 fiber 链表
     let resultingFirstChild: Fiber | null = null;
-    // previousNewFiber用来将后续的新fiber接到第一个fiber之后
+    // 用来将后续的新fiber接到第一个fiber之后
     let previousNewFiber: Fiber | null = null;
 
     // oldFiber节点，新的child节点会和它进行比较
@@ -821,23 +821,32 @@ function ChildReconciler(shouldTrackSideEffects) {
       // 对DOM类型的元素来说，key 和 tag都相同才会复用oldFiber
       // 并返回出去，否则返回null
       const newFiber = updateSlot(returnFiber,oldFiber,newChildren[newIdx],lanes);
+      // newFiber为 null说明 key 或 tag 不同，节点不可复用，中断遍历
       if (newFiber === null) {
         // TODO: This breaks on empty slots like null children. That's
         // unfortunate because it triggers the slow path all the time. We need
         // a better way to communicate whether this was a miss or null,
         // boolean, undefined, etc.
         if (oldFiber === null) {
+          // oldFiber 为null说明oldFiber此时也遍历完了
+          // 是以下场景，D为新增节点
+          // 旧 A - B - C
+          // 新 A - B - C - D
           oldFiber = nextOldFiber;
         }
         break;
       }
+      // shouldTrackSideEffects 为true表示是更新过程
       if (shouldTrackSideEffects) {
+        // newFiber.alternate === null 说明newFiber是上一次创建的，还没有alternate
+        // 
         if (oldFiber && newFiber.alternate === null) {
           // We matched the slot, but we didn't reuse the existing fiber, so we
           // need to delete the existing child.
           deleteChild(returnFiber, oldFiber);
         }
       }
+      // 记录固定节点的位置
       lastPlacedIndex = placeChild(newFiber, lastPlacedIndex, newIdx);
       if (previousNewFiber === null) {
         // TODO: Move out of the loop. This only happens for the first run.
