@@ -16,7 +16,7 @@ export const mountChildFibers = ChildReconciler(false);
 
 > 对比老的Fiber链表和新的JSX数组，生成新的Fiber链表的过程。
 
-
+![image-20220325061554542](images/image-20220325061554542.png)
 
 ## 优化原则
 
@@ -42,7 +42,7 @@ export const mountChildFibers = ChildReconciler(false);
 
 新：
 	<div>
-		<h2 key=”null">h2</h2> 生成新的fiber节点并标准为插件
+		<h2 key=”null">h2</h2> 生成新的fiber节点并标记为插入
 	</div>
 
 提交阶段会执行两个操作
@@ -61,6 +61,9 @@ div.appendChild(h2);
 		<h1 key=”null">h1-new</h1> 
 	</div>  
 会复用此节点，复用老节点的DOM元素和Fiber对象，在看属性有无变更，如果有变化，则会把此Fiber节点标记为更新。
+                  
+                  
+                  这里会有5种情况，记得补充
 ```
 
 
@@ -79,7 +82,7 @@ div.appendChild(h2);
 >
 > 移动时原则是尽量少量的移动，如果必须有一个要动，新地位 高的不动，新地位低的动
 
-  
+  第一轮这么设计的原因是因为场景出现比较多，第二轮场景相比较少，是一种策略优化
 
 ```jsx
 情况一：
@@ -143,4 +146,10 @@ div.appendChild(h2);
 
 ```
 
+![image-20220325063924137](images/image-20220325063924137.png)
+
+
+
 ![image-20220220165329730](images/image-20220220165329730.png)
+
+![image-20220325064423051](images/image-20220325064423051.png)

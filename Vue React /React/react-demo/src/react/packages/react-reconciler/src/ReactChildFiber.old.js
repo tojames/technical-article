@@ -297,10 +297,7 @@ function ChildReconciler(shouldTrackSideEffects) {
     childToDelete.flags = Deletion;
   }
 
-  function deleteRemainingChildren(
-    returnFiber: Fiber,
-    currentFirstChild: Fiber | null,
-  ): null {
+  function deleteRemainingChildren(returnFiber: Fiber,currentFirstChild: Fiber | null): null {
     if (!shouldTrackSideEffects) {
       // Noop.
       return null;
@@ -1114,12 +1111,7 @@ function ChildReconciler(shouldTrackSideEffects) {
     return resultingFirstChild;
   }
 
-  function reconcileSingleTextNode(
-    returnFiber: Fiber,
-    currentFirstChild: Fiber | null,
-    textContent: string,
-    lanes: Lanes,
-  ): Fiber {
+  function reconcileSingleTextNode(returnFiber: Fiber,currentFirstChild: Fiber | null,textContent: string,lanes: Lanes): Fiber {
     // There's no need to check for keys on text nodes since we don't have a
     // way to define them.
     if (currentFirstChild !== null && currentFirstChild.tag === HostText) {
@@ -1321,59 +1313,31 @@ function ChildReconciler(shouldTrackSideEffects) {
         case REACT_ELEMENT_TYPE: // symbolFor('react.element')
         // reconcileSingleElement返回一个fiber节点，给fiber节点打上 Placement 标签 代表新增
           return placeSingleChild(reconcileSingleElement( returnFiber, currentFirstChild, newChild, lanes ));
-        case REACT_PORTAL_TYPE:
-          return placeSingleChild(
-            reconcileSinglePortal(
-              returnFiber,
-              currentFirstChild,
-              newChild,
-              lanes,
-            ),
-          );
-        case REACT_LAZY_TYPE:
+        case REACT_PORTAL_TYPE: // symbolFor('react.portal');
+          return placeSingleChild(reconcileSinglePortal(returnFiber,currentFirstChild,newChild,lanes));
+        case REACT_LAZY_TYPE: // symbolFor('react.lazy');
           if (enableLazyElements) {
             const payload = newChild._payload;
             const init = newChild._init;
             // TODO: This function is supposed to be non-recursive.
-            return reconcileChildFibers(
-              returnFiber,
-              currentFirstChild,
-              init(payload),
-              lanes,
-            );
+            return reconcileChildFibers(returnFiber,currentFirstChild,init(payload),lanes);
           }
       }
     }
-
+    // 处理文本节点
     if (typeof newChild === 'string' || typeof newChild === 'number') {
-      return placeSingleChild(
-        reconcileSingleTextNode(
-          returnFiber,
-          currentFirstChild,
-          '' + newChild,
-          lanes,
-        ),
-      );
+      return placeSingleChild(reconcileSingleTextNode(returnFiber,currentFirstChild,'' + newChild,lanes));
     }
-
+    // 处理多个节点
     if (isArray(newChild)) {
-      return reconcileChildrenArray(
-        returnFiber,
-        currentFirstChild,
-        newChild,
-        lanes,
-      );
+      return reconcileChildrenArray(returnFiber,currentFirstChild,newChild,lanes);
     }
 
     if (getIteratorFn(newChild)) {
-      return reconcileChildrenIterator(
-        returnFiber,
-        currentFirstChild,
-        newChild,
-        lanes,
-      );
+      return reconcileChildrenIterator(returnFiber,currentFirstChild,newChild,lanes);
     }
 
+    // 传进来的是一个对象，则会报错不兼容
     if (isObject) {
       throwOnInvalidObjectType(returnFiber, newChild);
     }
