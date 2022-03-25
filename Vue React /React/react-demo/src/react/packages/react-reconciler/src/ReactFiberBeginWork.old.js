@@ -232,6 +232,9 @@ if (__DEV__) {
 }
 
 export function reconcileChildren( current: Fiber | null, workInProgress: Fiber,nextChildren: any,renderLanes: Lanes) {
+  // current 正在渲染的列表
+  // workInProgress 正在工作的fiber节点
+  // nextChildren: 虚拟dom
  // current 第一次进来不为null
   if (current === null) {
     // If this is a fresh new component that hasn't been rendered yet, we

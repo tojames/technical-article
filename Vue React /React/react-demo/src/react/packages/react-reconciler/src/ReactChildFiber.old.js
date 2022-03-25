@@ -572,12 +572,8 @@ function ChildReconciler(shouldTrackSideEffects) {
     return null;
   }
 
-  function updateSlot(
-    returnFiber: Fiber,
-    oldFiber: Fiber | null,
-    newChild: any,
-    lanes: Lanes,
-  ): Fiber | null {
+  // 判断 type 和 key 是否相同，如果相同则可以复用，不相同则返回null
+  function updateSlot(returnFiber: Fiber,oldFiber: Fiber | null,newChild: any,lanes: Lanes,): Fiber | null {
     // Update the fiber if the keys match, otherwise return null.
 
     const key = oldFiber !== null ? oldFiber.key : null;
@@ -717,13 +713,9 @@ function ChildReconciler(shouldTrackSideEffects) {
   }
 
   /**
-   * Warns if there is a duplicate or missing key
+   * Warns if there is a duplicate or missing key，警告key重复
    */
-  function warnOnInvalidKey(
-    child: mixed,
-    knownKeys: Set<string> | null,
-    returnFiber: Fiber,
-  ): Set<string> | null {
+  function warnOnInvalidKey(child: mixed,knownKeys: Set<string> | null,returnFiber: Fiber): Set<string> | null {
     if (__DEV__) {
       if (typeof child !== 'object' || child === null) {
         return knownKeys;
@@ -771,12 +763,11 @@ function ChildReconciler(shouldTrackSideEffects) {
   }
 
   // 多个节点的diff
-  function reconcileChildrenArray(
-    returnFiber: Fiber,
-    currentFirstChild: Fiber | null,
-    newChildren: Array<*>,
-    lanes: Lanes,
-  ): Fiber | null {
+  // returnFiber:currentFirstChild 的父级fiber节点
+  // currentFirstChild:returnFiber 的第一个子节点
+  // newChildren:虚拟dom
+  // lanes：优先级相关
+  function reconcileChildrenArray(returnFiber: Fiber,currentFirstChild: Fiber | null,newChildren: Array<*>,lanes: Lanes): Fiber | null {
     // This algorithm can't optimize by searching from both ends since we
     // don't have backpointers on fibers. I'm trying to see how far we can get
     // with that model. If it ends up not being worth the tradeoffs, we can
@@ -804,27 +795,32 @@ function ChildReconciler(shouldTrackSideEffects) {
         knownKeys = warnOnInvalidKey(child, knownKeys, returnFiber);
       }
     }
-
+    // diff 后的新 fiber 链表
     let resultingFirstChild: Fiber | null = null;
+    // previousNewFiber用来将后续的新fiber接到第一个fiber之后
     let previousNewFiber: Fiber | null = null;
 
+    // oldFiber节点，新的child节点会和它进行比较
     let oldFiber = currentFirstChild;
+    // 存储固定节点的位置，用于移动元素
     let lastPlacedIndex = 0;
+    // 存储遍历到新节点虚拟dom的位置，
     let newIdx = 0;
+    // 记录目前遍历到的oldFiber的下一个节点
     let nextOldFiber = null;
+    // 处理节点的更新，判读节点是否可以复用，当出现不能复用的情况就中断循环
     for (; oldFiber !== null && newIdx < newChildren.length; newIdx++) {
       if (oldFiber.index > newIdx) {
         nextOldFiber = oldFiber;
         oldFiber = null;
       } else {
+        // 赋值给下一个fiber 节点
         nextOldFiber = oldFiber.sibling;
       }
-      const newFiber = updateSlot(
-        returnFiber,
-        oldFiber,
-        newChildren[newIdx],
-        lanes,
-      );
+      // 生成新的节点，判断key与tag是否相同就在updateSlot中
+      // 对DOM类型的元素来说，key 和 tag都相同才会复用oldFiber
+      // 并返回出去，否则返回null
+      const newFiber = updateSlot(returnFiber,oldFiber,newChildren[newIdx],lanes);
       if (newFiber === null) {
         // TODO: This breaks on empty slots like null children. That's
         // unfortunate because it triggers the slow path all the time. We need
@@ -1324,6 +1320,7 @@ function ChildReconciler(shouldTrackSideEffects) {
           }
       }
     }
+    debugger
     // 处理文本节点
     if (typeof newChild === 'string' || typeof newChild === 'number') {
       return placeSingleChild(reconcileSingleTextNode(returnFiber,currentFirstChild,'' + newChild,lanes));

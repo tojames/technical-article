@@ -21,13 +21,13 @@ export default function App() {
 
   return (
     <div>
-      <button onClick={handleCount}> 按钮 </button>
-      {/* <p>
+      {/* <button onClick={handleCount}> 按钮 </button> */}
+      <p>
         <span> 这是孙节点 </span>
       </p>
       <div>{count}</div>
       <input type="button" value="增加" onClick={handleCount} />
-      <hr /> */}
+      <hr />
     </div>
   )
 }
