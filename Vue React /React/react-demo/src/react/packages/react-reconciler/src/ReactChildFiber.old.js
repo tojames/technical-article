@@ -374,7 +374,7 @@ function ChildReconciler(shouldTrackSideEffects) {
     }
   }
 
-  // 单个节点的插入逻辑
+  // 给单个节点打上 新增flag
   function placeSingleChild(newFiber: Fiber): Fiber {
     // This is simpler for the single child case. We only need to do a
     // placement for inserting new children.
@@ -773,6 +773,7 @@ function ChildReconciler(shouldTrackSideEffects) {
     return knownKeys;
   }
 
+  // 多个节点的diff
   function reconcileChildrenArray(
     returnFiber: Fiber,
     currentFirstChild: Fiber | null,
@@ -1137,10 +1138,11 @@ function ChildReconciler(shouldTrackSideEffects) {
     return created;
   }
 
+  // 单个节点的 diff
   function reconcileSingleElement( returnFiber: Fiber,  currentFirstChild: Fiber | null, element: ReactElement, lanes: Lanes, ): Fiber {
     const key = element.key; // null
     let child = currentFirstChild; // null
-    // console.log(element,"element"); 如下所示
+    // element 如下所示
     /* 
       $$typeof: Symbol(react.element)
       key: null
@@ -1287,10 +1289,10 @@ function ChildReconciler(shouldTrackSideEffects) {
   // itself. They will be added to the side-effect list as we pass through the
   // children and the parent.
   function reconcileChildFibers(
-    returnFiber: Fiber, // workInProgress
-    currentFirstChild: Fiber | null, // null
+    returnFiber: Fiber, // currentFirstChild的父级fiber节点 
+    currentFirstChild: Fiber | null, // workInProgress
     newChild: any, // <app />
-    lanes: Lanes, /// 2
+    lanes: Lanes, // 2
   ): Fiber | null {
 
     // This function is not recursive.
@@ -1317,7 +1319,7 @@ function ChildReconciler(shouldTrackSideEffects) {
     if (isObject) {
       switch (newChild.$$typeof) {
         case REACT_ELEMENT_TYPE: // symbolFor('react.element')
-        // 打上 Placement 标签 代表新增，reconcileSingleElement返回一个fiber节点
+        // reconcileSingleElement返回一个fiber节点，给fiber节点打上 Placement 标签 代表新增
           return placeSingleChild(reconcileSingleElement( returnFiber, currentFirstChild, newChild, lanes ));
         case REACT_PORTAL_TYPE:
           return placeSingleChild(
@@ -1423,6 +1425,8 @@ function ChildReconciler(shouldTrackSideEffects) {
 // 它们两个其实非常相似，只是传入的参数不同 
 // ChildReconciler 的返回值是一个名为 reconcileChildFibers 的函数，
 // 这个函数是一个逻辑分发器，它将根据入参的不同，执行不同的 Fiber 节点操作，最终返回不同的目标 Fiber 节点。
+// 更新阶段 reconcileChildFibers 需要调和 fiber 节点
+// 挂载阶段 mountChildFibers，不需要调合阶段
 export const reconcileChildFibers = ChildReconciler(true);
 export const mountChildFibers = ChildReconciler(false);
 

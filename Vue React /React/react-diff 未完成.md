@@ -1,4 +1,18 @@
-# Diff算法
+# Diff
+
+`React `的`diff`， 在 `render阶段` 中 `beginWork`  创建节点的时候将会调用下面的方法。
+
+```tsx
+// 它们两个其实非常相似，只是传入的参数不同 
+// ChildReconciler 的返回值是一个名为 reconcileChildFibers 的函数，
+// 这个函数是一个逻辑分发器，它将根据入参的不同，执行不同的 Fiber 节点操作，最终返回不同的目标 Fiber 节点。
+// 更新阶段 reconcileChildFibers 需要调和 fiber 节点
+// 挂载阶段 mountChildFibers，不需要调合阶段
+export const reconcileChildFibers = ChildReconciler(true);
+export const mountChildFibers = ChildReconciler(false);
+```
+
+
 
 > 对比老的Fiber链表和新的JSX数组，生成新的Fiber链表的过程。
 
