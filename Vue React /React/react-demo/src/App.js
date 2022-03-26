@@ -2,7 +2,7 @@ import { version, Component, useState, useEffect, useReducer, useMemo } from "re
 
 export default function App() {
   const handleCount = (e) => {
-    console.log(e.nativeEvent, "nativeEvent")
+    setCount((count) => count + 1)
   }
 
   const [count, setCount] = useState(1)
@@ -21,13 +21,20 @@ export default function App() {
 
   return (
     <div>
-      {/* <button onClick={handleCount}> 按钮 </button> */}
-      <p>
+      <button onClick={handleCount}> 按钮 </button>
+      {/* <p>
         <span> 这是孙节点 </span>
       </p>
       <div>{count}</div>
       <input type="button" value="增加" onClick={handleCount} />
-      <hr />
+      <hr /> */}
+      <ul>
+        <li>{count + 1}---1</li>
+        <li>{count + 2}---2</li>
+        <li>{count + 3}---3</li>
+        <li>{count + 4}---4</li>
+        <li>{count + 5}---5</li>
+      </ul>
     </div>
   )
 }
