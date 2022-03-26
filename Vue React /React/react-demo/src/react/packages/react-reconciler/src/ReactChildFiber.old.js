@@ -796,6 +796,7 @@ function ChildReconciler(shouldTrackSideEffects) {
     let nextOldFiber = null;
     // 处理节点的更新，判读节点是否可以复用，当出现不能复用的情况就中断循环
     for (; oldFiber !== null && newIdx < newChildren.length; newIdx++) {
+      // oldFiber.index：兄弟排行第几，如果排行大于 newIdx，这种情况说顺序变了，那么就会中断循环。
       if (oldFiber.index > newIdx) {
         nextOldFiber = oldFiber;
         oldFiber = null;
@@ -814,10 +815,7 @@ function ChildReconciler(shouldTrackSideEffects) {
         // a better way to communicate whether this was a miss or null,
         // boolean, undefined, etc.
         if (oldFiber === null) {
-          // oldFiber 为null说明oldFiber此时也遍历完了
-          // 是以下场景，D为新增节点
-          // 旧 A - B - C
-          // 新 A - B - C - D
+          // 重新设置oldFiber
           oldFiber = nextOldFiber;
         }
         break;
