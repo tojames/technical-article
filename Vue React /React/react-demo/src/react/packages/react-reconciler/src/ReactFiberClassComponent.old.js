@@ -189,7 +189,7 @@ export function applyDerivedStateFromProps(
     updateQueue.baseState = memoizedState;
   }
 }
-
+// 修改 state 更新对象
 const classComponentUpdater = {
   isMounted,
   enqueueSetState(inst, payload, callback) {
@@ -205,8 +205,9 @@ const classComponentUpdater = {
       }
       update.callback = callback;
     }
-
+    // 处理更新队列
     enqueueUpdate(fiber, update);
+    // 调度更新，从 render 阶段开始
     scheduleUpdateOnFiber(fiber, lane, eventTime);
 
     if (__DEV__) {

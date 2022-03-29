@@ -206,7 +206,8 @@ export function enqueueUpdate<State>(fiber: Fiber, update: Update<State>) {
   const pending = sharedQueue.pending;
   if (pending === null) {
     // This is the first update. Create a circular list.
-    // 不明白这里为啥要做成循环链表，这不是往后加的链表，是添加到前面的
+    // 这不是往后加的链表，是添加到前面的
+    // 这里做成循环链表的好处就是每次添加列表的时候，不用循环的加进去，O(n),循环链表的时候，是O(1)
     update.next = update;
   } else {
     update.next = pending.next;
@@ -392,13 +393,11 @@ function getStateFromUpdate<State>(
   return prevState;
 }
 
-export function processUpdateQueue<State>(
-  workInProgress: Fiber,
-  props: any,
-  instance: any,
-  renderLanes: Lanes,
-): void {
+// 处理更新的核心链表
+export function processUpdateQueue<State>(workInProgress: Fiber,props: any,instance: any,renderLanes: Lanes): void {
+  debugger
   // This is always non-null on a ClassComponent or HostRoot
+  // 从workInProgress节点上取出updateQueue
   const queue: UpdateQueue<State> = (workInProgress.updateQueue: any);
 
   hasForceUpdate = false;
@@ -407,25 +406,33 @@ export function processUpdateQueue<State>(
     currentlyProcessingQueue = queue.shared;
   }
 
+  // 上次更新遗留的开始位置的链表，优先级较低
   let firstBaseUpdate = queue.firstBaseUpdate;
+  // 上次更新遗留的结束位置的链表
   let lastBaseUpdate = queue.lastBaseUpdate;
 
   // Check if there are pending updates. If so, transfer them to the base queue.
+  // 新的更新链表
   let pendingQueue = queue.shared.pending;
+  // 取出链表后，清空链表
   if (pendingQueue !== null) {
     queue.shared.pending = null;
 
     // The pending queue is circular. Disconnect the pointer between first
     // and last so that it's non-circular.
+    // 拿到新链表
     const lastPendingUpdate = pendingQueue;
     const firstPendingUpdate = lastPendingUpdate.next;
+    // 断开链表，这样就不再是循环链表
     lastPendingUpdate.next = null;
     // Append pending updates to base queue
+    // 拼接链表，将新的链表拼接在旧的后面
     if (lastBaseUpdate === null) {
       firstBaseUpdate = firstPendingUpdate;
     } else {
       lastBaseUpdate.next = firstPendingUpdate;
     }
+    // 重置为链表最后的一个链表
     lastBaseUpdate = lastPendingUpdate;
 
     // If there's a current queue, and it's different from the base queue, then
@@ -433,6 +440,11 @@ export function processUpdateQueue<State>(
     // queue is a singly-linked list with no cycles, we can append to both
     // lists and take advantage of structural sharing.
     // TODO: Pass `current` as argument
+    // 用同样的方式更新current上的firstBaseUpdate 和
+    // lastBaseUpdate（baseUpdate队列）。
+    // 这样做相当于将本次合并完成的队列作为baseUpdate队列备份到current节
+    // 点上，因为如果本次的渲染被打断，那么下次再重新执行任务的时候，workInProgress节点复制
+    // 自current节点，它上面的baseUpdate队列会保有这次的update，保证update不丢失。
     const current = workInProgress.alternate;
     if (current !== null) {
       // This is always non-null on a ClassComponent or HostRoot
@@ -450,11 +462,14 @@ export function processUpdateQueue<State>(
   }
 
   // These values may change as we process the queue.
+  // firstBaseUpdate 作为已经合并的链表的第一个链表
   if (firstBaseUpdate !== null) {
     // Iterate through the list of updates to compute the result.
+    // 取出上次计算后的baseState
     let newState = queue.baseState;
     // TODO: Don't need to accumulate this. Instead, we can remove renderLanes
     // from the original lanes.
+    // 重新定义优先级
     let newLanes = NoLanes;
 
     let newBaseState = null;
@@ -465,7 +480,10 @@ export function processUpdateQueue<State>(
     do {
       const updateLane = update.lane;
       const updateEventTime = update.eventTime;
+      // isSubsetOfLanes函数的意义是，判断当前更新的优先级（updateLane）
+      // 是否在渲染优先级（renderLanes）中如果不在，那么就说明优先级不足
       if (!isSubsetOfLanes(renderLanes, updateLane)) {
+        // 优先级不足
         // Priority is insufficient. Skip this update. If this is the first
         // skipped update, the previous update/state is the new base
         // update/state.
@@ -486,10 +504,18 @@ export function processUpdateQueue<State>(
           newLastBaseUpdate = newLastBaseUpdate.next = clone;
         }
         // Update the remaining priority in the queue.
+        /* *
+          * newLanes会在最后被赋值到workInProgress.lanes上，而它又最终
+          * 会被收集到root.pendingLanes。
+          *  再次更新时会从root上的pendingLanes中找出渲染优先级（renderLanes），
+          * renderLanes含有本次跳过的优先级，再次进入processUpdateQueue时，
+          * update的优先级符合要求，被更新掉，低优先级任务因此被重做
+        * */
         newLanes = mergeLanes(newLanes, updateLane);
       } else {
         // This update does have sufficient priority.
-
+        // 有足够优先级
+        // newLastBaseUpdate !== null 说明已经存在 低优先级任务了，后面的高优先级任务需要拼接起来。
         if (newLastBaseUpdate !== null) {
           const clone: Update<State> = {
             eventTime: updateEventTime,
@@ -508,15 +534,10 @@ export function processUpdateQueue<State>(
         }
 
         // Process this update.
-        newState = getStateFromUpdate(
-          workInProgress,
-          queue,
-          update,
-          newState,
-          props,
-          instance,
-        );
+        // 上面的优先级拼接完成了，这里高优先级的任务仍然需要继续计算
+        newState = getStateFromUpdate(workInProgress,queue,update,newState,props,instance );
         const callback = update.callback;
+        // 将更新对象 放在副作用，在commit 阶段的时候进行更新
         if (callback !== null) {
           workInProgress.flags |= Callback;
           const effects = queue.effects;
@@ -528,11 +549,15 @@ export function processUpdateQueue<State>(
         }
       }
       update = update.next;
+      // 当前的链表已经处理完毕了
       if (update === null) {
+        // 检查一下有没有新进来的链表
         pendingQueue = queue.shared.pending;
         if (pendingQueue === null) {
+          // 没有就可以 break
           break;
         } else {
+          // 和上面拼接的逻辑是一致的，继续遍历下去
           // An update was scheduled from inside a reducer. Add the new
           // pending updates to the end of the list and keep processing.
           const lastPendingUpdate = pendingQueue;
@@ -547,10 +572,11 @@ export function processUpdateQueue<State>(
       }
     } while (true);
 
+    // 
     if (newLastBaseUpdate === null) {
       newBaseState = newState;
     }
-
+    // 将处理好的 state 和  newFirstBaseUpdate 、 newLastBaseUpdate 进行赋值吗
     queue.baseState = ((newBaseState: any): State);
     queue.firstBaseUpdate = newFirstBaseUpdate;
     queue.lastBaseUpdate = newLastBaseUpdate;
