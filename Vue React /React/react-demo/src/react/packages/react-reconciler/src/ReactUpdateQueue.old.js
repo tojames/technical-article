@@ -352,6 +352,7 @@ function getStateFromUpdate<State>(
     }
     // Intentional fallthrough
     case UpdateState: {
+      // 更新的值
       const payload = update.payload;
       let partialState;
       if (typeof payload === 'function') {
@@ -359,6 +360,7 @@ function getStateFromUpdate<State>(
         if (__DEV__) {
           enterDisallowedContextReadInDEV();
         }
+        // 如果是函数的，是依赖上一次的值的
         partialState = payload.call(instance, prevState, nextProps);
         if (__DEV__) {
           if (
@@ -376,6 +378,7 @@ function getStateFromUpdate<State>(
         }
       } else {
         // Partial state object
+        // 直接赋值
         partialState = payload;
       }
       if (partialState === null || partialState === undefined) {
@@ -383,6 +386,7 @@ function getStateFromUpdate<State>(
         return prevState;
       }
       // Merge the partial state and the previous state.
+      // 对象进行合并
       return Object.assign({}, prevState, partialState);
     }
     case ForceUpdate: {
@@ -416,6 +420,7 @@ export function processUpdateQueue<State>(workInProgress: Fiber,props: any,insta
   let pendingQueue = queue.shared.pending;
   // 取出链表后，清空链表
   if (pendingQueue !== null) {
+    // 清空当前 queud 中更新的内容，因为已经取出来了。
     queue.shared.pending = null;
 
     // The pending queue is circular. Disconnect the pointer between first
@@ -462,7 +467,7 @@ export function processUpdateQueue<State>(workInProgress: Fiber,props: any,insta
   }
 
   // These values may change as we process the queue.
-  // firstBaseUpdate 作为已经合并的链表的第一个链表
+  // firstBaseUpdate 作为新旧已经合并的链表的第一个项
   if (firstBaseUpdate !== null) {
     // Iterate through the list of updates to compute the result.
     // 取出上次计算后的baseState
@@ -480,8 +485,8 @@ export function processUpdateQueue<State>(workInProgress: Fiber,props: any,insta
     do {
       const updateLane = update.lane;
       const updateEventTime = update.eventTime;
-      // isSubsetOfLanes函数的意义是，判断当前更新的优先级（updateLane）
-      // 是否在渲染优先级（renderLanes）中如果不在，那么就说明优先级不足
+      // isSubsetOfLanes：判断当前更新的优先级（updateLane）
+      // 是否在渲染优先级（renderLanes）中如果不在，说明优先级不足
       if (!isSubsetOfLanes(renderLanes, updateLane)) {
         // 优先级不足
         // Priority is insufficient. Skip this update. If this is the first
@@ -497,10 +502,13 @@ export function processUpdateQueue<State>(workInProgress: Fiber,props: any,insta
 
           next: null,
         };
+        // 将优先级不足的项拼接成一个新的链表
         if (newLastBaseUpdate === null) {
           newFirstBaseUpdate = newLastBaseUpdate = clone;
+          // 这个newState就是这次更新已经处理的了符合优先级的update，当它遇到了不符合优先级的时候就赋值到这里了。
           newBaseState = newState;
         } else {
+          // 拼接其他的不符合优先级的
           newLastBaseUpdate = newLastBaseUpdate.next = clone;
         }
         // Update the remaining priority in the queue.
@@ -551,7 +559,7 @@ export function processUpdateQueue<State>(workInProgress: Fiber,props: any,insta
       update = update.next;
       // 当前的链表已经处理完毕了
       if (update === null) {
-        // 检查一下有没有新进来的链表
+        // 检查一下有没有新进来的链表，如果有继续遍历
         pendingQueue = queue.shared.pending;
         if (pendingQueue === null) {
           // 没有就可以 break
@@ -572,7 +580,7 @@ export function processUpdateQueue<State>(workInProgress: Fiber,props: any,insta
       }
     } while (true);
 
-    // 
+    // 所有的链表更新完了，才会赋值最终计算的值，否则都是返回，被跳过的值
     if (newLastBaseUpdate === null) {
       newBaseState = newState;
     }
