@@ -399,11 +399,12 @@ function getStateFromUpdate<State>(
 
 // 处理更新的核心链表
 export function processUpdateQueue<State>(workInProgress: Fiber,props: any,instance: any,renderLanes: Lanes): void {
-  debugger
+//  debugger
   // This is always non-null on a ClassComponent or HostRoot
   // 从workInProgress节点上取出updateQueue
   const queue: UpdateQueue<State> = (workInProgress.updateQueue: any);
-
+  console.log(queue,"queue");
+  console.log(renderLanes,"renderLanes");
   hasForceUpdate = false;
 
   if (__DEV__) {
@@ -418,7 +419,7 @@ export function processUpdateQueue<State>(workInProgress: Fiber,props: any,insta
   // Check if there are pending updates. If so, transfer them to the base queue.
   // 新的更新链表
   let pendingQueue = queue.shared.pending;
-  // 取出链表后，清空链表
+  // 将这次要更新链表全部拼接起来，拼接到 firstBaseUpdate，lastBaseUpdate
   if (pendingQueue !== null) {
     // 清空当前 queud 中更新的内容，因为已经取出来了。
     queue.shared.pending = null;
@@ -480,7 +481,7 @@ export function processUpdateQueue<State>(workInProgress: Fiber,props: any,insta
     let newBaseState = null;
     let newFirstBaseUpdate = null;
     let newLastBaseUpdate = null;
-
+    // 从头开始遍历
     let update = firstBaseUpdate;
     do {
       const updateLane = update.lane;
@@ -544,6 +545,7 @@ export function processUpdateQueue<State>(workInProgress: Fiber,props: any,insta
         // Process this update.
         // 上面的优先级拼接完成了，这里高优先级的任务仍然需要继续计算
         newState = getStateFromUpdate(workInProgress,queue,update,newState,props,instance );
+        // callback 是 setState(updater, [callback]) 中的 callback 参数
         const callback = update.callback;
         // 将更新对象 放在副作用，在commit 阶段的时候进行更新
         if (callback !== null) {
@@ -586,9 +588,9 @@ export function processUpdateQueue<State>(workInProgress: Fiber,props: any,insta
     }
     // 将处理好的 state 和  newFirstBaseUpdate 、 newLastBaseUpdate 进行赋值吗
     queue.baseState = ((newBaseState: any): State);
+
     queue.firstBaseUpdate = newFirstBaseUpdate;
     queue.lastBaseUpdate = newLastBaseUpdate;
-
     // Set the remaining expiration time to be whatever is remaining in the queue.
     // This should be fine because the only two other things that contribute to
     // expiration time are props and context. We're already in the middle of the
