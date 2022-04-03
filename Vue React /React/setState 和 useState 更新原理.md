@@ -346,4 +346,4 @@ export function processUpdateQueue<State>(workInProgress: Fiber,props: any,insta
 
 #### 为什么需要循环链表？
 
-参考 `hook useState` 中是如何存储状态的，理解是一样的。
+参考 `hook useState` 中是如何存储状态的，理解是一样的。循环链表是为了方便插入到最后一项，仅此而已。如果换为 单向链表，是O(n)，双向链表不好维护。
