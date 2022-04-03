@@ -172,37 +172,24 @@ resources, but the final state is always the same.
 ```tsx
 // 处理更新的核心链表
 export function processUpdateQueue<State>(workInProgress: Fiber,props: any,instance: any,renderLanes: Lanes): void {
-  // This is always non-null on a ClassComponent or HostRoot
   // 从workInProgress节点上取出updateQueue
-  const queue: UpdateQueue<State> = (workInProgress.updateQueue: any);
-
-  hasForceUpdate = false;
-
-  if (__DEV__) {
-    currentlyProcessingQueue = queue.shared;
-  }
+  const queue = workInProgress.updateQueue
 
   // 上次更新遗留的开始位置的链表，优先级较低
   let firstBaseUpdate = queue.firstBaseUpdate;
   // 上次更新遗留的结束位置的链表
   let lastBaseUpdate = queue.lastBaseUpdate;
-
-  // Check if there are pending updates. If so, transfer them to the base queue.
   // 新的更新链表
   let pendingQueue = queue.shared.pending;
   // 取出链表后，清空链表
   if (pendingQueue !== null) {
-    // 清空当前 queud 中更新的内容，因为已经取出来了。
+    // 清空当前 queud 中更新的内容，因为已经取出来了，因为异步的原因它可能还会有其他的更新队列进来。
     queue.shared.pending = null;
-
-    // The pending queue is circular. Disconnect the pointer between first
-    // and last so that it's non-circular.
     // 拿到新链表
     const lastPendingUpdate = pendingQueue;
     const firstPendingUpdate = lastPendingUpdate.next;
     // 断开链表，这样就不再是循环链表
     lastPendingUpdate.next = null;
-    // Append pending updates to base queue
     // 拼接链表，将新的链表拼接在旧的后面
     if (lastBaseUpdate === null) {
       firstBaseUpdate = firstPendingUpdate;
@@ -212,15 +199,9 @@ export function processUpdateQueue<State>(workInProgress: Fiber,props: any,insta
     // 重置为链表最后的一个链表
     lastBaseUpdate = lastPendingUpdate;
 
-    // If there's a current queue, and it's different from the base queue, then
-    // we need to transfer the updates to that queue, too. Because the base
-    // queue is a singly-linked list with no cycles, we can append to both
-    // lists and take advantage of structural sharing.
-    // TODO: Pass `current` as argument
-    // 用同样的方式更新current上的firstBaseUpdate 和
-    // lastBaseUpdate（baseUpdate队列）。
-    // 这样做相当于将本次合并完成的队列作为baseUpdate队列备份到current节
-    // 点上，因为如果本次的渲染被打断，那么下次再重新执行任务的时候，workInProgress节点复制
+    // 用同样的方式更新 current 上的 firstBaseUpdate 和 lastBaseUpdate（baseUpdate队列）。
+    // 这样做相当于将本次合并完成的队列作为 baseUpdate 队列备份到 current 节点上
+    // 因为如果本次的渲染被打断，那么下次再重新执行任务的时候，workInProgress节点复制
     // 自current节点，它上面的baseUpdate队列会保有这次的update，保证update不丢失。
     const current = workInProgress.alternate;
     if (current !== null) {
@@ -238,14 +219,11 @@ export function processUpdateQueue<State>(workInProgress: Fiber,props: any,insta
     }
   }
 
-  // These values may change as we process the queue.
+  // 这里开始计算值，当遍历计算的链表结果过程中可能会更新队列会更新，这里会保存优先级状态
   // firstBaseUpdate 作为新旧已经合并的链表的第一个项
   if (firstBaseUpdate !== null) {
-    // Iterate through the list of updates to compute the result.
     // 取出上次计算后的baseState
     let newState = queue.baseState;
-    // TODO: Don't need to accumulate this. Instead, we can remove renderLanes
-    // from the original lanes.
     // 重新定义优先级
     let newLanes = NoLanes;
 
@@ -261,10 +239,7 @@ export function processUpdateQueue<State>(workInProgress: Fiber,props: any,insta
       // 是否在渲染优先级（renderLanes）中如果不在，说明优先级不足
       if (!isSubsetOfLanes(renderLanes, updateLane)) {
         // 优先级不足
-        // Priority is insufficient. Skip this update. If this is the first
-        // skipped update, the previous update/state is the new base
-        // update/state.
-        const clone: Update<State> = {
+        const clone = {
           eventTime: updateEventTime,
           lane: updateLane,
 
@@ -277,33 +252,27 @@ export function processUpdateQueue<State>(workInProgress: Fiber,props: any,insta
         // 将优先级不足的项拼接成一个新的链表
         if (newLastBaseUpdate === null) {
           newFirstBaseUpdate = newLastBaseUpdate = clone;
-          // 这个newState就是这次更新已经处理的了符合优先级的update，当它遇到了不符合优先级的时候就赋值到这里了。
+          // 这个newState是这次遍历更新已经处理的了符合优先级的最后一个update，当它遇到了不符合优先级的时候就赋值到这里了。
+          // 所以后面的计算的高优先级计算有什么意义呢？
           newBaseState = newState;
         } else {
           // 拼接其他的不符合优先级的
           newLastBaseUpdate = newLastBaseUpdate.next = clone;
         }
-        // Update the remaining priority in the queue.
-        /* *
-          * newLanes会在最后被赋值到workInProgress.lanes上，而它又最终
-          * 会被收集到root.pendingLanes。
-          *  再次更新时会从root上的pendingLanes中找出渲染优先级（renderLanes），
-          * renderLanes含有本次跳过的优先级，再次进入processUpdateQueue时，
-          * update的优先级符合要求，被更新掉，低优先级任务因此被重做
-        * */
+        
+				// newLanes会在最后被赋值到workInProgress.lanes上，而它又最终
+				// 会被收集到root.pendingLanes。
+				//  再次更新时会从root上的pendingLanes中找出渲染优先级（renderLanes），
+				// renderLanes含有本次跳过的优先级，再次进入processUpdateQueue时，
+				// update的优先级符合要求，被更新掉，低优先级任务因此被重做
         newLanes = mergeLanes(newLanes, updateLane);
       } else {
-        // This update does have sufficient priority.
         // 有足够优先级
         // newLastBaseUpdate !== null 说明已经存在 低优先级任务了，后面的高优先级任务需要拼接起来。
         if (newLastBaseUpdate !== null) {
-          const clone: Update<State> = {
+          const clone = {
             eventTime: updateEventTime,
-            // This update is going to be committed so we never want uncommit
-            // it. Using NoLane works because 0 is a subset of all bitmasks, so
-            // this will never be skipped by the check above.
             lane: NoLane,
-
             tag: update.tag,
             payload: update.payload,
             callback: update.callback,
@@ -313,9 +282,11 @@ export function processUpdateQueue<State>(workInProgress: Fiber,props: any,insta
           newLastBaseUpdate = newLastBaseUpdate.next = clone;
         }
 
-        // Process this update.
-        // 上面的优先级拼接完成了，这里高优先级的任务仍然需要继续计算
+        // 上面的当出现优先级低的时候，newState就会赋值，那么这里高优先级仍然计算，我觉得这是一种浪费。
+        // 在后面，当 newLastBaseUpdate === null，进行 newBaseState = newState，在这里才会体现 newState计算的必要性。
+        // 在最后面 workInProgress.memoizedState = newState，这里会将 A1 - B2 - C1 - D2，[A1,C1]计算出来在页面上显示。 
         newState = getStateFromUpdate(workInProgress,queue,update,newState,props,instance );
+        // 这个callback 是 setState(updater, [callback]) 的第二个参数
         const callback = update.callback;
         // 将更新对象 放在副作用，在commit 阶段的时候进行更新
         if (callback !== null) {
@@ -328,6 +299,7 @@ export function processUpdateQueue<State>(workInProgress: Fiber,props: any,insta
           }
         }
       }
+      // 遍历下一个update
       update = update.next;
       // 当前的链表已经处理完毕了
       if (update === null) {
@@ -357,21 +329,21 @@ export function processUpdateQueue<State>(workInProgress: Fiber,props: any,insta
       newBaseState = newState;
     }
     // 将处理好的 state 和  newFirstBaseUpdate 、 newLastBaseUpdate 进行赋值吗
-    queue.baseState = ((newBaseState: any): State);
+    queue.baseState = newBaseState
     queue.firstBaseUpdate = newFirstBaseUpdate;
     queue.lastBaseUpdate = newLastBaseUpdate;
 
-    // Set the remaining expiration time to be whatever is remaining in the queue.
-    // This should be fine because the only two other things that contribute to
-    // expiration time are props and context. We're already in the middle of the
-    // begin phase by the time we start processing the queue, so we've already
-    // dealt with the props. Context in components that specify
-    // shouldComponentUpdate is tricky; but we'll have to account for
-    // that regardless.
+
     markSkippedUpdateLanes(newLanes);
     workInProgress.lanes = newLanes;
+    // 总是显示计算好了的值，比如 A1 - B2 - C1 - D2，[A1,C1]计算出来在页面上显示。 
     workInProgress.memoizedState = newState;
   }
 }
 ```
 
+## 思考
+
+#### 为什么需要循环链表？
+
+参考 `hook useState` 中是如何存储状态的，理解是一样的。
