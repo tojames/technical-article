@@ -403,8 +403,10 @@ export function processUpdateQueue<State>(workInProgress: Fiber,props: any,insta
   // This is always non-null on a ClassComponent or HostRoot
   // 从workInProgress节点上取出updateQueue
   const queue: UpdateQueue<State> = (workInProgress.updateQueue: any);
+  // console.log(queue,"queue");
   console.log(queue,"queue");
-  console.log(renderLanes,"renderLanes");
+  // debugger
+  // console.log(renderLanes,"renderLanes");
   hasForceUpdate = false;
 
   if (__DEV__) {
@@ -557,6 +559,7 @@ export function processUpdateQueue<State>(workInProgress: Fiber,props: any,insta
             effects.push(update);
           }
         }
+        // console.log(queue.effects,"queue.effects");
       }
       update = update.next;
       // 当前的链表已经处理完毕了
