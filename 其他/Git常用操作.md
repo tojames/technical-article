@@ -9,7 +9,9 @@
 命令
 
 ```
+git config 修改 git 的配置信息
 git init 初始化仓库，生成 .git 文件
+git clone 克隆仓库
 
 git add . 将新修改的内容添加进暂存区
 
@@ -27,12 +29,24 @@ git status 查看当前修改内容的状态
 
 git checkout 切换 commit 和 切换 branch 
 
-git-commit(1) to advance the current branch.
+git commit 将暂存区的内容生成一个 commit
+--all 简写 -a ：将已存在的文件 执行 git add . + git commit -a,但是新的文件，git是不会把它添加到暂存区，所以你 commit 之前最好 git add .
+--message 简写 -m：对这次 commit 进行描述，以后更加方便理解 commit 到底是什么内容
+
+get merge  合并代码
+get merge feature1，
+	1.当直接合并，没有问题；
+	2.当修改同一个文件触发 git 自动合并成功，这样会有一个新的 commit;
+	3.当修改同一个文件触发 git 自动合并失败，这样需要手动去解决冲突
+
+git pull 将远程的代码拉下来，它其实是两个操作，git fetch，get merge 远程最新的 commit
+
+git push 将本地的所有的 commits 提交到远程仓库
+
 
 git-reset(1) and git-checkout(1) (with pathname parameters) to undo
 changes.
 
-git-merge(1) to merge between local branches.
 
 git-rebase(1) to maintain topic branches.
 
@@ -40,13 +54,8 @@ git-tag(1) to mark a known point.
 
 
 
-git-clone(1) from the upstream to prime your local repository.
 
-git-pull(1) and git-fetch(1) from "origin" to keep up-to-date with the
-upstream.
 
-git-push(1) to shared repository, if you adopt CVS style shared
-repository workflow.
 
 git-format-patch(1) to prepare e-mail submission, if you adopt Linux
 kernel-style public forum workflow.
