@@ -6,14 +6,36 @@
 
 [官网]( https://git-scm.com/)、[廖雪峰老师讲解的 Git]( https://www.liaoxuefeng.com/wiki/896043488029600)
 
-命令
+
+
+## 命令
+
+
+
+### Git 配置
+
+> git config 修改 git 的配置信息
+
+
+
+### Git 初始化
+
+> git init 初始化仓库，生成 .git 文件
+> git clone 克隆仓库
+
+
+
+### Git 查看修改
+
+
 
 ```
-git config 修改 git 的配置信息
-git init 初始化仓库，生成 .git 文件
-git clone 克隆仓库
-
 git add . 将新修改的内容添加进暂存区
+
+git status 查看当前修改内容的状态，暂存区和未添加暂存区都可以看见
+
+git diff 查看当前不在暂存区「即是新修改内容，未 git add .」中的内容
+git diff --staged 查看当前在暂存区中的内容
 
 git log 查看 commits 日志
 --patch 简写 -p ： 具体的改动细节。
@@ -21,17 +43,34 @@ git log 查看 commits 日志
 
 git show 查看 commit 具体改动的细节，它其实有点像 git log -p
 git show 「commit 的引用」，这样就可以去看这个 commit 改变了什么内容
+```
 
-git diff 查看当前不在暂存区「即是新修改内容，未 git add .」中的内容
-git diff --staged 查看当前在暂存区中的内容
 
-git status 查看当前修改内容的状态
 
-git checkout 切换 commit 和 切换 branch 
+### git checkout
 
+> git checkout 切换 commit 和 切换 branch 
+
+```
+-b 真的是创建那么简单吗
+```
+
+
+
+### git commit
+
+```
 git commit 将暂存区的内容生成一个 commit
 --all 简写 -a ：将已存在的文件 执行 git add . + git commit -a,但是新的文件，git是不会把它添加到暂存区，所以你 commit 之前最好 git add .
 --message 简写 -m：对这次 commit 进行描述，以后更加方便理解 commit 到底是什么内容
+
+```
+
+
+
+### get merge 
+
+```
 
 get merge  合并代码
 get merge feature1，
@@ -39,9 +78,34 @@ get merge feature1，
 	2.当修改同一个文件触发 git 自动合并成功，这样会有一个新的 commit;
 	3.当修改同一个文件触发 git 自动合并失败，这样需要手动去解决冲突
 
+
+```
+
+
+
+### git pull
+
+```
 git pull 将远程的代码拉下来，它其实是两个操作，git fetch，get merge 远程最新的 commit
 
+```
+
+
+
+### git push
+
+```
 git push 将本地的所有的 commits 提交到远程仓库
+```
+
+
+
+
+
+
+
+```
+
 
 
 git-reset(1) and git-checkout(1) (with pathname parameters) to undo
