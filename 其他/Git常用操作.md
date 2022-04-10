@@ -1,4 +1,79 @@
-# Git常用操作
+# Git
+
+> 对代码进行管理，原理是分布式版本控制系统，即是中央仓库，本地仓库，开发完需要将本地同步到中央仓库。
+
+
+
+[官网]( https://git-scm.com/)、[廖雪峰老师讲解的 Git]( https://www.liaoxuefeng.com/wiki/896043488029600)
+
+命令
+
+```
+git init 初始化仓库，生成 .git 文件
+
+git add . 将新修改的内容添加进暂存区
+
+git log 查看 commits 日志
+--patch 简写 -p ： 具体的改动细节。
+--stat          ：统计改变了多少内容
+
+git show 查看 commit 具体改动的细节，它其实有点像 git log -p
+git show 「commit 的引用」，这样就可以去看这个 commit 改变了什么内容
+
+git diff 查看当前不在暂存区「即是新修改内容，未 git add .」中的内容
+git diff --staged 查看当前在暂存区中的内容
+
+git status 查看当前修改内容的状态
+
+git checkout 切换 commit 和 切换 branch 
+
+git-commit(1) to advance the current branch.
+
+git-reset(1) and git-checkout(1) (with pathname parameters) to undo
+changes.
+
+git-merge(1) to merge between local branches.
+
+git-rebase(1) to maintain topic branches.
+
+git-tag(1) to mark a known point.
+
+
+
+git-clone(1) from the upstream to prime your local repository.
+
+git-pull(1) and git-fetch(1) from "origin" to keep up-to-date with the
+upstream.
+
+git-push(1) to shared repository, if you adopt CVS style shared
+repository workflow.
+
+git-format-patch(1) to prepare e-mail submission, if you adopt Linux
+kernel-style public forum workflow.
+
+git-send-email(1) to send your e-mail submission without corruption by
+your MUA.
+
+git-request-pull(1) to create a summary of changes for your upstream
+       to pull.
+
+
+
+
+work on the current change (see also: git help everyday)
+   add        Add file contents to the index
+   mv         Move or rename a file, a directory, or a symlink
+   reset      Reset current HEAD to the specified state
+   rm         Remove files from the working tree and from the index
+
+examine the history and state (see also: git help revisions)
+   bisect     Use binary search to find the commit that introduced a bug
+   grep       Print lines matching a pattern
+   log        Show commit logs
+   show       Show various types of objects
+   status     Show the working tree status
+
+```
 
 最基础的用法
 
