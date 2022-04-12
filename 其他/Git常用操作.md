@@ -107,11 +107,13 @@ git push 将本地的所有的 commits 提交到远程仓库
 又有所区别。就是 commits， merge是会出分叉的， rebase 是始终保持一条线。
 
 master： 1——> 2——>3
-feature1: 	  \ 4——>5
+feature1: 	  \ 
+								4——>5
 
 rebase结果： 1——> 2——>4 ——> 5 ——>3
 merge结果： 1——> 2——>3——> 6，它会新建一个commit，featur1何必过来，所以它是分叉的。
-							  \ 4——>5 /
+							  \       /
+							  	4——>5 
 
 git checkout master 确保当前是你想作为基点的分支
 git rebase feature1 将 feature1 的基点重置到 master
