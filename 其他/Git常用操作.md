@@ -30,11 +30,11 @@
 
 
 ```
-git add . 将新修改的内容添加进暂存区
+git add . 将新修改的内容添加进暂存区，对于新修改内容，未 git add . ，称为工作区
 
-git status 查看当前修改内容的状态，暂存区和未添加暂存区都可以看见
+git status 查看当前修改内容的状态，暂存区和工作区都可以看见
 
-git diff 查看当前不在暂存区「即是新修改内容，未 git add .」中的内容
+git diff 查看工作区中的内容
 git diff --staged 查看当前在暂存区中的内容
 
 git log 查看 commits 日志
@@ -100,7 +100,7 @@ git push 将本地的所有的 commits 提交到远程仓库
 
 
 
-### git-rebase
+### git rebase
 
 ```
 变基，它其实和和 merge 是差不多的，都是合并代码。
@@ -120,15 +120,35 @@ git rebase feature1 将 feature1 的基点重置到 master
 
 
 
+### git reset
+
+```
+重置HEAD的位置，参数就是处理工作区和暂存区的内容是否记录起来。
+
+git reset --hard HEAD^  把 HEAD 移动到上一个 commit，并且清空 工作区和缓存区。
+
+git reset --soft HEAD^  把 HEAD 移动到上一个 commit，对上一个coomit 的内容添加进暂存区，保存暂存区的内容，即是现在的暂存区有 reset 前的暂存区和 commit 内容，工作区保留。所以它是一个温和的回退
+
+git reset --mixed 是一个默认的参数，把暂存区的内容退回到工作区，即是暂存区是空的。
+git reset HEAD^  把 HEAD 移动到上一个 commit，把上一个coomit 的内容，添加进工作区。此时工作区可能会有，上一个 commit内容，以前的暂存区内容， 以前工作区内容
 ```
 
 
 
-git-reset(1) and git-checkout(1) (with pathname parameters) to undo
-changes.
+### git revert
+
+```
+
+```
 
 
-git-rebase(1) to maintain topic branches.
+
+### git tag
+
+
+
+```
+
 
 git-tag(1) to mark a known point.
 
