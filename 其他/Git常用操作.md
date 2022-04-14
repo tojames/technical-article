@@ -14,6 +14,15 @@
 
 
 
+## 兜底操作
+
+> 如果 git 掌握不够熟悉，请给自己留点后路。
+
+- 当不确定 git 命令是否正确，请拷贝一份项目并记得不要推到远程，如果已推送并代码不是你想要的，请使用副本强制推送覆盖代码
+- 当你需要回滚的时候，如果不是必要的，请优先选择添加一个 commit 来修改代码，虽然low，这很安全
+
+
+
 ## 相关名词
 
 ### origin
@@ -43,7 +52,7 @@ git remote -v
 
 它是指向 `commit` 的引用，正在操作的commit在哪里，HEAD就在哪里，但是 `commit` 一定是在分支上「比如 master」所以 `HEAD` 先是指向 `branch`,`branch` 再去指向`commit` ，提交时它会自动向前移动到最新的 `commit` ，改变 commit  的指向就可以改变HEAD「checkout，reset、revert、rebase...」。
 
-`符号`：HEAD~  === HEAD^， ～ 或 ^ 代表是往前面数多少个 `commit`，数量多可使用 `HEAD^10`
+`符号`：HEAD~  === HEAD^， ～ 或 ^ 代表是往前面数多少个 `commit`，数量多可使用 `HEAD^10`，通用支持这种`HEAD@{10}`
 
 特殊点：当 commit 不在分支的情况，checkout commit 的时候，它是脱离了分支的，`git`  会提示`detached HEAD`。
 
@@ -264,6 +273,25 @@ git revert HEAD,HEAD~1,HEAD~2 同时指定几个 commit
 
 
 
+### git stash
+
+它把工作区、暂存区的改动全部**贮藏**起来。多个 `stash` 是可以共存的，即是在一个工作区和暂存区把 `stash list` 全部去出来也是可以的，记得 `git add .`，也可能会产生冲突的。
+
+```
+git stash
+git stash -u 来排除一些文件
+git stash save <message>/git stash push -m <message> 给每一个 stash 记录信息
+git stash list 查看 stash 记录
+git stash apply stash@{n} 取出相应的stash，n为数字
+git stash clear 清除所有的 stash 记录
+git stash drop stash@{n} 清除某一个 stash 记录
+git stash pop === git stash drop stash@{0}
+```
+
+
+
+
+
 ### git tag
 
 用于给commit 打上 tag
@@ -320,28 +348,38 @@ git commit --amend
 ### 暂存区改为工作区
 
 ```
-git restore --staged .  使用 '.'
+git restore --staged .  使用 '.' // 2019年8月出的命令，同 git switch 一致，要求版本 Git 2.23
 git restore --staged <file> 使用文件名+后缀
+
+git reset HEAD <file> 使用文件名+后缀 // 兼容性比较好
 ```
 
 
 
 ### 把工作区内容临时存起来
 
-> 当在错误的分支开发了，所幸没有提交 `commit`，就算有也有解决方案的。
-
-```
-
-```
+> 有时候被插入需求了，或者其他需求要把一些刚开发的代码隐藏起来，当然我又不想创建分支，`git stash` 是一个不错的选择
 
 
 
 ### 在错误的分支上面开发了，如何将代码进行移动到正确的分支
 
-```
-暂存区移动，
-工作区移动
-```
+- 代码在暂存区/工作区，直接切换分支即可，因为工作区和暂存区是所有分支共享的
+
+- 提交 commit 未推送远程仓库
+
+  - ```
+    git reset --soft HEAD^，所有回退的内容都会在暂存区和工作区
+    切换分支即可
+    ```
+
+- 提交 commit 已推送远程仓库
+
+  - ```
+    git reset --soft HEAD^ 
+    切换分支即可
+    git push -f
+    ```
 
 
 
@@ -353,7 +391,7 @@ git checkout . === git reset 丢弃工作区已经修改的内容
 git checkout -f 丢弃工作区以及暂存区修改的所有内容
 ```
 
-只想丢弃某个文件
+#### 只想丢弃某个文件
 
 ```
 git checkout filename === git reset filename
@@ -376,44 +414,6 @@ git reset --hard commit id 只需要将 commit 重置回去即可
 ---------------------------------------------------------------------
 
 
-
-## **暂存(Staging)**
-
-
-
-### 我想把在一个文件里的变化(changes)加到两个提交(commit)里
-
-`git add` 会把整个文件加入到一个提交. `git add -p` 允许交互式的选择你想要提交的部分.
-
-### 我想把暂存的内容变成未暂存，把未暂存的内容暂存起来
-
-多数情况下，你应该将所有的内容变为未暂存，然后再选择你想要的内容进行commit。但假定你就是想要这么做，这里你可以创建一个临时的commit来保存你已暂存的内容，然后暂存你的未暂存的内容并进行stash。然后reset最后一个commit将原本暂存的内容变为未暂存，最后stash pop回来。
-
-```
-$ git commit -m "WIP"
-$ git add .
-$ git stash
-$ git reset HEAD^
-$ git stash pop --index 0
-```
-
-注意1: 这里使用`pop`仅仅是因为想尽可能保持幂等。注意2: 假如你不加上`--index`你会把暂存的文件标记为为存储。
-
-## **未暂存(Unstaged)的内容**
-
-### 我想把未暂存的内容移动到一个新分支
-
-```
-$ git checkout -b my-branch
-```
-
-### 我想把未暂存的内容移动到另一个已存在的分支
-
-```
-$ git stash
-$ git checkout my-branch
-$ git stash pop
-```
 
 ### 我想丢弃本地未提交的变化(uncommitted changes)
 
@@ -964,81 +964,6 @@ Changes not staged for commit:
 
 ```
 (my-branch)$ git rebase --abort
-```
-
-## **Stash**
-
-### 暂存所有改动
-
-暂存你工作目录下的所有改动
-
-```
-$ git stash
-```
-
-你可以使用`-u`来排除一些文件
-
-```
-$ git stash -u
-```
-
-### 暂存指定文件
-
-假设你只想暂存某一个文件
-
-```
-$ git stash push working-directory-path/filename.ext
-```
-
-假设你想暂存多个文件
-
-```
-$ git stash push working-directory-path/filename1.ext working-directory-path/filename2.ext
-```
-
-### 暂存时记录消息
-
-这样你可以在`list`时看到它
-
-```
-$ git stash save <message>
-```
-
-或
-
-```
-$ git stash push -m <message>
-```
-
-### 使用某个指定暂存
-
-首先你可以查看你的`stash`记录
-
-```
-$ git stash list
-```
-
-然后你可以`apply`某个`stash`
-
-```
-$ git stash apply "stash@{n}"
-```
-
-此处， 'n'是`stash`在栈中的位置，最上层的`stash`会是0
-
-除此之外，也可以使用时间标记(假如你能记得的话)。
-
-```
-$ git stash apply "stash@{2.hours.ago}"
-```
-
-### 暂存时保留未暂存的内容
-
-你需要手动create一个`stash commit`， 然后使用`git stash store`。
-
-```
-$ git stash create
-$ git stash store -m "commit-message" CREATED_SHA1
 ```
 
 ## **杂项(Miscellaneous Objects)**
