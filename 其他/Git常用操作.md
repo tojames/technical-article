@@ -299,11 +299,42 @@ git fetch origin --prune
 
 ### 提交信息(pre-msg)写错了
 
+> 当提交信息写的不规范的时候，需要重新修改，覆盖旧的提交信息。
+
+``` 
+git commit --amend  这个命令的缺点就是只能修改最新的commit
+将会进去一个可修改的终端页面，这时候你修改完毕就可以了。
+如果你已经推上远程仓库了，这时候需要使用 git push -f
+```
+
+#### 已经提交的 commit，工作区/暂存区还没有提交呢？
+
+暂存区是会提交的，工作区是不会提交的。
+
+```
+git commit --amend
+```
+
 
 
 ### 暂存区改为工作区
 
+```
+git restore --staged .  使用 '.'
+git restore --staged <file> 使用文件名+后缀
+```
+
+
+
 ### 把工作区内容临时存起来
+
+> 当在错误的分支开发了，所幸没有提交 `commit`，就算有也有解决方案的。
+
+```
+
+```
+
+
 
 ### 在错误的分支上面开发了，如何将代码进行移动到正确的分支
 
@@ -314,56 +345,29 @@ git fetch origin --prune
 
 
 
-### 丢弃本地未提交的变化(uncommitted changes)
-
-如果你只是想重置源(origin)和你本地(local)之间的一些提交(commit)，你可以：
+### 丢弃本地未提交的 commit / 暂存区/工作区
 
 ```
-# one commit
-(my-branch)$ git reset --hard HEAD^
-# two commits
-(my-branch)$ git reset --hard HEAD^^
-# four commits
-(my-branch)$ git reset --hard HEAD~4
-# or
-(main)$ git checkout -f
+git reset --hard HEAD^ 「指定你要丢弃的 commit 数量」
+git checkout . === git reset 丢弃工作区已经修改的内容
+git checkout -f 丢弃工作区以及暂存区修改的所有内容
 ```
 
-重置某个特殊的文件, 你可以用文件名做为参数:
+只想丢弃某个文件
 
 ```
-$ git reset filename
+git checkout filename === git reset filename
 ```
 
 
 
-### 我意外的做了一次硬重置(hard reset)，我想找回我的内容
-
-如果你意外的做了 `git reset --hard`, 你通常能找回你的提交(commit), 因为Git对每件事都会有日志，且都会保存几天。
+### git reset --hard 操作后，后悔怎么办
 
 ```
-(main)$ git reflog
+git reflog // 查看你丢失的commit id，reflog 这个东西能记住，是有一定的条件的，比如不要关机，或者失效性，所以有时候你是恢复不了的
+
+git reset --hard commit id 只需要将 commit 重置回去即可
 ```
-
-你将会看到一个你过去提交(commit)的列表, 和一个重置的提交。选择你想要回到的提交(commit)的SHA，再重置一次:
-
-```
-(main)$ git reset --hard SHA1234
-```
-
-这样就完成了。
-
-
-
-
-
-
-
-
-
-
-
-
 
 
 
@@ -373,152 +377,9 @@ $ git reset filename
 
 
 
-
-
-**
-git**对于大家应该都不太陌生，熟练使用git已经成为程序员的一项基本技能，尽管在工作中有诸如 `Sourcetree`这样牛X的客户端工具，使得合并代码变的很方便。但找工作面试和一些需彰显个人实力的场景，仍然需要我们掌握足够多的git命令。
-
-下边我们整理了45个日常用git合代码的经典操作场景，基本覆盖了工作中的需求。
-
-### 我刚才提交了什么?
-
-如果你用 `git commit -a` 提交了一次变化(changes)，而你又不确定到底这次提交了哪些内容。你就可以用下面的命令显示当前`HEAD`上的最近一次的提交(commit):
-
-```
-(main)$ git show
-```
-
-或者
-
-```
-$ git log -n1 -p
-```
-
-### 我的提交信息(commit message)写错了
-
-如果你的提交信息(commit message)写错了且这次提交(commit)还没有推(push), 你可以通过下面的方法来修改提交信息(commit message):
-
-```
-  $ git commit --amend --only
-```
-
-这会打开你的默认编辑器, 在这里你可以编辑信息. 另一方面, 你也可以用一条命令一次完成:
-
-```
-$ git commit --amend --only -m 'xxxxxxx'
-```
-
-如果你已经推(push)了这次提交(commit), 你可以修改这次提交(commit)然后强推(force push), 但是不推荐这么做。
-
-### 我提交(commit)里的用户名和邮箱不对
-
-如果这只是单个提交(commit)，修改它：
-
-```
-$ git commit --amend --author "New Authorname <authoremail@mydomain.com>"
-```
-
-如果你需要修改所有历史, 参考 'git filter-branch'的指南页.
-
-### 我想从一个提交(commit)里移除一个文件
-
-通过下面的方法，从一个提交(commit)里移除一个文件:
-
-```
-$ git checkout HEAD^ myfile
-$ git add -A
-$ git commit --amend
-```
-
-这将非常有用，当你有一个开放的补丁(open patch)，你往上面提交了一个不必要的文件，你需要强推(force push)去更新这个远程补丁。
-
-### 我想删除我的的最后一次提交(commit)
-
-如果你需要删除推了的提交(pushed commits)，你可以使用下面的方法。可是，这会不可逆的改变你的历史，也会搞乱那些已经从该仓库拉取(pulled)了的人的历史。简而言之，如果你不是很确定，千万不要这么做。
-
-```
-$ git reset HEAD^ --hard
-$ git push -f [remote] [branch]
-```
-
-如果你还没有推到远程, 把Git重置(reset)到你最后一次提交前的状态就可以了(同时保存暂存的变化):
-
-```
-(my-branch*)$ git reset --soft HEAD@{1}
-```
-
-这只能在没有推送之前有用. 如果你已经推了, 唯一安全能做的是 `git revert SHAofBadCommit`， 那会创建一个新的提交(commit)用于撤消前一个提交的所有变化(changes)；或者, 如果你推的这个分支是rebase-safe的 (例如：其它开发者不会从这个分支拉), 只需要使用 `git push -f`。
-
-### 删除任意提交(commit)
-
-同样的警告：不到万不得已的时候不要这么做.
-
-```
-$ git rebase --onto SHA1_OF_BAD_COMMIT^ SHA1_OF_BAD_COMMIT
-$ git push -f [remote] [branch]
-```
-
-或者做一个 交互式rebase 删除那些你想要删除的提交(commit)里所对应的行。
-
-### 我尝试推一个修正后的提交(amended commit)到远程，但是报错：
-
-```
-To https://github.com/yourusername/repo.git
-! [rejected]        mybranch -> mybranch (non-fast-forward)
-error: failed to push some refs to 'https://github.com/tanay1337/webmaker.org.git'
-hint: Updates were rejected because the tip of your current branch is behind
-hint: its remote counterpart. Integrate the remote changes (e.g.
-hint: 'git pull ...') before pushing again.
-hint: See the 'Note about fast-forwards' in 'git push --help' for details.
-```
-
-注意, rebasing(见下面)和修正(amending)会用一个**新的提交(commit)代替旧的**, 所以如果之前你已经往远程仓库上推过一次修正前的提交(commit)，那你现在就必须强推(force push) (`-f`)。注意 – *总是* 确保你指明一个分支!
-
-```
-(my-branch)$ git push origin mybranch -f
-```
-
-一般来说, **要避免强推**. 最好是创建和推(push)一个新的提交(commit)，而不是强推一个修正后的提交。后者会使那些与该分支或该分支的子分支工作的开发者，在源历史中产生冲突。
-
-### 我意外的做了一次硬重置(hard reset)，我想找回我的内容
-
-如果你意外的做了 `git reset --hard`, 你通常能找回你的提交(commit), 因为Git对每件事都会有日志，且都会保存几天。
-
-```
-(main)$ git reflog
-```
-
-你将会看到一个你过去提交(commit)的列表, 和一个重置的提交。选择你想要回到的提交(commit)的SHA，再重置一次:
-
-```
-(main)$ git reset --hard SHA1234
-```
-
-这样就完成了。
-
 ## **暂存(Staging)**
 
-### 我需要把暂存的内容添加到上一次的提交(commit)
 
-```
-(my-branch*)$ git commit --amend
-```
-
-### 我想要暂存一个新文件的一部分，而不是这个文件的全部
-
-一般来说, 如果你想暂存一个文件的一部分, 你可这样做:
-
-```
-$ git add --patch filename.x
-```
-
-`-p` 简写。这会打开交互模式， 你将能够用 `s` 选项来分隔提交(commit)；然而, 如果这个文件是新的, 会没有这个选择， 添加一个新文件时, 这样做:
-
-```
-$ git add -N filename.x
-```
-
-然后, 你需要用 `e` 选项来手动选择需要添加的行，执行 `git diff --cached` 将会显示哪些行暂存了哪些行只是保存在本地了。
 
 ### 我想把在一个文件里的变化(changes)加到两个提交(commit)里
 
