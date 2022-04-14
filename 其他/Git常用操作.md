@@ -18,7 +18,7 @@
 
 ### origin
 
-`origin` 是一个仓库别名。
+它是一个仓库别名。
 
 ```
 git remote -v
@@ -41,19 +41,17 @@ git remote -v
 
 ### 	HEAD
 
-​		他相当于仓库当前操作的位置。不过有一个注意点，远程仓库的HEAD 和本地仓库的HEAD是有区别的。
+它是指向 `commit` 的引用，正在操作的commit在哪里，HEAD就在哪里，但是 `commit` 一定是在分支上「比如 master」所以 `HEAD` 先是指向 `branch`,`branch` 再去指向`commit` ，提交时它会自动向前移动到最新的 `commit` ，改变 commit  的指向就可以改变HEAD「checkout，reset、revert、rebase...」。
 
-​		`远程仓库的HEAD`：永远指向master
+`符号`：HEAD~  === HEAD^， ～ 或 ^ 代表是往前面数多少个 `commit`，数量多可使用 `HEAD^10`
 
-​		`本地仓库HEAD`：根据commit的变化，变化当前的HEAD指向，提交本地仓库到远程仓库并不会将HEAD提交，只会将commits合并一起提交到远程仓库。
+特殊点：当 commit 不在分支的情况，checkout commit 的时候，它是脱离了分支的，`git`  会提示`detached HEAD`。
 
-​		共同点：指向当前 `commit` 的引用，它具有唯一性，每个仓库中只有一个 `HEAD`。在每次提交时它都会自动向前移动到最新的 `commit` 。
-
-##### 
+**注意：远程仓库的HEAD永远指向master，本地仓库HEAD根据commit的变化，变化当前的HEAD指向，提交本地仓库到远程仓库并不会将HEAD提交，只会将commits合并一起提交到远程仓库。**
 
 ### commit
 
-​	是每次执行 `git commit -m"xxx"`的时候产生的一个记录，记录的是一些文件以及内容的变化，每一个 `commit`  都有一个id。多个这样的记录会相互依赖，形成一个`commit 链条`，管它叫 `commits`  吧！。
+它是每次执行 `git commit -m"xxx"`的时候产生的一个记录，记录的是一些文件以及内容的变化，每一个 `commit`  都有一个id。多个这样的记录会相互依赖，形成一个`commit 链条`，管它叫 `commits`  吧！。
 
 ```
 commit id：2fa933a75796ac6c21ee4bf31560d6be507ea293，40位，使用的时候取出前7位即可。
@@ -61,35 +59,27 @@ commit id：2fa933a75796ac6c21ee4bf31560d6be507ea293，40位，使用的时候�
 commit id 用处：
 	它可以通过 git checkout commit id，查看文件，在这里创建分支
 	回滚代码的时候也可以用到，git revert commit id「2fa933a75」，即可操作
-
 ```
 
-##### 	
+### 	branch
 
-##### 	branch是什么？
+它是指向 `commit` 的一个引用，`HEAD` 将会跟随着 `branch` 来移动。
 
-​		这是分支，但是他可以这么理解，也是有一些问题的。我们可以这么理解，我说不同点的时候，只是当这个时候不能这么理解，其他条件还是理解 `分支`
+解析：当创建 branch 的时候，git 底层会处理 `新branch` 和 `它基于的commit` 作以区分，后期合并代码就会把`新branch中的commits`合并回去。
 
-当我们删除分支的时候，并不会把branch一条分支删掉。 只是把branch这个引用删掉，他这个分支包含的commits 会经过一段的时间会被git的垃圾回收机制回收。
+这样的理解的好处是 当 `git checkout branchName`，它实际会切换到`branchName最新的commit`，如果以`一连串的commit`的形式理解是不准确的，当我们删除分支的时候，并不会把branch一条分支删掉。 只是把branch这个引用删掉，他这个分支包含的commits 会经过一段的时间会被git的垃圾回收机制回收。
 
-正确的说法是：branch只是一个引用，仅仅是一个引用，不好理解吧。
+正确理解：branch只是一个引用，并不是一串 `commit`。
 
-- 分支提交到远程仓库
+```
+git branch feature1 // 创建分支
+git checkout feature1 // 签出分支到feature1
 
-  ```
-  git branch feature1 // 创建分支
-  git checkout feature1 // 签出分支到feature1
-  
-  git checkout -b feature1 // 一步到位
-  git push origin feature1 // 将本地的分支更新到远程仓库
-  
-  git branch -d feature1 // 删除分支 会失败 -D 就好了
-  
-  注意点：当有人删了分支feature2，然后又新建了feature2放在远程仓库上面，但是里面的内容已经不一样了（不管一样还是不一样），这时候我们的分支需要更新，不然本地仓库这条分支是有问题的。
-  git fetch origin --prune
-  ```
+git checkout -b feature1 // 一步到位
+git push origin feature1 // 将本地的分支更新到远程仓库
 
-  
+git branch -d feature1 // 删除分支 会失败 -D 就好了
+```
 
 
 
@@ -108,11 +98,13 @@ commit id 用处：
 > git init 初始化仓库，生成 .git 文件
 > git clone 克隆仓库
 
+```
+git clone projectUrl projectName「可以指定下载下来的项目名称」
+```
+
 
 
 ### Git 查看修改
-
-
 
 ```
 git add . 将新修改的内容添加进暂存区，对于新修改内容，未 git add . ，称为工作区
@@ -155,15 +147,16 @@ git commit 将暂存区的内容生成一个 commit
 
 ### get merge 
 
-```
+合并commit，有时候是我们主动去merge，但是当 `git pull` 的时候也是会触发 merge的。
 
+```
 get merge  合并代码
 get merge feature1，
 	1.当直接合并，没有问题；
 	2.当修改同一个文件触发 git 自动合并成功，这样会有一个新的 commit;
 	3.当修改同一个文件触发 git 自动合并失败，这样需要手动去解决冲突
-
-
+	
+git merge --abort // 恢复到git merge feature1前的状态 
 ```
 
 
@@ -172,7 +165,6 @@ get merge feature1，
 
 ```
 git pull 将远程的代码拉下来，它其实是两个操作，git fetch，get merge 远程最新的 commit
-
 ```
 
 
@@ -210,9 +202,9 @@ git merge feature1 将 master 快速移动到最前面
 
 ### git reset
 
-```
 重置HEAD的位置，参数就是处理工作区和暂存区的内容是否记录起来。
 
+```
 git reset --hard HEAD^  把 HEAD 移动到上一个 commit，并且清空 工作区和缓存区。
 
 git reset --soft HEAD^  把 HEAD 移动到上一个 commit，对上一个coomit 的内容添加进暂存区，保存暂存区的内容，即是现在的暂存区有 reset 前的暂存区和 commit 内容，工作区保留。所以它是一个温和的回退
@@ -223,14 +215,17 @@ git reset HEAD^  把 HEAD 移动到上一个 commit，把上一个coomit 的内�
 重置后，因为是落后于远程仓库的原因，所以需要 git push -f ，注意此时你的操作，因为它会影响远程仓库，你应该清楚你在干什么
 
 注意：--force 简写为 -f 
+
+如果发现自己弄错了，记住把所有的操作撤销回来，git pull。回到初始状态。
 ```
 
 
 
 ### git revert
 
+安全的撤销 `commit`。操作之前和之后的commit会保留，并且把这次撤销作为一次最新的提交，将需要revert的版本的内容再反向修改回去，这样就可以到达回滚的效果。
+
 ```
-恢复 HEAD，它的操作是将HEAD 中内容进行撤销，然后再提交，不影响历史 commits，新增commit 覆盖所操作的 commit，即是反向操作，也可以这样理解创建一个新的提交(commit)用于撤消前一个提交的所有变化(changes)。
 git revert HEAD   撤销前一次 commit
 git revert commit「具体的commit id」
 git revert HEAD,HEAD~1,HEAD~2 同时指定几个 commit 
@@ -238,110 +233,23 @@ git revert HEAD,HEAD~1,HEAD~2 同时指定几个 commit
 虽然可以同时消除几个，但是它们仍然是一个一个的commit 去对应撤销，即是对应反向操作。
 ```
 
+#### revert 和 reset 区别
 
-
-### git tag
-
-
-
-
-
-```
-
-
-git-tag(1) to mark a known point.
+- git revert是用一次新的 commit 来回滚之前的 commit ，git reset 是直接删除指定的 commit
+- git reset 是把HEAD向后移动了一下，而 git revert是 HEAD 继续前进，只是新的 commit 的内容和要revert 的内容正好相反，能够抵消要被revert的内容
 
 
 
+### git checkout
+
+它是用于切换 `commit`。
+
+- 当参数是  `branchName` 的时候，将会切换到这个分支所指向 `commit`
+- 当参数是 `commit id` 的时候，将会切换到这个 `commit` 上
+
+可以切换。`checkout` 本质上的功能其实是：签出（ checkout ）指定的 `commit`。
 
 
-
-git-format-patch(1) to prepare e-mail submission, if you adopt Linux
-kernel-style public forum workflow.
-
-git-send-email(1) to send your e-mail submission without corruption by
-your MUA.
-
-git-request-pull(1) to create a summary of changes for your upstream
-       to pull.
-
-
-
-
-work on the current change (see also: git help everyday)
-   add        Add file contents to the index
-   mv         Move or rename a file, a directory, or a symlink
-   reset      Reset current HEAD to the specified state
-   rm         Remove files from the working tree and from the index
-
-examine the history and state (see also: git help revisions)
-   bisect     Use binary search to find the commit that introduced a bug
-   grep       Print lines matching a pattern
-   log        Show commit logs
-   show       Show various types of objects
-   status     Show the working tree status
-
-```
-
-
-
-
-
-
-
-最基础的用法
-
-```
-git add .
-git commit -m"提交到本地仓库"
-git pull  // 先更新一下代码 pull 的内部操作其实是把远程仓库取到本地后（使用的是 fetch），再用一次 merge 来把远端仓库的新 commits 合并到本地
-git push // 将本地的 commits一起提交上去。
-```
-
-
-
-##### merge是什么？
-
-​	合并。合并commits。实际上很多地方都会出现merge。
-
-> 场景：当我们合并分支的时候，都需要切换回主分支，然后 git merge 分支名
->
-> 他的原理是什么呢？
->
-> ​	主分支的commit 和 分支上面的commit 然后合并一个新的commit 在主分支上
-
-```
-当我们合并分支的时候出现了，不可恢复，或者比较难处理的时候，
-git merge feature1 // 有时候当我们HEAD在commit的后面，也是需要用到的，当git checkout 'SHA-1值'，就可以用到 这种操作有一个专有称谓，叫做 "fast-forward"（快速前移）。
-
-git merge --abort // 恢复到git merge feature1前的状态 
-```
-
-
-
-##### 想看看提交记录？
-
-```
-git log  // 看日志 -p 是 `--patch` 的缩写，通过 `-p` 参数，你可以看到具体每个 `commit` 的改动细节：
-
-git log --stat // 这个看到的就是具体哪个文件，增删了多少行
-
-git show // 查看当前commit 的变化
-
-git status // 查看当前本地仓库的改动
-```
-
-#### checkout （签出）
-
-`checkout` 并不止可以切换 `branch`。`checkout` 本质上的功能其实是：签出（ checkout ）指定的 `commit`。
-
-```
-git checkout branch2
-git checkout HEAD^^
-git checkout master~5
-git checkout 78a4bc
-git checkout 78a4bc^
-```
 
 1.有时候签出会导致 HEAD detached at 某个commit（ac44870），这时候的操作就是切换到这个commit上面新建分支，加进缓存区，commit 一下。切回来想要的分支上面，合并分支。删除刚刚新建的分支即可
 
@@ -356,99 +264,42 @@ git checkout 78a4bc^
 
 
 
-#### reset
+### git tag
 
-​	reset的原理是什么？
-
-​	实质上，`reset` 这个指令虽然可以用来撤销 `commit` ，但它的实质行为并不是撤销，而是移动 `HEAD` ，并且「捎带」上 `HEAD` 所指向的 `branch`（如果有的话）。也就是说，`reset` 这个指令的行为其实和它的字面意思 "reset"（重置）十分相符：它是用来重置 `HEAD` 以及它所指向的 `branch` 的位置的。
-
-#### 	注意点
-
-```
-当你准备使用reset的时候，
-	1.记得加上缓存区。免得丢失的东西，只能重写。
-	2.如果使用了相关的重置命令，但是啥也没动，发现自己弄错了，记住把所有的操作撤销回来，git pull。又回到初始状态。
-	3.git push 会报错 ，当你回退后怎么提交呢 ？ 
-		这个错误是因为本地与远程的版本(文件)不相同，你可以先 pull 本地即可。
-	 具体流程 撤销commit无论远程还是本地，优先本地撤销，然后再到远程撤销。 然后提交的时候需要先拉下来。再提交
-    git reset --hard HEAD^
-    git pull origin 分支名操作 // 如果不放心可以先拉下来看看异同点，在提交也是可以的
-   	// 1.也可以巧用看完没啥问题 git merge --abort，直接执行下面命令硬推上去
-   	// 2.自己手动解决，采用当前更改。 然后push上去也是可以的，反而这种更受别人欢迎，更加安全。
-  	git push origin 分支名操作 -f
-	
-```
-
- ##### 	项目回滚
-
- `reset --hard HEAD^` 之所以起到了撤销 `commit` 的效果，是因为它把 `HEAD` 和它所指向的 `branch` 一起移动到了当前 `commit` 的父 `commit` 上，从而起到了「撤销」的效果：
-
-```
-  git reset --hard 目标commit // 退回来具体的commit
-  git reset --hard HEAD^ // 退回上一个commit
-  // 需要注意的是 前面的commit 还是存在的，我们如果记得SH-A值就可以去返回回去
-  
-  参数的不同。
-  1. 当没有参数的情况， 默认值 --mixed 
-  reset 不加参数：保留工作目录，并清空暂存区
-		reset 如果不加参数，那么默认使用 --mixed 参数。它的行为是：保留工作目录，并且清空暂存区。也就是说，工作目录的修改、暂存区的内容以及由 reset 所导致的新的文件差异，都会被放进工作目录。简而言之，就是「把所有差异都混合（mixed）放在工作目录中」。
-		白话文：现在有两个commit 。暂存区还有东西没有commit。这时候 git reset HEAD^，就会把最新的commit 保存起来，暂存区的东西还是放在暂存区。内容基本不变，上一个commit。但是代码不变
-  
-  2. reset --hard：重置工作目录（个人感觉用处最大。）
-		reset --hard 会在重置 HEAD 和 branch 的同时，重置工作目录里的内容。当你在 reset 后面加了 --hard 参数时，你的工作目录里的内容会被完全重置为和 HEAD 的新位置相同的内容。换句话说，就是你的未提交的修改会被全部擦掉。
-		白话文：现在有两个commit 。暂存区还有东西没有commit。这时候 git reset --hard HEAD^，就会把最新的commit 和暂存区的东西丢掉。恢复到第一条commit所做的修改。
-		
-	3. reset --soft：保留工作目录
-	reset --soft 会在重置 HEAD 和 branch 时，保留工作目录和暂存区中的内容，并把重置 HEAD 所带来的新的差异放进暂存区。
-	白话文：现在有两个commit 。暂存区还有东西没有commit。这时候 git reset --soft HEAD^，就会把最新的commit 保存起来，暂存区的东西还是放在暂存区。内容基本不变，代码回去了上一个commit的代码。
-```
-
-##### revert（恢复）
-
-​	git revert 撤销 某次操作，此次操作之前和之后的commit会保留，并且把这次撤销作为一次最新的提交。
-
-​	git revert是提交一个新的版本，将需要revert的版本的内容再反向修改回去，
-​	版本会递增，不影响之前提交的内容
-
-```
-git revert HEAD // 撤销前一次 commit
-git revert HEAD^ //	 撤销前前一次 commit
+用于给commit 打上 tag
 
 ```
 
-### revert和reset区别
-
-- git revert是用一次新的commit来回滚之前的commit，git reset是直接删除指定的commit。 
-- . git reset 是把HEAD向后移动了一下，而git revert是HEAD继续前进，只是新的commit的内容和要revert的内容正好相反，能够抵消要被revert的内容。
-- 那么结论是不是revert 更加安全？
-
-###   拓展
-
-##### gitflow工作流
-
-`Gitflow`工作流定义了一个围绕项目发布的严格分支模型。虽然比[功能分支工作流](https://github.com/oldratlee/translations/blob/master/git-workflows-and-tutorials/workflow-feature-branch.md)复杂几分，但提供了用于一个健壮的用于管理大型项目的框架。
-
-`Gitflow`工作流没有用超出功能分支工作流的概念和命令，而是为不同的分支分配一个很明确的角色，并定义分支之间如何和什么时候进行交互。 除了使用功能分支，在做准备、维护和记录发布也使用各自的分支（Production 分支、Develop 分支、Feature 分支、Release分支、Hotfix分支）。 当然你可以用上功能分支工作流所有的好处：`Pull Requests`、隔离实验性开发和更高效的协作。
-
-##### feature branching 工作流（功能分支工作流）
-
-每个新功能都新建一个 `branch`，目前世界上最流行的工作流。
-
-原因：这种工作流由于功能强大，而且概念和使用方式都很简单
-
-##### 中央式版本控制系统（Centralized VCS） VS 分布式版本控制系统（Distributed VCS）
-
-中央式版本控制系统 : 每次commit的代码都是放到**中央仓库**。
-
-分布式版本控制系统 ：中央仓库 每个开发者也有自己的仓库，开发者在需求没做完之前，可以提交到本地仓库，完成之后再提交到远程仓库。开发者相互不影响，更加符合开发标准。
+```
 
 
 
 ## 场景
 
+### 最基础的用法
+
+```
+git add .
+git commit -m"提交到本地仓库"
+git pull  // 先更新一下代码 pull 的内部操作其实是把远程仓库取到本地后（使用的是 fetch），再用一次 merge 来把远端仓库的新 commits 合并到本地
+git push // 将本地的 commits一起提交上去。
+```
+
+
+
 ### 远程分支删除后，本地仓库保持一致
 
+> 当需求开发完了，其他小伙伴删除分支，你这边本地是无法同步的，可以一个个删除，下面指令可以快速同步远程分支。
+
+```
+git fetch origin --prune
+```
+
+
+
 ### 提交信息(pre-msg)写错了
+
+
 
 ### 暂存区改为工作区
 
@@ -548,7 +399,7 @@ $ git log -n1 -p
 如果你的提交信息(commit message)写错了且这次提交(commit)还没有推(push), 你可以通过下面的方法来修改提交信息(commit message):
 
 ```
-$ git commit --amend --only
+  $ git commit --amend --only
 ```
 
 这会打开你的默认编辑器, 在这里你可以编辑信息. 另一方面, 你也可以用一条命令一次完成:
@@ -1838,3 +1689,28 @@ $ git push origin v0.0
 此时别人调用git pull更新代码之后，就能看到我们的tag。如下：
 
 ![图片](https://mmbiz.qpic.cn/mmbiz_png/GvtDGKK4uYmCxXGHl7ashxFG4jENCVIo31F2sibiboficqYpJW2r2onxfX9H6ict6ZFK1YnlY2P8VfXJIgCzF8GB8A/640?wx_fmt=png&wxfrom=5&wx_lazy=1&wx_co=1)
+
+
+
+
+
+##   拓展
+
+### gitflow工作流
+
+`Gitflow`工作流定义了一个围绕项目发布的严格分支模型。虽然比[功能分支工作流](https://github.com/oldratlee/translations/blob/master/git-workflows-and-tutorials/workflow-feature-branch.md)复杂几分，但提供了用于一个健壮的用于管理大型项目的框架。
+
+`Gitflow`工作流没有用超出功能分支工作流的概念和命令，而是为不同的分支分配一个很明确的角色，并定义分支之间如何和什么时候进行交互。 除了使用功能分支，在做准备、维护和记录发布也使用各自的分支（Production 分支、Develop 分支、Feature 分支、Release分支、Hotfix分支）。 当然你可以用上功能分支工作流所有的好处：`Pull Requests`、隔离实验性开发和更高效的协作。
+
+### feature branching 工作流（功能分支工作流）
+
+每个新功能都新建一个 `branch`，目前世界上最流行的工作流。
+
+原因：这种工作流由于功能强大，而且概念和使用方式都很简单
+
+### 中央式版本控制系统（Centralized VCS） VS 分布式版本控制系统（Distributed VCS）
+
+中央式版本控制系统 : 每次commit的代码都是放到**中央仓库**。
+
+分布式版本控制系统 ：中央仓库 每个开发者也有自己的仓库，开发者在需求没做完之前，可以提交到本地仓库，完成之后再提交到远程仓库。开发者相互不影响，更加符合开发标准。
+
