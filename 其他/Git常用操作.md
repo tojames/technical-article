@@ -4,13 +4,9 @@
 
 
 
-[官网]( https://git-scm.com/)、[廖雪峰老师讲解的 Git]( https://www.liaoxuefeng.com/wiki/896043488029600)，[练习Git](https://learngitbranching.js.org/?locale=zh_CN)
+[官网]( https://git-scm.com/)、[廖雪峰老师讲解的 Git]( https://www.liaoxuefeng.com/wiki/896043488029600)，[练习Git](https://learngitbranching.js.org/?locale=zh_CN)，[阮一峰老师](https://www.ruanyifeng.com/blog/2014/06/git_remote.html)
 
-
-
-缺一张图，
-
-什么命令都要加origin？
+![image-20220415092545810](images/image-20220415092545810.png)
 
 
 
@@ -34,14 +30,14 @@ git remote -v
 	origin	git@gitee.com:juice-ice/technical-article.git (fetch)
 	origin	git@gitee.com:juice-ice/technical-article.git (push)
 
-那我们 git push、git pull 都要加上 origin ？
+那我们 git push、git pull、get fetch 都要加上 origin ？
 	git push：
 		git push <remote> <branch>，当我们执行 git push，它会默认帮我们填写参数 git push origin master「假设我们在master 分支上」
-	git pull：
+	git pull、git fetch：
 		同理的
 	
 特殊：
-	当新的本地分支并没有提交到远程，这样使用这个方法是不行的，需要远程仓库和本地仓库，保持一种追踪关系，git push --set-upstream origin test「新的分支名」。这样后面就可以愉快的使用 git push 、 git pull
+	当新的本地分支并没有提交到远程，这样使用这个方法是不行的，需要远程仓库和本地仓库，保持一种追踪关系，之后就可以忽略本地分支和远程分支了，git push --set-upstream origin test「新的分支名」。这样后面就可以愉快的使用 git push 、 git pull
 
 注意：
 	你需要手动的将分支切换到你想进行操作的分支，这样才能取到默认的分支，不然你需要手动指出分支名
@@ -149,7 +145,7 @@ git show 「commit 的引用」，这样就可以去看这个 commit 改变了�
 git commit 将暂存区的内容生成一个 commit
 --all 简写 -a ：将已存在的文件 执行 git add . + git commit -a,但是新的文件，git是不会把它添加到暂存区，所以你 commit 之前最好 git add .
 --message 简写 -m：对这次 commit 进行描述，以后更加方便理解 commit 到底是什么内容
-
+--amend 用于修改提交的message
 ```
 
 
@@ -167,6 +163,12 @@ get merge feature1，
 	
 git merge --abort // 恢复到git merge feature1前的状态 
 ```
+
+
+
+### get fetch
+
+拉去远程仓库和本地仓库保持一致，默认是根据当前分支。
 
 
 
@@ -254,22 +256,9 @@ git revert HEAD,HEAD~1,HEAD~2 同时指定几个 commit
 它是用于切换 `commit`。
 
 - 当参数是  `branchName` 的时候，将会切换到这个分支所指向 `commit`
-- 当参数是 `commit id` 的时候，将会切换到这个 `commit` 上
+- 当参数是 `commit id` 的时候，将会切换到这个 `commit` 上会导致 HEAD detached，没有依赖分支
 
-可以切换。`checkout` 本质上的功能其实是：签出（ checkout ）指定的 `commit`。
-
-
-
-1.有时候签出会导致 HEAD detached at 某个commit（ac44870），这时候的操作就是切换到这个commit上面新建分支，加进缓存区，commit 一下。切回来想要的分支上面，合并分支。删除刚刚新建的分支即可
-
-```
-1.git branch temp ac44870
-2.git add .
-3.git commit -m"提交代码"
-4.git checkout master // 别看我这个master 我在练手
-5.git merge temp
-6.git branch -d temp
-```
+`checkout` 本质上是：切换到指定的 `commit`。
 
 
 
@@ -289,6 +278,8 @@ git stash pop === git stash drop stash@{0}
 ```
 
 
+
+### git cherry-pick
 
 
 
@@ -409,167 +400,7 @@ git reset --hard commit id 只需要将 commit 重置回去即可
 
 
 
-
-
----------------------------------------------------------------------
-
-
-
-### 我想丢弃本地未提交的变化(uncommitted changes)
-
-如果你只是想重置源(origin)和你本地(local)之间的一些提交(commit)，你可以：
-
-```
-# one commit
-(my-branch)$ git reset --hard HEAD^
-# two commits
-(my-branch)$ git reset --hard HEAD^^
-# four commits
-(my-branch)$ git reset --hard HEAD~4
-# or
-(main)$ git checkout -f
-```
-
-重置某个特殊的文件, 你可以用文件名做为参数:
-
-```
-$ git reset filename
-```
-
-### 我想丢弃某些未暂存的内容
-
-如果你想丢弃工作拷贝中的一部分内容，而不是全部。
-
-签出(checkout)不需要的内容，保留需要的。
-
-```
-$ git checkout -p
-# Answer y to all of the snippets you want to drop
-```
-
-另外一个方法是使用 `stash`， Stash所有要保留下的内容, 重置工作拷贝, 重新应用保留的部分。
-
-```
-$ git stash -p
-# Select all of the snippets you want to save
-$ git reset --hard
-$ git stash pop
-```
-
-或者, stash 你不需要的部分, 然后stash drop。
-
-```
-$ git stash -p
-# Select all of the snippets you don't want to save
-$ git stash drop
-```
-
-## **分支(Branches)**
-
-### 我从错误的分支拉取了内容，或把内容拉取到了错误的分支
-
-这是另外一种使用 `git reflog` 情况，找到在这次错误拉(pull) 之前HEAD的指向。
-
-```
-(main)$ git reflog
-ab7555f HEAD@{0}: pull origin wrong-branch: Fast-forward
-c5bc55a HEAD@{1}: checkout: checkout message goes here
-```
-
-重置分支到你所需的提交(desired commit):
-
-```
-$ git reset --hard c5bc55a
-```
-
-完成。
-
-### 我想扔掉本地的提交(commit)，以便我的分支与远程的保持一致
-
-先确认你没有推(push)你的内容到远程。
-
-`git status` 会显示你领先(ahead)源(origin)多少个提交:
-
-```
-(my-branch)$ git status
-# On branch my-branch
-# Your branch is ahead of 'origin/my-branch' by 2 commits.
-#   (use "git push" to publish your local commits)
-#
-```
-
-一种方法是:
-
-```
-(main)$ git reset --hard origin/my-branch
-```
-
-### 我需要提交到一个新分支，但错误的提交到了main
-
-在main下创建一个新分支，不切换到新分支,仍在main下:
-
-```
-(main)$ git branch my-branch
-```
-
-把main分支重置到前一个提交:
-
-```
-(main)$ git reset --hard HEAD^
-```
-
-`HEAD^` 是 `HEAD^1` 的简写，你可以通过指定要设置的`HEAD`来进一步重置。
-
-或者, 如果你不想使用 `HEAD^`, 找到你想重置到的提交(commit)的hash(`git log`能够完成)， 然后重置到这个hash。使用`git push` 同步内容到远程。
-
-例如, main分支想重置到的提交的hash为`a13b85e`:
-
-```
-(main)$ git reset --hard a13b85e
-HEAD is now at a13b85e
-```
-
-签出(checkout)刚才新建的分支继续工作:
-
-```
-(main)$ git checkout my-branch
-```
-
-### 我想保留来自另外一个ref-ish的整个文件
-
-假设你正在做一个原型方案(原文为working spike (see note)), 有成百的内容，每个都工作得很好。现在, 你提交到了一个分支，保存工作内容:
-
-```
-(solution)$ git add -A && git commit -m "Adding all changes from this spike into one big commit."
-```
-
-当你想要把它放到一个分支里 (可能是`feature`, 或者 `develop`), 你关心是保持整个文件的完整，你想要一个大的提交分隔成比较小。
-
-假设你有:
-
-- 分支 `solution`, 拥有原型方案， 领先 `develop` 分支。
-- 分支 `develop`, 在这里你应用原型方案的一些内容。
-
-我去可以通过把内容拿到你的分支里，来解决这个问题:
-
-```
-(develop)$ git checkout solution -- file1.txt
-```
-
-这会把这个文件内容从分支 `solution` 拿到分支 `develop` 里来:
-
-```
-# On branch develop
-# Your branch is up-to-date with 'origin/develop'.
-# Changes to be committed:
-#  (use "git reset HEAD <file>..." to unstage)
-#
-#        modified:   file1.txt
-```
-
-然后, 正常提交。
-
-Note: Spike solutions are made to analyze or solve the problem. These solutions are used for estimation and discarded once everyone gets clear visualization of the problem.
+-----
 
 ### 我把几个提交(commit)提交到了同一个分支，而这些提交应该分布在不同的分支里
 
