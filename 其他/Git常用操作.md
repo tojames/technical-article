@@ -16,6 +16,11 @@
 
 - 当不确定 git 命令是否正确，请拷贝一份项目并记得不要推到远程，如果已推送并代码不是你想要的，请使用副本强制推送覆盖代码
 - 当你需要回滚的时候，如果不是必要的，请优先选择添加一个 commit 来修改代码，虽然low，这很安全
+- 在本地你可以肆意使用你的命令，请确保正确的代码推送远程
+- 命令把仓库搞坏了？
+  - 使用刚刚创建的副本
+  - 或者重新clone 
+
 
 
 
@@ -48,7 +53,7 @@ git remote -v
 
 它是指向 `commit` 的引用，正在操作的commit在哪里，HEAD就在哪里，但是 `commit` 一定是在分支上「比如 master」所以 `HEAD` 先是指向 `branch`,`branch` 再去指向`commit` ，提交时它会自动向前移动到最新的 `commit` ，改变 commit  的指向就可以改变HEAD「checkout，reset、revert、rebase...」。
 
-`符号`：HEAD~  === HEAD^， ～ 或 ^ 代表是往前面数多少个 `commit`，数量多可使用 `HEAD^10`，通用支持这种`HEAD@{10}`
+`符号`：HEAD~  === HEAD^， ～ 或 ^ 代表是往前面数多少个 `commit`，数量多可使用 `HEAD～10`，通用支持这种`HEAD@{10}`
 
 特殊点：当 commit 不在分支的情况，checkout commit 的时候，它是脱离了分支的，`git`  会提示`detached HEAD`。
 
@@ -284,9 +289,21 @@ git stash pop === git stash drop stash@{0}
 
 它将指定的 `commit` 移动到其他的分支
 
+**注意：很容易冲突，`git add .`， 再 `git cherry-pick --continue`，当以后所有 `commit ` 合并一起时会冲突的。  **
+
 ```
-git cherry-pick <commitIdA> <commitIdB> 在仓库中找到 commitIdA、commitIdB  然后把那些 commit 内容挪过来
-git cherry-pick <commitIdA>..<commitIdB> 把 commitIdA 到 commitIdB 中的内容挪过来。
+git cherry-pick <commitIdA> 在仓库中找到 commitIdA，到它所在分支最新的commit， 然后把那些 commit 内容挪过来
+git cherry-pick ^<commitIdA>..<commitIdB> 在仓库中找到把 commitIdA 到 commitIdB 中的内容挪过来,两边都是闭区间。
+
+
+git cherry-pick --abort 当执行上面操作后发现出错了，可以撤销刚刚的操作
+git cherry-pick --continue 当执行上面操作出冲突了，可以先解决 git add . 再继续执行
+git cherry-pick --quit     退出当前的chery-pick序列
+-n, --no-commit       不自动提交，把内容放在暂存区和工作区
+-e, --edit            编辑提交信息
+
+它的合并策略是这样的？
+	比如：现在 1，2，3 个提交。 1，3 都是修改了一个文件，2是新增了一个文件。这时候 git cherry-pick 3的话，就会把 1，3 的内容合并过去。git cherry-pick 1 或者 2 的话，是只会合并一个。这种策略是合理的，当一个文件修改后，肯定是最后一次是你想要的。
 ```
 
 
@@ -408,6 +425,7 @@ git checkout filename === git reset filename
 git reflog // 查看你丢失的commit id，reflog 这个东西能记住，是有一定的条件的，比如不要关机，或者失效性，所以有时候你是恢复不了的
 
 git reset --hard commit id 只需要将 commit 重置回去即可
+这时候 commits 会丢失分支，这种情况可以考虑使用创建分支，然后合并回去
 ```
 
 
@@ -422,76 +440,6 @@ git rebase -i HEAD～num
 进入交互页面，将pick 改为 fixup，意思就是将 commit message 这个log 丢了。但是内容不变。
 git push -f
 ```
-
-
-
------
-
-### 我把几个提交(commit)提交到了同一个分支，而这些提交应该分布在不同的分支里
-
-假设你有一个`main`分支， 执行`git log`, 你看到你做过两次提交:
-
-```
-(main)$ git log
-
-commit e3851e817c451cc36f2e6f3049db528415e3c114
-Author: Alex Lee <alexlee@example.com>
-Date:   Tue Jul 22 15:39:27 2014 -0400
-
-    Bug #21 - Added CSRF protection
-
-commit 5ea51731d150f7ddc4a365437931cd8be3bf3131
-Author: Alex Lee <alexlee@example.com>
-Date:   Tue Jul 22 15:39:12 2014 -0400
-
-    Bug #14 - Fixed spacing on title
-
-commit a13b85e984171c6e2a1729bb061994525f626d14
-Author: Aki Rose <akirose@example.com>
-Date:   Tue Jul 21 01:12:48 2014 -0400
-
-    First commit
-```
-
-让我们用提交hash(commit hash)标记bug (`e3851e8` for #21, `5ea5173` for #14).
-
-首先, 我们把`main`分支重置到正确的提交(`a13b85e`):
-
-```
-(main)$ git reset --hard a13b85e
-HEAD is now at a13b85e
-```
-
-现在, 我们对 bug #21 创建一个新的分支:
-
-```
-(main)$ git checkout -b 21
-(21)$
-```
-
-接着, 我们用 *cherry-pick* 把对bug #21的提交放入当前分支。这意味着我们将应用(apply)这个提交(commit)，仅仅这一个提交(commit)，直接在HEAD上面。
-
-```
-(21)$ git cherry-pick e3851e8
-```
-
-这时候, 这里可能会产生冲突， 参见交互式 rebasing 章 **冲突节** 解决冲突.
-
-再者， 我们为bug #14 创建一个新的分支, 也基于`main`分支
-
-```
-(21)$ git checkout main
-(main)$ git checkout -b 14
-(14)$
-```
-
-最后, 为 bug #14 执行 `cherry-pick`:
-
-```
-(14)$ git cherry-pick 5ea5173
-```
-
-
 
 
 
@@ -514,4 +462,3 @@ HEAD is now at a13b85e
 中央式版本控制系统 : 每次commit的代码都是放到**中央仓库**。
 
 分布式版本控制系统 ：中央仓库 每个开发者也有自己的仓库，开发者在需求没做完之前，可以提交到本地仓库，完成之后再提交到远程仓库。开发者相互不影响，更加符合开发标准。
-
