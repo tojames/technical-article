@@ -176,6 +176,11 @@ git merge --abort // 恢复到git merge feature1前的状态
 
 拉去远程仓库和本地仓库保持一致，默认是根据当前分支。
 
+```
+git fetch  获取当前分支的最新代码
+git fetch --all 获取所有分支的最新代码
+```
+
 
 
 ### git pull
@@ -350,7 +355,7 @@ git fetch origin --prune
 > 当提交信息写的不规范的时候，需要重新修改，覆盖旧的提交信息。
 
 ``` 
-git commit --amend  这个命令的缺点就是只能修改最新的commit
+git commit --amend  这个命令的缺点就是只能修改最新的commit，并且 commitId 是会被修改的
 将会进去一个可修改的终端页面，这时候你修改完毕就可以了。
 如果你已经推上远程仓库了，这时候需要使用 git push -f
 ```
