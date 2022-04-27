@@ -140,7 +140,7 @@ git show 「commit 的引用」，这样就可以去看这个 commit 改变了�
 > git checkout 切换 commit 和 切换 branch 
 
 ```
--b 真的是创建那么简单吗
+git checkout -b branchName 创建分支并切换
 ```
 
 
