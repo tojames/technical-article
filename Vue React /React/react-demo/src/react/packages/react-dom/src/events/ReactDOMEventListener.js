@@ -96,6 +96,11 @@ export function createEventListenerWrapperWithPriority(
   domEventName: DOMEventName,
   eventSystemFlags: EventSystemFlags,
 ): Function {
+  // 根据事件名，通过map，得到 eventPriority
+  // 1.DiscreteEvent：cancel、click、copy、doubleClick 等等，优先级最高，依次递减
+  // 2.UserBlockingEvent：drag、mouseMove、toggle
+  // 3.ContinuousEvent：abort、canplay
+  // 当 react 没有捕获到事件的优先级，将会以 ContinuousEvent 事件作为处理
   const eventPriority = getEventPriorityForPluginSystem(domEventName);
   let listenerWrapper;
   switch (eventPriority) {
@@ -118,12 +123,7 @@ export function createEventListenerWrapperWithPriority(
   );
 }
 
-function dispatchDiscreteEvent(
-  domEventName,
-  eventSystemFlags,
-  container,
-  nativeEvent,
-) {
+function dispatchDiscreteEvent(domEventName,eventSystemFlags,container,nativeEvent) {
   if (
     !enableLegacyFBSupport ||
     // If we are in Legacy FB support mode, it means we've already
@@ -141,44 +141,35 @@ function dispatchDiscreteEvent(
   );
 }
 
-function dispatchUserBlockingUpdate(
-  domEventName,
-  eventSystemFlags,
-  container,
-  nativeEvent,
-) {
+function dispatchUserBlockingUpdate(domEventName,eventSystemFlags,container,nativeEvent) {
+  // Replacement for runWithPriority in React internals.
+  // export const decoupleUpdatePriorityFromScheduler = false;
   if (decoupleUpdatePriorityFromScheduler) {
     const previousPriority = getCurrentUpdateLanePriority();
     try {
       // TODO: Double wrapping is necessary while we decouple Scheduler priority.
+      //  export const InputContinuousLanePriority: LanePriority = 10;
+      /*  export function setCurrentUpdateLanePriority(newLanePriority: LanePriority) {
+            currentUpdateLanePriority = newLanePriority;
+          } */
+      // 设置当前优先级
       setCurrentUpdateLanePriority(InputContinuousLanePriority);
       runWithPriority(
         UserBlockingPriority,
-        dispatchEvent.bind(
-          null,
-          domEventName,
-          eventSystemFlags,
-          container,
-          nativeEvent,
-        ),
-      );
+        dispatchEvent.bind(null,domEventName,eventSystemFlags,container,nativeEvent);)
     } finally {
+      // 恢复之前的优先级
       setCurrentUpdateLanePriority(previousPriority);
     }
   } else {
     runWithPriority(
       UserBlockingPriority,
-      dispatchEvent.bind(
-        null,
-        domEventName,
-        eventSystemFlags,
-        container,
-        nativeEvent,
-      ),
+      dispatchEvent.bind(null,domEventName,eventSystemFlags,container,nativeEvent ),
     );
   }
 }
 
+// 三类事件，触发都是通过这个方法，绑定参数
 export function dispatchEvent(
   domEventName: DOMEventName,
   eventSystemFlags: EventSystemFlags,
