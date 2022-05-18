@@ -156,7 +156,7 @@ function dispatchUserBlockingUpdate(domEventName,eventSystemFlags,container,nati
       setCurrentUpdateLanePriority(InputContinuousLanePriority);
       runWithPriority(
         UserBlockingPriority,
-        dispatchEvent.bind(null,domEventName,eventSystemFlags,container,nativeEvent);)
+        dispatchEvent.bind(null,domEventName,eventSystemFlags,container,nativeEvent))
     } finally {
       // 恢复之前的优先级
       setCurrentUpdateLanePriority(previousPriority);

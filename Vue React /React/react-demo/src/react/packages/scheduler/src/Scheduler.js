@@ -217,6 +217,7 @@ function workLoop(hasTimeRemaining, initialTime) {
   }
 }
 
+// 触发事件在这里执行，带着优先级执行
 function unstable_runWithPriority(priorityLevel, eventHandler) {
   switch (priorityLevel) {
     case ImmediatePriority:

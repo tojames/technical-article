@@ -201,7 +201,7 @@ function legacyRenderSubtreeIntoContainer(
     }
     // Initial mount should not be batched.
     // console.log('children',children); // <App/>
-    // console.log('fiberRoot',fiberRoot); // FiberRootNode
+    console.log('fiberRoot',fiberRoot); // FiberRootNode
     // console.log('parentComponent',parentComponent); // parentComponent null
     // console.log('callback',callback); // callback undefined
    // 当调用unbatchedUpdates的时候就会调用这个updateContainer，去到 Reconciler中处理更新优先级，更新队列等等问题。

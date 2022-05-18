@@ -208,6 +208,7 @@ const classComponentUpdater = {
     }
 
     enqueueUpdate(fiber, update);
+    // 进去调度
     scheduleUpdateOnFiber(fiber, lane, eventTime);
 
     if (__DEV__) {

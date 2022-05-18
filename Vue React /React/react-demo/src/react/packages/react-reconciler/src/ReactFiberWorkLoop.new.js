@@ -406,6 +406,7 @@ export function requestUpdateLane(fiber: Fiber): Lane {
   if ((mode & BlockingMode) === NoMode) {
     return (SyncLane: Lane);
   } else if ((mode & ConcurrentMode) === NoMode) {
+  
     return getCurrentPriorityLevel() === ImmediateSchedulerPriority
       ? (SyncLane: Lane)
       : (SyncBatchedLane: Lane);
@@ -457,6 +458,7 @@ export function requestUpdateLane(fiber: Fiber): Lane {
 
   // TODO: Remove this dependency on the Scheduler priority.
   // To do that, we're replacing it with an update lane priority.
+    // 获取 Schedule 中的 事件优先级
   const schedulerPriority = getCurrentPriorityLevel();
 
   // The old behavior was using the priority level of the Scheduler.
@@ -471,6 +473,7 @@ export function requestUpdateLane(fiber: Fiber): Lane {
     (executionContext & DiscreteEventContext) !== NoContext &&
     schedulerPriority === UserBlockingSchedulerPriority
   ) {
+    // 如果事件优先级是用户阻塞级别，则直接用InputDiscreteLanePriority去计算更新优先级
     lane = findUpdateLane(InputDiscreteLanePriority, currentEventWipLanes);
   } else {
     const schedulerLanePriority = schedulerPriorityToLanePriority(
