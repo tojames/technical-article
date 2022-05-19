@@ -419,10 +419,7 @@ function computeExpirationTime(lane: Lane, currentTime: number) {
   }
 }
 
-export function markStarvedLanesAsExpired(
-  root: FiberRoot,
-  currentTime: number,
-): void {
+export function markStarvedLanesAsExpired( root: FiberRoot, currentTime: number): void {
   // TODO: This gets called every time we yield. We can optimize by storing
   // the earliest expiration time on the root. Then use that to quickly bail out
   // of this function.
@@ -436,7 +433,10 @@ export function markStarvedLanesAsExpired(
   // expiration time. If so, we'll assume the update is being starved and mark
   // it as expired to force it to finish.
   let lanes = pendingLanes;
+
   while (lanes > 0) {
+    // 得到32位2进制前面有多少个0，得到正在工作的赛道
+    // 31 - Math.clz32(lanes);
     const index = pickArbitraryLaneIndex(lanes);
     const lane = 1 << index;
 
@@ -450,13 +450,16 @@ export function markStarvedLanesAsExpired(
         (lane & pingedLanes) !== NoLanes
       ) {
         // Assumes timestamps are monotonically increasing.
+        // InputContinuousLanePriority：currentTime + 250
+        // priority >= TransitionPriority：currentTime + 5000
         expirationTimes[index] = computeExpirationTime(lane, currentTime);
       }
     } else if (expirationTime <= currentTime) {
       // This lane expired
+      // 出现这种情况说明任务已经到期了，将优先级最高的，lane 设置为expiredLanes，低优先级的等待下一轮更新
       root.expiredLanes |= lane;
     }
-
+    // 遍历所以的的赛道
     lanes &= ~lane;
   }
 }
@@ -700,11 +703,16 @@ export function markRootSuspended(root: FiberRoot, suspendedLanes: Lanes) {
   const expirationTimes = root.expirationTimes;
   let lanes = suspendedLanes;
   while (lanes > 0) {
+    // 得到32位2进制前面有多少个0，得到正在工作的赛道
+    // 31 - Math.clz32(lanes);
     const index = pickArbitraryLaneIndex(lanes);
     const lane = 1 << index;
 
+    // 将这些赛道赋值为NoTimestamp
     expirationTimes[index] = NoTimestamp;
 
+    // lane取反， 与运算，再赋值
+    // 赛道就可以选择到数字越来越小的
     lanes &= ~lane;
   }
 }

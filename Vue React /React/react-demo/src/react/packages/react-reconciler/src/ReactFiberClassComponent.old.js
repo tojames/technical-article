@@ -195,6 +195,7 @@ const classComponentUpdater = {
   enqueueSetState(inst, payload, callback) {
     const fiber = getInstance(inst);
     const eventTime = requestEventTime();
+    // 获取优先级
     const lane = requestUpdateLane(fiber);
 
     const update = createUpdate(eventTime, lane);

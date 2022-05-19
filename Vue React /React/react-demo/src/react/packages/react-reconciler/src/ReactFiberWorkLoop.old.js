@@ -625,6 +625,7 @@ export function scheduleUpdateOnFiber(
       }
     }
     // Schedule other updates after in case the callback is sync.
+    // 调度更新任务，需要通过优先级判断存在的更新任务
     ensureRootIsScheduled(root, eventTime);
     schedulePendingInteractions(root, lane);
   }
@@ -693,12 +694,13 @@ function ensureRootIsScheduled(root: FiberRoot, currentTime: number) {
 
   // Check if any lanes are being starved by other work. If so, mark them as
   // expired so we know to work on those next.
+  // 处理饥饿任务，直接赋值在 root.expiredLanes
   markStarvedLanesAsExpired(root, currentTime);
 
   // Determine the next lanes to work on, and their priority.
   const nextLanes = getNextLanes(
     root,
-    root === workInProgressRoot ? workInProgressRootRenderLanes : NoLanes,
+    root === workInProgressRoot ? workIn ProgressRootRenderLanes : NoLanes,
   );
   // This returns the priority level computed during the `getNextLanes` call.
   const newCallbackPriority = returnNextLanesPriority();
