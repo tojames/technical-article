@@ -459,7 +459,8 @@ export function requestUpdateLane(fiber: Fiber): Lane {
 
   // TODO: Remove this dependency on the Scheduler priority.
   // To do that, we're replacing it with an update lane priority.
-  const schedulerPriority = getCurrentPriorityLevel();
+  // 97，根据调度优先级来获得，用于获取更新优先级，不同是因为避免冲突，不用老是取shdule中获取
+  const schedulerPriority = getCurrentPriorityLevel(); 
 
   // The old behavior was using the priority level of the Scheduler.
   // This couples React to the Scheduler internals, so we're replacing it
@@ -468,6 +469,7 @@ export function requestUpdateLane(fiber: Fiber): Lane {
   // then we'll get the priority of the current running Scheduler task,
   // which is probably not what we want.
   let lane;
+  debugger
   if (
     // TODO: Temporary. We're removing the concept of discrete updates.
     (executionContext & DiscreteEventContext) !== NoContext &&
@@ -475,10 +477,10 @@ export function requestUpdateLane(fiber: Fiber): Lane {
   ) {
     lane = findUpdateLane(InputDiscreteLanePriority, currentEventWipLanes);
   } else {
-
+    // 根据刚刚拿到的优先级，获取调度优先级转换为lane
     const schedulerLanePriority = schedulerPriorityToLanePriority(
-      schedulerPriority);
-    debugger
+      schedulerPriority); // 8
+    // debugger
 
     if (decoupleUpdatePriorityFromScheduler) {
       // In the new strategy, we will track the current update lane priority
@@ -499,7 +501,7 @@ export function requestUpdateLane(fiber: Fiber): Lane {
         }
       }
     }
-
+    // 更新优先级，更具调度优先对应的lane中，从高到低依次占用空闲位的操作
     lane = findUpdateLane(schedulerLanePriority, currentEventWipLanes);
   }
 
@@ -528,11 +530,7 @@ function requestRetryLane(fiber: Fiber) {
   return findRetryLane(currentEventWipLanes);
 }
 
-export function scheduleUpdateOnFiber(
-  fiber: Fiber,
-  lane: Lane,
-  eventTime: number,
-) {
+export function scheduleUpdateOnFiber(fiber: Fiber,lane: Lane,eventTime: number) {
   // 检查更新的次数是否循环超过react限制的次数，一般是开发者使用重复渲染就会导致报错
   checkForNestedUpdates();
   // 提示函数组件、类组件的一些常犯的错误，比如函数组件不能使用setState、类组件的 return 必须是一个纯函数。

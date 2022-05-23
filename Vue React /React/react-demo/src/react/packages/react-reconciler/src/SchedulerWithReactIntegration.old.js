@@ -90,6 +90,10 @@ const initialTimeMs: number = Scheduler_now();
 export const now =
   initialTimeMs < 10000 ? Scheduler_now : () => Scheduler_now() - initialTimeMs;
 
+  // function unstable_getCurrentPriorityLevel() {
+  //   return currentPriorityLevel;
+  // } Scheduler_getCurrentPriorityLevel 获取存储在 Schedule 的方法优先级
+
 export function getCurrentPriorityLevel(): ReactPriorityLevel {
   switch (Scheduler_getCurrentPriorityLevel()) {
     case Scheduler_ImmediatePriority:

@@ -198,8 +198,9 @@ const classComponentUpdater = {
     // 获取优先级
     const lane = requestUpdateLane(fiber);
     console.log(lane,"lane");
-
+    // 根据 eventTime 和 lane 创建更新对象
     const update = createUpdate(eventTime, lane);
+    // payload作为更新参数
     update.payload = payload;
     if (callback !== undefined && callback !== null) {
       if (__DEV__) {
@@ -207,7 +208,7 @@ const classComponentUpdater = {
       }
       update.callback = callback;
     }
-    // 处理更新队列
+    // 将 update 推进队列
     enqueueUpdate(fiber, update);
     // 调度更新，从 render 阶段开始
     scheduleUpdateOnFiber(fiber, lane, eventTime);
