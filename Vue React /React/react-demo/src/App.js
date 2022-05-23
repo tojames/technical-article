@@ -41,17 +41,18 @@ class OriginDemo extends Component {
   }
   componentDidMount() {
     this.setState({ count: 1 })
-    this.setState({ count: 2 })
-    this.setState({ count: 3 })
-    // const button = this.buttonRef.current
-    // setTimeout(
-    //   () =>
-    //     this.setState({ count: 1 }, () => {
-    //       console.log("hello")
-    //     }),
-    //   500
-    // )
-    // setTimeout(() => button.click(), 600)
+    // this.setState({ count: 2 })
+    // this.setState({ count: 3 })
+    const button = this.buttonRef.current
+    setTimeout(
+      () =>
+        this.setState({ count: 1 }, () => {
+          console.log("hello")
+        }),
+      500
+    )
+    debugger
+    setTimeout(() => button.click(), 0)
     //   A2是常规优先级的更新，A1是button.click()产生高优先级的更新。
     //   A后边的数字表示优先级，lane模型中，越小优先级越高，1 > 2。
     //   updateQueue：A2 - A1
