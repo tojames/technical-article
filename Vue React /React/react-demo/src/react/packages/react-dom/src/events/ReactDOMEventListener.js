@@ -96,6 +96,7 @@ export function createEventListenerWrapperWithPriority(
   domEventName: DOMEventName,
   eventSystemFlags: EventSystemFlags,
 ): Function {
+
   // 根据事件名，通过map，得到 eventPriority
   // 1.DiscreteEvent：cancel、click、copy、doubleClick 等等，优先级最高，依次递减
   // 2.UserBlockingEvent：drag、mouseMove、toggle
@@ -132,6 +133,12 @@ function dispatchDiscreteEvent(domEventName,eventSystemFlags,container,nativeEve
   ) {
     flushDiscreteUpdatesIfNeeded(nativeEvent.timeStamp);
   }
+  // console.log(domEventName,eventSystemFlags,container,nativeEvent,"nativeEvent");
+  // dispatchEvent：触发事件函数
+  // domEventName：触发事件的名字 click
+  // eventSystemFlags：4
+  // container：事件是挂载在容器上 <div id="root"></div> 
+  // nativeEvent： 原生事件对象
   discreteUpdates(
     dispatchEvent,
     domEventName,
@@ -176,6 +183,7 @@ export function dispatchEvent(
   targetContainer: EventTarget,
   nativeEvent: AnyNativeEvent,
 ): void {
+  // debugger
   if (!_enabled) {
     return;
   }
@@ -207,16 +215,18 @@ export function dispatchEvent(
     return;
   }
 
+  // 通过事件系统触发方法
   const blockedOn = attemptToDispatchEvent(
     domEventName,
     eventSystemFlags,
     targetContainer,
     nativeEvent,
   );
-
+  // 触发成功
   if (blockedOn === null) {
     // We successfully dispatched this event.
     if (allowReplay) {
+      // 清除事件的副作用
       clearIfContinuousEvent(domEventName, nativeEvent);
     }
     return;
