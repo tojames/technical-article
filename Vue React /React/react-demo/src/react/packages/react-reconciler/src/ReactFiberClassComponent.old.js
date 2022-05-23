@@ -197,6 +197,7 @@ const classComponentUpdater = {
     const eventTime = requestEventTime();
     // 获取优先级
     const lane = requestUpdateLane(fiber);
+    console.log(lane,"lane");
 
     const update = createUpdate(eventTime, lane);
     update.payload = payload;

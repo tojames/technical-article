@@ -401,6 +401,7 @@ export function requestUpdateLane(fiber: Fiber): Lane {
   // 异步更新
   else if ((mode & ConcurrentMode) === NoMode) {
     // export const SyncBatchedLane: Lane = /*                 */ 0b0000000000000000000000000000010;
+    console.log(getCurrentPriorityLevel(),"getCurrentPriorityLevel()");
     return getCurrentPriorityLevel() === ImmediateSchedulerPriority
       ? (SyncLane: Lane)
       : (SyncBatchedLane: Lane);
@@ -474,9 +475,10 @@ export function requestUpdateLane(fiber: Fiber): Lane {
   ) {
     lane = findUpdateLane(InputDiscreteLanePriority, currentEventWipLanes);
   } else {
+
     const schedulerLanePriority = schedulerPriorityToLanePriority(
-      schedulerPriority,
-    );
+      schedulerPriority);
+    debugger
 
     if (decoupleUpdatePriorityFromScheduler) {
       // In the new strategy, we will track the current update lane priority
@@ -1180,6 +1182,7 @@ export function discreteUpdates<A, B, C, D, R>(
   d: D,
 ): R {
   const prevExecutionContext = executionContext;
+
   executionContext |= DiscreteEventContext;
 
   if (decoupleUpdatePriorityFromScheduler) {
@@ -1201,6 +1204,7 @@ export function discreteUpdates<A, B, C, D, R>(
     }
   } else {
     try {
+      // 最终会走到这里
       return runWithPriority(
         UserBlockingSchedulerPriority,
         fn.bind(null, a, b, c, d),

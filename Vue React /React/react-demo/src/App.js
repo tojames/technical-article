@@ -1,11 +1,19 @@
-import { createRef, version, Component, useState, useEffect, useReducer, useMemo } from "react"
+import {
+  createRef,
+  version,
+  Component,
+  useState,
+  useEffect,
+  useReducer,
+  useMemo,
+} from "react";
 
 export default function App() {
   const handleCount = (e) => {
-    setCount((count) => count + 1)
-  }
+    setCount((count) => count + 1);
+  };
 
-  const [count, setCount] = useState(1)
+  const [count, setCount] = useState(1);
 
   return (
     <div>
@@ -13,7 +21,7 @@ export default function App() {
       <OriginDemo></OriginDemo>
       <button onClick={handleCount}> 按钮 </button>
     </div>
-  )
+  );
 }
 
 // class TestClass extends Component {
@@ -33,25 +41,25 @@ export default function App() {
 
 class OriginDemo extends Component {
   constructor(props) {
-    super(props)
-    this.buttonRef = createRef()
+    super(props);
+    this.buttonRef = createRef();
   }
   state = {
     count: 0,
-  }
+  };
   componentDidMount() {
-    this.setState({ count: 1 })
-    this.setState({ count: 2 })
-    this.setState({ count: 3 })
-    // const button = this.buttonRef.current
-    // setTimeout(
-    //   () =>
-    //     this.setState({ count: 1 }, () => {
-    //       console.log("hello")
-    //     }),
-    //   500
-    // )
-    // setTimeout(() => button.click(), 600)
+    this.setState({ count: 1 });
+
+    const button = this.buttonRef.current;
+    setTimeout(
+      () =>
+        this.setState({ count: 1 }, () => {
+          console.log("hello");
+        }),
+      500
+    );
+    // debugger;
+    setTimeout(() => button.click(), 0);
     //   A2是常规优先级的更新，A1是button.click()产生高优先级的更新。
     //   A后边的数字表示优先级，lane模型中，越小优先级越高，1 > 2。
     //   updateQueue：A2 - A1
@@ -68,15 +76,19 @@ class OriginDemo extends Component {
     //               1   +2
     //     Result state: 3
   }
+
   handleButtonClick = () => {
+    debugger;
     this.setState((prevState) => {
-      return { count: prevState.count + 2 }
-    })
-  }
+      return { count: prevState.count + 2 };
+    });
+  };
   render() {
     return (
       <div className={"origin-demo"}>
-        <p>不需要点击这个按钮，这个按钮是交给js去模拟点击用的，模拟点击之后产生的是高优先级任务</p>
+        <p>
+          不需要点击这个按钮，这个按钮是交给js去模拟点击用的，模拟点击之后产生的是高优先级任务
+        </p>
         <button ref={this.buttonRef} onClick={this.handleButtonClick}>
           增加2
         </button>
@@ -86,6 +98,6 @@ class OriginDemo extends Component {
           ))}
         </div>
       </div>
-    )
+    );
   }
 }
