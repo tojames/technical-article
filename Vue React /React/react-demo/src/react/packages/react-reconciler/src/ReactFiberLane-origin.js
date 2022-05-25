@@ -459,7 +459,7 @@ export function markStarvedLanesAsExpired( root: FiberRoot, currentTime: number)
       // 出现这种情况说明任务已经到期了，将优先级最高的，lane 设置为expiredLanes，低优先级的等待下一轮
       root.expiredLanes |= lane;
     }
-    // 遍历所以的的赛道
+    // 遍历所有的赛道
     lanes &= ~lane;
   }
 }

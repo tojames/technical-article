@@ -393,6 +393,7 @@ export function requestUpdateLane(fiber: Fiber): Lane {
   // Special cases
   const mode = fiber.mode; // 8
   // ( 8 & 2 ) === 0  true
+  debugger
   // 同步更新
   if ((mode & BlockingMode) === NoMode) {
     // export const SyncLane: Lane = /*                        */ 0b0000000000000000000000000000001;
@@ -689,12 +690,17 @@ function markUpdateLaneFromFiberToRoot(sourceFiber: Fiber,lane: Lane,): FiberRoo
 // of the existing task is the same as the priority of the next level that the
 // root has work on. This function is called on every update, and right before
 // exiting a task.
+// 每次调度只有一个任务，如果存在不同优先级任务对应不同的操作
+// 1.新的任务优先级高于正在执行的任务，退出正在执行的任务，重新调度新的优先级任务
+// 2.新的任务优先级低于正在执行的任务，无需操作
+// 3.新的任务优先级和正在执行的任务想到，进行合并
+// 4.当低优先级任务过了到期时间，需要马上执行，任务饥饿问题
 function ensureRootIsScheduled(root: FiberRoot, currentTime: number) {
   const existingCallbackNode = root.callbackNode;
 
   // Check if any lanes are being starved by other work. If so, mark them as
   // expired so we know to work on those next.
-  // 处理饥饿任务，直接赋值在 root.expiredLanes
+  // 处理饥饿任务，将饥饿任务提升为最高优先级，直接赋值在 root.expiredLanes，用于 getNextLanes 使用
   markStarvedLanesAsExpired(root, currentTime);
 
   // Determine the next lanes to work on, and their priority.
