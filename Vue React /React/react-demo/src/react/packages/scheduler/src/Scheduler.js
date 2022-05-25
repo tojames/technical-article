@@ -298,27 +298,28 @@ function unstable_scheduleCallback(priorityLevel, callback, options) {
   var timeout;
   switch (priorityLevel) {
     case ImmediatePriority:
-      timeout = IMMEDIATE_PRIORITY_TIMEOUT;
+      timeout = IMMEDIATE_PRIORITY_TIMEOUT; // -1
       break;
     case UserBlockingPriority:
-      timeout = USER_BLOCKING_PRIORITY_TIMEOUT;
+      timeout = USER_BLOCKING_PRIORITY_TIMEOUT; // 250
       break;
     case IdlePriority:
+      // maxSigned31BitInt，是32位系统V8引擎里最大的整数。据粗略计算这个时间大概是12.427天。
       timeout = IDLE_PRIORITY_TIMEOUT;
       break;
     case LowPriority:
-      timeout = LOW_PRIORITY_TIMEOUT;
+      timeout = LOW_PRIORITY_TIMEOUT; // 10000
       break;
-    case NormalPriority:
+    case NormalPriority: // 3
     default:
-      timeout = NORMAL_PRIORITY_TIMEOUT;
+      timeout = NORMAL_PRIORITY_TIMEOUT; // 5000
       break;
   }
-
+  // 过期时间
   var expirationTime = startTime + timeout;
 
   var newTask = {
-    id: taskIdCounter++,
+    id: taskIdCounter++, // 记录 task 数量
     callback,
     priorityLevel,
     startTime,
@@ -329,6 +330,7 @@ function unstable_scheduleCallback(priorityLevel, callback, options) {
     newTask.isQueued = false;
   }
 
+  // 延迟任务
   if (startTime > currentTime) {
     // This is a delayed task.
     newTask.sortIndex = startTime;

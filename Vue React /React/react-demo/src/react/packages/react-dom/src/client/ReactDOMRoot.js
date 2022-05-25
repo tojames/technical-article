@@ -69,6 +69,7 @@ function ReactDOMBlockingRoot(
   options: void | RootOptions,
 ) {
   this._internalRoot = createRootImpl(container, tag, options);
+  console.log( this._internalRoot," this._internalRoot"); 
 }
 
 ReactDOMRoot.prototype.render = ReactDOMBlockingRoot.prototype.render = function(

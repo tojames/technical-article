@@ -470,7 +470,7 @@ export function requestUpdateLane(fiber: Fiber): Lane {
   // then we'll get the priority of the current running Scheduler task,
   // which is probably not what we want.
   let lane;
-  debugger
+  // debugger
   if (
     // TODO: Temporary. We're removing the concept of discrete updates.
     (executionContext & DiscreteEventContext) !== NoContext &&
@@ -710,6 +710,9 @@ function ensureRootIsScheduled(root: FiberRoot, currentTime: number) {
     root === workInProgressRoot ? workInProgressRootRenderLanes : NoLanes,
   );
   // This returns the priority level computed during the `getNextLanes` call.
+  // export function returnNextLanesPriority() {
+  //   return return_highestLanePriority;
+  // }
   const newCallbackPriority = returnNextLanesPriority();
 
   // 没可任务执行
@@ -724,6 +727,7 @@ function ensureRootIsScheduled(root: FiberRoot, currentTime: number) {
   }
 
   // Check if there's an existing task. We may be able to reuse it.
+  // 当优先级一样的时候可以复用
   if (existingCallbackNode !== null) {
     const existingCallbackPriority = root.callbackPriority;
     if (existingCallbackPriority === newCallbackPriority) {
@@ -751,6 +755,7 @@ function ensureRootIsScheduled(root: FiberRoot, currentTime: number) {
     );
   } else {
     const schedulerPriorityLevel = lanePriorityToSchedulerPriority(newCallbackPriority );
+    debugger
     newCallbackNode = scheduleCallback(
       schedulerPriorityLevel,
       performConcurrentWorkOnRoot.bind(null, root),
@@ -758,6 +763,7 @@ function ensureRootIsScheduled(root: FiberRoot, currentTime: number) {
   }
   // 记录调度的优先级
   root.callbackPriority = newCallbackPriority;
+  // 记录新的更新任务
   root.callbackNode = newCallbackNode;
 }
 
@@ -856,6 +862,7 @@ function performConcurrentWorkOnRoot(root) {
   }
 
   ensureRootIsScheduled(root, now());
+  // 执行渲染逻辑
   if (root.callbackNode === originalCallbackNode) {
     // The task node scheduled for this root is the same one that's
     // currently executed. Need to return a continuation.
