@@ -274,6 +274,7 @@ export function getNextLanes(root: FiberRoot, wipLanes: Lanes): Lanes {
   const pingedLanes = root.pingedLanes;
 
   // Check if any work has expired.
+  // 有过期的任务
   if (expiredLanes !== NoLanes) {
     nextLanes = expiredLanes;
     nextLanePriority = return_highestLanePriority = SyncLanePriority;
@@ -338,19 +339,19 @@ export function getNextLanes(root: FiberRoot, wipLanes: Lanes): Lanes {
   }
 
   // Check for entangled lanes and add them to the batch.
-  //
+  
   // A lane is said to be entangled with another when it's not allowed to render
   // in a batch that does not also include the other lane. Typically we do this
   // when multiple updates have the same source, and we only want to respond to
   // the most recent event from that source.
-  //
+  
   // Note that we apply entanglements *after* checking for partial work above.
   // This means that if a lane is entangled during an interleaved event while
   // it's already rendering, we won't interrupt it. This is intentional, since
   // entanglement is usually "best effort": we'll try our best to render the
   // lanes in the same batch, but it's not worth throwing out partially
   // completed work in order to do it.
-  //
+  
   // For those exceptions where entanglement is semantically important, like
   // useMutableSource, we should ensure that there is no partial work at the
   // time we apply the entanglement.
