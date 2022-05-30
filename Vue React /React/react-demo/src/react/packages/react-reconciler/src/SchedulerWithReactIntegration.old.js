@@ -154,7 +154,6 @@ function reactPriorityToSchedulerPriority(reactPriorityLevel) {
 
 export function runWithPriority<T>( reactPriorityLevel: ReactPriorityLevel, fn: () => T,): T {
   const priorityLevel = reactPriorityToSchedulerPriority(reactPriorityLevel);
- 
   // 方法体在上面注释
   return Scheduler_runWithPriority(priorityLevel, fn);
 }
