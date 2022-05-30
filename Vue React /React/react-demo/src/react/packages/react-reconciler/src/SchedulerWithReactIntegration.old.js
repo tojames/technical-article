@@ -95,6 +95,7 @@ export const now =
   // } Scheduler_getCurrentPriorityLevel 获取存储在 Schedule 的方法优先级
 
 export function getCurrentPriorityLevel(): ReactPriorityLevel {
+  // 获取存储在 Schedule 的优先级,在事件触发的时候存上去的
   switch (Scheduler_getCurrentPriorityLevel()) {
     case Scheduler_ImmediatePriority:
       return ImmediatePriority;
