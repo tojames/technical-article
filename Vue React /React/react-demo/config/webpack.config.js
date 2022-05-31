@@ -317,7 +317,7 @@ module.exports = function (webpackEnv) {
         ...(modules.webpackAliases || {}),
         react: path.resolve(__dirname, "../src/react/packages/react"),
         "react-dom": path.resolve(__dirname, "../src/react/packages/react-dom"),
-        // scheduler: path.resolve(__dirname, "../src/react/packages/scheduler"),
+        Scheduler: path.resolve(__dirname, "../src/react/packages/scheduler"),
         shared: path.resolve(__dirname, "../src/react/packages/shared"),
         "react-reconciler": path.resolve(__dirname, "../src/react/packages/react-reconciler"),
       },

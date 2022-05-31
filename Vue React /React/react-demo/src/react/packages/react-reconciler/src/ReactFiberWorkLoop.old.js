@@ -393,7 +393,7 @@ export function requestUpdateLane(fiber: Fiber): Lane {
   // Special cases
   const mode = fiber.mode; // 8
   // ( 8 & 2 ) === 0  true
-  debugger
+
   // 同步更新
   if ((mode & BlockingMode) === NoMode) {
     // export const SyncLane: Lane = /*                        */ 0b0000000000000000000000000000001;
@@ -755,7 +755,7 @@ function ensureRootIsScheduled(root: FiberRoot, currentTime: number) {
     );
   } else {
     const schedulerPriorityLevel = lanePriorityToSchedulerPriority(newCallbackPriority );
-    debugger
+   
     newCallbackNode = scheduleCallback(
       schedulerPriorityLevel,
       performConcurrentWorkOnRoot.bind(null, root),
@@ -765,6 +765,8 @@ function ensureRootIsScheduled(root: FiberRoot, currentTime: number) {
   root.callbackPriority = newCallbackPriority;
   // 记录新的更新任务
   root.callbackNode = newCallbackNode;
+  console.log(newCallbackNode,"newCallbackNode");
+  debugger
 }
 
 // This is the entry point for every concurrent task, i.e. anything that

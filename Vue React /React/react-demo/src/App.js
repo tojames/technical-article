@@ -70,7 +70,7 @@ class OriginDemo extends Component {
   }
 
   handleButtonClick = () => {
-    debugger
+    // debugger
     this.setState((prevState) => {
       return { count: prevState.count + 2 }
     })

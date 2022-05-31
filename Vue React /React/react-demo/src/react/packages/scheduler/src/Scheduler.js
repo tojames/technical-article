@@ -161,6 +161,7 @@ function flushWork(hasTimeRemaining, initialTime) {
 }
 
 function workLoop(hasTimeRemaining, initialTime) {
+  debugger
   let currentTime = initialTime;
   advanceTimers(currentTime);
   currentTask = peek(taskQueue);
