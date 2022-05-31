@@ -161,9 +161,9 @@ function flushWork(hasTimeRemaining, initialTime) {
 }
 
 function workLoop(hasTimeRemaining, initialTime) {
-  debugger
   let currentTime = initialTime;
   advanceTimers(currentTime);
+  // 获取当前任务
   currentTask = peek(taskQueue);
   while (
     currentTask !== null &&
