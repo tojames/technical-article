@@ -1,6 +1,6 @@
 # React应用TS
 
-注意：对接口进行注释的时候 使用 /**/，// 不能被vscode识别
+**注意：对接口进行注释的时候要使用 /**/，// 不能被vscode识别**
 
 > 1.ReactElement 和ReactNode的区别。
 >
@@ -11,16 +11,18 @@
 ### 函数组件
 
 ```tsx
-React.FC是函数式组件，是在TypeScript使用的一个泛型。FC是FunctionComponent的缩写，React.FC可以写成React.FunctionComponent。
+React.FC 是定义函数式组件，在TypeScript使用的一个泛型。FC是FunctionComponent的缩写，React.FC可以写成React.FunctionComponent，FC 相比于普通的函数声明是要更加方便，比如显示定义返回值「jsx」，自动推断类型。
 
 源码中：
 type FC<P = {}> = FunctionComponent<P>;
 interface FunctionComponent<P = {}> {
-	(props: PropsWithChildren<P>, context?: any): ReactElement<any, any> | null; // 定义children
+  // 定义children
+	(props: PropsWithChildren<P>, context?: any): ReactElement<any, any> | null; 
 	propTypes?: WeakValidationMap<P> | undefined;
 	contextTypes?: ValidationMap<any> | undefined;
 	defaultProps?: Partial<P> | undefined;
-	displayName?: string | undefined;
+  // 定义调试时的组件name
+	displayName?: string | undefined; 
 }
 // 定义props children，是一个可选的ReactNode
 type PropsWithChildren<P> = P & { children?: ReactNode | undefined };
@@ -38,6 +40,8 @@ const ComponentName: FC<ComponentProps> = (props) => {}
 
 ```tsx
 import React, { Component } from 'react';
+
+IProps, IState 这两个参数都不是必须的，没有时可以省略
 
 interface IProps {
   propName?: any;
@@ -67,6 +71,44 @@ export default Index;
 
 ```
 
+## React DOM元素
+
+> 有时候会遇见一个方法返回dom元素，这时候可以使用以下方法。
+
+
+
+### JSX.Element
+
+```tsx
+declare global {
+    namespace JSX {
+        interface Element extends React.ReactElement<any, any> { }
+}
+```
+
+
+
+### ReactNode
+
+```tsx
+interface ReactElement<P = any, T extends string | JSXElementConstructor<any> = string | JSXElementConstructor<any>> {
+        type: T;
+        props: P;
+        key: Key | null;
+    }
+
+interface ReactPortal extends ReactElement {
+  	key: Key | null;
+  	children: ReactNode;
+}
+
+
+type ReactFragment = Iterable<ReactNode>;
+type ReactNode = ReactElement | string | number | ReactFragment | ReactPortal | boolean | null | undefined;
+```
+
+
+
 
 
 ## 事件注册
@@ -88,7 +130,7 @@ WheelEvent<T = Element> 滚轮事件对象
 AnimationEvent<T = Element> 动画事件对象
 TransitionEvent<T = Element> 过渡事件对象
 
-Element 主要是 HTMLInputElement、HTMLSelectElement
+Element 主要是 HTMLInputElement、HTMLDivElement
 
 比如我以change 事件为例。
 const handleChange = (e:React.ChangeEvent<HTMLInputElement>)=>{
@@ -102,7 +144,6 @@ const handleChange = (e: ChangeEvent<HTMLInputElement>) => {
   // dosomething
 };
 
-当我们的事件是有些特殊的时候，实在处理不了，可以使用any，不推荐。
 
 技巧：把鼠标点击 onChange、onClick 悬浮在上面即可看见官方推荐的操作方法,接着把 Handler这个词删除就可以复制到我们限制参数类型上面了，这是因为React官方的方法和参数命名的好的原因。
 
@@ -241,7 +282,7 @@ interface CompoentProps {
 ### useState
 
 ```tsx
-//给定初始化值情况下可以直接使用
+// 给定初始化值情况下可以直接使用
 
 import { useState } from 'react';
 const [val, toggle] = useState(false);
@@ -249,11 +290,13 @@ const [val, toggle] = useState(false);
 // toggle 只能处理 boolean 类型
 
 
-//没有初始值（undefined）或初始 null
+// 没有初始值（undefined）或初始 null
 
 type AppProps = { message: string };
 const App = () => {
-    const [data] = useState<AppProps | null>(null);✅ better
+    const [data] = useState<AppProps | null>(null);
+  	// 初始值是data而不是null，它的好处在于数据嵌套的时候可以点出来，而不需要做if判断
+    const [data] = useState({} as AppProps); 
     return <div>{data?.message}</div>;
 };
 ```
@@ -261,11 +304,12 @@ const App = () => {
 ### useRef
 
 ```tsx
+第一种方式的 ref1.current 是只读的（read-only），并且可以传递给内置的 ref 属性，绑定 DOM 元素 ；
 const ref1 = React.useRef<HTMLInputElement>(null)
 
-const ref2 = React.useRef<HTMLInputElement | null>(null)
-第一种方式的 ref1.current 是只读的（read-only），并且可以传递给内置的 ref 属性，绑定 DOM 元素 ；
 第二种方式的 ref2.current 是可变的（类似于声明类的成员变量）
+const ref2 = React.useRef<HTMLInputElement | null>(null)
+
 
 const onButtonClick = () => {
   ref1.current?.focus()
@@ -290,12 +334,10 @@ const result = React.useMemo<string>(() => 2, [])
 > 泛型指定了参数类型
 
 ```
-const handleChange = React.useCallback<React.ChangeEventHandler<HTMLInputElement>>(evt => {
-  console.log(evt.target.value)
+const handleChange = React.useCallback<React.ChangeEventHandler<HTMLInputElement>>(e => {
+  console.log(e.target.value)
 }, [])
 ```
-
-
 
 
 
@@ -303,7 +345,7 @@ const handleChange = React.useCallback<React.ChangeEventHandler<HTMLInputElement
 
 ```tsx
 export declare interface AppBetterProps {
-  children: React.ReactNode // 一般情况下推荐使用，支持所有类型 Great
+  children: React.ReactNode // 一般情况下推荐使用，支持所有类型
   functionChildren: (name: string) => React.ReactNode
   style?: React.CSSProperties // 传递style对象
   onChange?: React.FormEventHandler<HTMLInputElement>
@@ -311,16 +353,7 @@ export declare interface AppBetterProps {
 
 ```
 
-## 注意点
 
-### 不要在type或interface中使用函数声明
-
-```tsx
-interface ICounter {
-  start: (value: number) => string
-  end(value: number): string // 推荐使用
-}
-```
 
 参考
 

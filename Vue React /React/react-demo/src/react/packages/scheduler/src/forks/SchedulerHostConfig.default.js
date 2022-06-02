@@ -7,14 +7,15 @@
 
 import {enableIsInputPending} from '../SchedulerFeatureFlags';
 
-export let requestHostCallback;
-export let cancelHostCallback;
-export let requestHostTimeout;
-export let cancelHostTimeout;
-export let shouldYieldToHost;
-export let requestPaint;
-export let getCurrentTime;
-export let forceFrameRate;
+export let requestHostCallback; // 请求及时回调: port.postMessage
+export let cancelHostCallback; // 取消及时回调: scheduledHostCallback = null
+export let requestHostTimeout; // 请求延时回调: setTimeout
+export let cancelHostTimeout; // 取消延时回调: cancelTimeout
+export let shouldYieldToHost; // 是否让出主线程(currentTime >= deadline && needsPaint): 让浏览器能够执行更高优先级的任务(如ui绘制, 用户输入等)
+export let requestPaint; // 请求绘制: 设置 needsPaint = true
+export let getCurrentTime; // 获取当前时间
+export let forceFrameRate; // 强制设置 yieldInterval (让出主线程的周期). 这个函数虽然存在, 但是从源码来看, 几乎没有用到
+
 
 const hasPerformanceNow =
   typeof performance === 'object' && typeof performance.now === 'function';
