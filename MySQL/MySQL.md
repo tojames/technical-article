@@ -1,4 +1,6 @@
-# MySQL
+### MySQL
+
+> 关系型数据库
 
 
 
@@ -13,16 +15,15 @@ MySQL可以存储数据，但是存储在MySQL中的数据需要按照特定的�
 
 ## **SQL** 结构化查询语言
 
-**SQL**概述
-
 SQL(Structured Query Language)结构化查询语言，用于存取、查询、更新数据以 及管理关系型数据库系统
 
-**SQL**分类 根据SQL指令完成的数据库操作的不同，可以将SQL指令分为四类:
+### **SQL**语言分类
+
+根据SQL指令完成的数据库操作的不同，可以将SQL指令分为四类:
 
 - **DDL Data Definition Language** 数据定义语言 用于完成对数据库对象(数据库、数据表、视图、索引等)的创建、删除、修改
   - 使用DDL语句可以创建数据库、查询数据库、修改数据库、删除数据库
-  - 
-- **DMLData Manipulation Language** 数据操作**/**操纵语言
+- **DML Data Manipulation Language** 数据操作**/**操纵语言
   - 用于完成对数据表中的数据的添加、删除、修改操作
   - 添加:将数据存储到数据表
   - 删除:将数据从数据表移除
@@ -32,7 +33,7 @@ SQL(Structured Query Language)结构化查询语言，用于存取、查询、�
 
 
 
-## **SQL**基本语法
+### **SQL**基本语法
 
 > 在MySQL Command Line Client 或者navicat等工具中都可以编写SQL指令
 
@@ -41,9 +42,11 @@ SQL(Structured Query Language)结构化查询语言，用于存取、查询、�
 -  SQL关键字之间以 空格 进行分隔
 -  SQL之间可以不限制换行(可以有空格的地方就可以有换行)
 
+
+
 ### **DDL** 数据定义语言 
 
-**DDL-**数据库操作
+#### **DDL-**数据库操作
 
 使用DDL语句可以创建数据库、查询数据库、修改数据库、删除数据库 
 
@@ -93,7 +96,7 @@ use <dbName>
 
 
 
-### **DDL-**数据表操作
+#### **DDL-**数据表操作
 
 创建数据表
 
@@ -303,7 +306,7 @@ alter table books drop primary key;
 alter table books modify book_isbn char(4) primary key;
 ```
 
-### 主键自动增⻓
+#### 主键自动增⻓
 
 > 在我们创建一张数据表时，如果数据表中有列可以作为主键(例如:学生表的学号、图
 >
@@ -311,7 +314,7 @@ alter table books modify book_isbn char(4) primary key;
 >
 > 当有些数据表中没有合适的列作为主键时，我们可以额外定义一个与记录本身无关的列 (ID)作为主键，此列数据无具体的含义主要用于标识一条记录，在mysql中我们可以 将此列定义为int，同时设置为 自动增⻓ ，当我们向数据表中新增一条记录时，无需提供 ID列的值，它会自动生成。
 
-#### 定义主键自动增⻓
+**定义主键自动增⻓**
 
 - 定义int类型字段自动增⻓: auto_increment
 
@@ -325,13 +328,13 @@ create table types(
 
 注意:自动增⻓从1开始，每添加一条记录，自动的增⻓的列会自定+1，当我们把某条记录删 除之后再添加数据，自动增⻓的数据也不会重复生成(自动增⻓只保证唯一性、不保证连续性)
 
-#### 联合主键
+**联合主键**
 
 > 联合组件——将数据表中的多列组合在一起设置为表的主键
 
 ![image-20220606173045493](images/image-20220606173045493.png)
 
-#### 定义联合主键
+**定义联合主键**
 
 ```sql
 create table grades(
@@ -344,7 +347,7 @@ create table grades(
 
 注意:在实际企业项目的数据库设计中，联合主键使用频率并不高;当一个张数据表中没有 明确的字段可以作为主键时，我们可以额外添加一个ID字段作为主键。
 
-### 外键约束
+#### 外键约束
 
 在多表关联部分讲解
 
@@ -453,7 +456,7 @@ update tabeName set ... where conditions;
 select .... from tableName where conditions;
 ```
 
-#### 条件关系运算符
+##### 条件关系运算符
 
 ```sql
 ## = 等于
@@ -471,7 +474,7 @@ select * from stus where stu_age<=20;
 ## between and 区间查询 between v1 and v2 [v1,v2] select * from stus where stu_age between 18 and 20;
 ```
 
-#### 条件逻辑运算符
+##### 条件逻辑运算符
 
 > 在where子句中，可以将多个条件通过逻辑预算(and or not )进行连接，通过多个条件 来筛选要操作的数据。
 
@@ -640,7 +643,7 @@ mysql> select lower(stu_name) from stus;
 # substring(column,start,len) 从指定列中截取部分显示 start从1开始 mysql> select stu_name,substring(stu_tel,8,4) from stus;
 ```
 
-#####  **group by**
+####  **group by**
 
 > 分组——就是将数据表中的记录按照指定的类进行分组
 
@@ -676,7 +679,7 @@ mysql> select stu_age,count(stu_num)
 
 ```
 
-##### 分⻚查询 **- limit**
+#### 分⻚查询 **- limit**
 
 > 当数据表中的记录比较多的时候，如果一次性全部查询出来显示给用户，用户的可读性/体验性就不太好，因此我们可以将这些数据分⻚进行展示。
 
