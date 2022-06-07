@@ -1,4 +1,4 @@
-### MySQL
+###  MySQL
 
 > 关系型数据库
 
@@ -288,13 +288,13 @@ create table books(
 );
 ```
 
-#### 删除数据表主键约束
+##### 删除数据表主键约束
 
 ```sql
 alter table books drop primary key;
 ```
 
-#### 创建表之后添加主键约束
+##### 创建表之后添加主键约束
 
 ```sql
 ## 创建表时没有添加主键约束 create table books(
@@ -306,7 +306,7 @@ alter table books drop primary key;
 alter table books modify book_isbn char(4) primary key;
 ```
 
-#### 主键自动增⻓
+##### 主键自动增⻓
 
 > 在我们创建一张数据表时，如果数据表中有列可以作为主键(例如:学生表的学号、图
 >
@@ -328,7 +328,7 @@ create table types(
 
 注意:自动增⻓从1开始，每添加一条记录，自动的增⻓的列会自定+1，当我们把某条记录删 除之后再添加数据，自动增⻓的数据也不会重复生成(自动增⻓只保证唯一性、不保证连续性)
 
-**联合主键**
+#### **联合主键**
 
 > 联合组件——将数据表中的多列组合在一起设置为表的主键
 
@@ -399,8 +399,10 @@ delete from <tableName> [where conditions];
 
 ## 删除学号为20210102的学生信息
 delete from stus where stu_num='20210102';
-## 删除年龄大于20岁的学生信息(如果满足where子句的记录有多条，则删除多条记录) delete from stus where stu_age>20;
-## 如果删除语句没有where子句，则表示删除当前数据表中的所有记录(敏感操作) delete from stus;
+## 删除年龄大于20岁的学生信息(如果满足where子句的记录有多条，则删除多条记录) 
+delete from stus where stu_age>20;
+## 如果删除语句没有where子句，则表示删除当前数据表中的所有记录(敏感操作) 
+delete from stus;
 ```
 
 #### 修改数据
@@ -461,17 +463,25 @@ select .... from tableName where conditions;
 ```sql
 ## = 等于
 select * from stus where stu_num = '20210101';
+
 ## != <> 不等于
-select * from stus where stu_num != '20210101'; select * from stus where stu_num <> '20210101';
+select * from stus where stu_num != '20210101'; 
+select * from stus where stu_num <> '20210101';
+
 ##> 大于
 select * from stus where stu_age>18;
+
 ##< 小于
 select * from stus where stu_age<20;
+
 ## >= 大于等于
 select * from stus where stu_age>=20;
+
 ## <= 小于等于
 select * from stus where stu_age<=20;
-## between and 区间查询 between v1 and v2 [v1,v2] select * from stus where stu_age between 18 and 20;
+
+## between and 闭区间查询 between v1 and v2 [v1,v2] 
+select * from stus where stu_age between 18 and 20;
 ```
 
 ##### 条件逻辑运算符
@@ -529,7 +539,7 @@ select stu_name,2021-stu_age from stus;
 
 ##### **as** 字段取别名
 
-> 我们可以为查询结果的列名 去一个语义性更强的别名 (如下案例中 as 关键字也可以省略)
+> 我们可以为查询结果的列名 取一个语义性更强的别名 (如下案例中 as 关键字也可以省略)
 
 ```sql
 select stu_name,2021-stu_age as stu_birth_year from stus;
@@ -547,7 +557,7 @@ select distinct stu_age from stus;
 
 #### 排序 **- order by**
 
-> 将查询到的满足条件的记录按照指定的列的值升序/降序排列
+> 将查询到的满足条件的记录按照指定的列的值升序「asc」/降序排列「desc」
 
 ```sql
 select * from tableName where conditions order by columnName asc|desc;
@@ -603,7 +613,7 @@ select avg(stu_age) from stus where stu_gender='男';
 
 > 当我们向日期类型的列添加数据时，可以通过字符串类型赋值(字符串的格式必须为 yyyy-MM-dd hh:mm:ss)
 >
-> 如果我们想要获取当前系统时间添加到日期类型的列，可以使用now() 或者 sysdate() 示例:
+> 如果我们想要获取当前系统时间添加到日期类型的列， 
 
 ```sql
 # 通过字符串类型 给日期类型的列赋值
@@ -616,12 +626,11 @@ values('20210109','张小四','女',20,'13434343355','1233333',now());
 
 
 # 通过sysdate()获取当前时间
-insert into
-    stus(stu_num,stu_name,stu_gender,stu_age,stu_tel,stu_qq,stu_enterence)
+insert into stus(stu_num,stu_name,stu_gender,stu_age,stu_tel,stu_qq,stu_enterence)
 values('20210110','李雷','男',16,'13434343366','123333344',sysdate());
 
 # 通过now和sysdate获取当前系统时间
-mysql> select now();
+select now();
 
 
 ```
@@ -635,12 +644,13 @@ mysql> select now();
 select concat(stu_name,'-',stu_gender) from stus;
 
 # upper(column) 将字段的值转换成大写
-mysql> select upper(stu_name) from stus;
+select upper(stu_name) from stus;
 
 # lower(column) 将指定列的值转换成小写 
-mysql> select lower(stu_name) from stus;
+select lower(stu_name) from stus;
 
-# substring(column,start,len) 从指定列中截取部分显示 start从1开始 mysql> select stu_name,substring(stu_tel,8,4) from stus;
+# substring(column,start,len) 从指定列中截取部分显示 start从1开始
+select stu_name,substring(stu_tel,8,4) from stus;
 ```
 
 ####  **group by**
@@ -655,14 +665,20 @@ group by 分组列名 [having 条件] [order by 排序字段]
 ```
 
 - select 后使用*显示对查询的结果进行分组之后，显示每组的第一条记录(这种显示通 常是无意义的)
-- select 后通常显示分组字段和聚合函数(对分组后的数据进行统计、求和、平均值等) 语句执行属性: 1.先根据where条件从数据库查询记录,2.group by对查询记录进行分组,3.执行having对分组后的数据进行筛选
+- select 后通常显示分组字段和聚合函数(对分组后的数据进行统计、求和、平均值等) 
+- 语句执行顺序
+  1. 先根据where条件从数据库查询记录
+  2. group by对查询记录进行分组
+  3. 执行having「筛选」对分组后的数据进行筛选
 
 ```sql
-# 先对查询的学生信息按性别进行分组(分成了男、女两组)，然后再分别统计每组学生的个数 select stu_gender,count(stu_num) from stus group by stu_gender;
+# 先对查询的学生信息按性别进行分组(分成了男、女两组)，然后再分别统计每组学生的个数 
+select stu_gender,count(stu_num) from stus group by stu_gender;
 
-# 先对查询的学生信息按性别进行分组(分成了男、女两组)，然后再计算每组的平均年龄 select stu_gender,avg(stu_age) from stus group by stu_gender;
+# 先对查询的学生信息按性别进行分组(分成了男、女两组)，然后再计算每组的平均年龄 
+select stu_gender,avg(stu_age) from stus group by stu_gender;
 
-# 先对学生按年龄进行分组(分了16、17、18、20、21、22六组)，然后统计各组的学生数 量，还可以对最终的结果排序
+# 先对学生按年龄进行分组(分了16、17、18、20、21、22六组)，然后统计各组的学生数量，还可以对最终的结果排序
 select stu_age,count(stu_num) from stus group by stu_age order by stu_age;
 
 # 查询所有学生，按年龄进行分组，然后分别统计每组的人数，再筛选当前组人数>1的组，再按 年龄升序显示出来
@@ -674,8 +690,10 @@ having count(stu_num)>1 order by stu_age;
 # 查询性别为'男'的学生，按年龄进行分组，然后分别统计每组的人数，再筛选当前组人数>1的 组，再按年龄升序显示出来
 mysql> select stu_age,count(stu_num)
 -> from stus
--> where stu_gender='男' -> group by stu_age
--> having count(stu_num)>1 -> order by stu_age;
+-> where stu_gender='男' 
+-> group by stu_age
+-> having count(stu_num)>1 
+-> order by stu_age;
 
 ```
 
@@ -715,5 +733,80 @@ select * from stus [where ...] limit 9,3; (4-1)*3
 # pageSize表示每⻚显示的条数
 # 通用分⻚语句如下:
 select * from <tableName> [where ...] limit (pageNum- 1)*pageSize,pageSize;
+```
+
+
+
+## 数据表的关联关系
+
+###  关联关系介绍
+
+> MySQL是一个关系型数据库，不仅可以存储数据，还可以维护数据与数据之间的关系 ——通过在数据表中添加字段建立外键约束
+
+![image-20220607185226202](images/image-20220607185226202.png)
+
+数据与数据之间的 关联关系 分为四种:
+
+-   一对一关联
+-   一对多关联
+-   多对一关联
+-   多对多关联
+
+### 一对一关联
+
+> 人 --- 身份证 一个人只有一个身份证、一个身份证只对应一个人
+>
+> 学生 --- 学籍 一个学生只有一个学籍、一个学籍也对应唯一的一个学生 
+>
+> 用户 --- 用户详情 一个用户只有一个详情、一个详情也只对应一个用户
+
+**方案1: 主键关联——两张数据表中主键相同的数据为相互对应的数据**
+
+![image-20220607185400632](images/image-20220607185400632.png)
+
+**方案2:唯一外键 —— 在任意一张表中添加一个字段添加外键约束与另一张表主键关联，并且将外键列添加唯一约束**
+
+![image-20220607185443577](images/image-20220607185443577.png)
+
+### 一对多与多对一
+
+> 班级 --- 学生 (一对多) 一个班级包含多个学生
+>
+> 学生 --- 班级 (多对一) 多个学生可以属于同一个班级
+>
+> 图书 --- 分类
+>
+> 商品--- 商品类别
+
+**方案:在多的一端添加外键 ，与一的一端主键进行关联**
+
+![image-20220607185754453](images/image-20220607185754453.png)
+
+### **7.4** 多对多关联
+
+> 学生 --- 课程 一个学生可以选择多⻔课、一⻔课程也可以由多个学生选择
+>
+> 会员 --- 社团 一个会员可以参加多个社团、一个社团也可以招纳多个会员
+
+**方法:额外创建一张关系表来维护多对多关联——在关系表中定义两个外键，分别与两个数**
+
+**据表的主键进行关联**
+
+![image-20220607190255688](images/image-20220607190255688.png)
+
+### **7.5** 外键约束
+
+> 外键约束——将一个列添加外键约束与另一张表的主键(唯一列)进行关联之后，这个外键 约束的列添加的数据必须要在关联的主键字段中存在
+
+案例:学生表 与 班级表 
+
+1. 先创建班级表
+
+```sql
+create table classes(
+    class_id int primary key auto_increment,
+    class_name varchar(40) not null unique,
+    class_remark varchar(200)
+);
 ```
 
