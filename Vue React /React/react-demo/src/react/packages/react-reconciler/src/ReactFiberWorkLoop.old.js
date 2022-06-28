@@ -461,7 +461,7 @@ export function requestUpdateLane(fiber: Fiber): Lane {
   // TODO: Remove this dependency on the Scheduler priority.
   // To do that, we're replacing it with an update lane priority.
   // 97，根据调度优先级来获得，用于获取更新优先级，不同是因为避免冲突，不用老是取shdule中获取
-  const schedulerPriority = getCurrentPriorityLevel(); 
+  const schedulerPriority = getCurrentPriorityLevel();
 
   // The old behavior was using the priority level of the Scheduler.
   // This couples React to the Scheduler internals, so we're replacing it
@@ -606,7 +606,7 @@ export function scheduleUpdateOnFiber(fiber: Fiber,lane: Lane,eventTime: number)
         flushSyncCallbackQueue();
       }
     }
-  } 
+  }
   // concurrent 模式：异步更新
   else {
     // Schedule a discrete update but only if it's not Sync.
@@ -755,7 +755,7 @@ function ensureRootIsScheduled(root: FiberRoot, currentTime: number) {
     );
   } else {
     const schedulerPriorityLevel = lanePriorityToSchedulerPriority(newCallbackPriority );
-   
+
     newCallbackNode = scheduleCallback(
       schedulerPriorityLevel,
       performConcurrentWorkOnRoot.bind(null, root),
@@ -766,7 +766,7 @@ function ensureRootIsScheduled(root: FiberRoot, currentTime: number) {
   // 记录新的更新任务
   root.callbackNode = newCallbackNode;
   console.log(newCallbackNode,"newCallbackNode");
-  debugger
+  // debugger
 }
 
 // This is the entry point for every concurrent task, i.e. anything that
@@ -1007,7 +1007,7 @@ function performSyncWorkOnRoot(root) {
 
   let lanes;
   let exitStatus;
-  /* 
+  /*
   export function includesSomeLane(a: Lanes | Lane, b: Lanes | Lane) {
     return (a & b) !== NoLanes;
   }
@@ -1248,7 +1248,7 @@ export function unbatchedUpdates<A, R>(fn: (a: A) => R, a: A): R {
       // Flush the immediate callbacks that were scheduled during this batch
       resetRenderTimer(); // 设置时间  === workInProgressRootRenderTargetTime = now() + RENDER_TIMEOUT_MS;
       // 刷新回调，具体逻辑还没有进去看
-      flushSyncCallbackQueue(); 
+      flushSyncCallbackQueue();
     }
   }
 }
@@ -1457,7 +1457,7 @@ function pushDispatcher() {
   // ReactCurrentDispatcher = { current:null}
   const prevDispatcher = ReactCurrentDispatcher.current;
   // ContextOnlyDispatcher 大量的hook
-  ReactCurrentDispatcher.current = ContextOnlyDispatcher; 
+  ReactCurrentDispatcher.current = ContextOnlyDispatcher;
   if (prevDispatcher === null) {
     // The React isomorphic package does not include a default dispatcher.
     // Instead the first renderer will lazily attach one, in order to give
@@ -1554,7 +1554,7 @@ function renderRootSync(root: FiberRoot, lanes: Lanes) {
   // and prepare a fresh one. Otherwise we'll continue where we left off.
   if (workInProgressRoot !== root || workInProgressRootRenderLanes !== lanes) {
     // 初始化是进入这里，workInProgressRoot ，workInProgressRootRenderLanes此时都是undefined
-    // 创建 workInProgress，workInProgressRoot，workInProgressRootRenderLanes 
+    // 创建 workInProgress，workInProgressRoot，workInProgressRootRenderLanes
     prepareFreshStack(root, lanes);
     // 记录交互的，存储在root中，memoizedInteractions字段
     startWorkOnPendingInteractions(root, lanes);
@@ -1693,6 +1693,7 @@ function renderRootConcurrent(root: FiberRoot, lanes: Lanes) {
 
 /** @noinline */
 function workLoopConcurrent() {
+  console.log("workLoopConcurrent");
   // Perform work until Scheduler asks us to yield
   while (workInProgress !== null && !shouldYield()) {
     performUnitOfWork(workInProgress);
@@ -1712,7 +1713,7 @@ function performUnitOfWork(unitOfWork: Fiber): void {
   let next;
   // unitOfWork.mode :8 ProfileMode:8
   if (enableProfilerTimer && (unitOfWork.mode & ProfileMode) !== NoMode) {
-    // 赋值两个时间，profilerStartTime = now(), fiber.actualStartTime = now() 
+    // 赋值两个时间，profilerStartTime = now(), fiber.actualStartTime = now()
     startProfilerTimer(unitOfWork);
     // 这个next 永远都是返回 儿子节点，深度优先遍历，所以workInProgress.child 此时已经有值了
     next = beginWork(current, unitOfWork, subtreeRenderLanes);
@@ -1771,14 +1772,14 @@ function completeUnitOfWork(unitOfWork: Fiber): void {
         // subtreeRenderLanes:1
         startProfilerTimer(completedWork);
         next = completeWork(current, completedWork, subtreeRenderLanes);
-       
+
         // Update render duration assuming we didn't error.
         stopProfilerTimerIfRunningAndRecordDelta(completedWork, false);
       }
       resetCurrentDebugFiberInDEV();
       // NOTE: next !== null，completeWork找到了 sibling，返回到 workLoopSync，开启 sibling 的 beginWork 工作
       // next !== null 这种情况还是比较少的，看见有SuspenseListComponent相关才会，主要逻辑还是在下面通过 sibling 找
-      // next === null，需要返回到找叔叔，后面会有逻辑分析 
+      // next === null，需要返回到找叔叔，后面会有逻辑分析
       if (next !== null) {
         // Completing this fiber spawned new work. Work on that next.
         workInProgress = next;
@@ -2219,7 +2220,7 @@ function commitRootImpl(root, renderPriorityLevel) {
     // Tell Scheduler to yield at the end of the frame, so the browser has an
     // opportunity to paint.
     // 让 Scheduler 退出，浏览器就可以重新绘制，设置一个空的函数
-    requestPaint(); 
+    requestPaint();
 
     if (enableSchedulerTracing) {
       popInteractions(((prevInteractions: any): Set<Interaction>));
