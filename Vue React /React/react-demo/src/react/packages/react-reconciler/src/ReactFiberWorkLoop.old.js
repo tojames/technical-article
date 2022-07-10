@@ -765,7 +765,7 @@ function ensureRootIsScheduled(root: FiberRoot, currentTime: number) {
   root.callbackPriority = newCallbackPriority;
   // 记录新的更新任务
   root.callbackNode = newCallbackNode;
-  console.log(newCallbackNode,"newCallbackNode");
+  // console.log(newCallbackNode,"newCallbackNode");
   // debugger
 }
 

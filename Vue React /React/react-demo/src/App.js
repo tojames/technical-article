@@ -1,28 +1,18 @@
-import {
-  createRef,
-  version,
-  Component,
-  useState,
-  useEffect,
-  useReducer,
-  useMemo,
-  useLayoutEffect,
-} from "react";
+import { createRef, version, Component, useState, useEffect, useReducer, useMemo, useLayoutEffect } from "react"
 
 export default function App() {
   const handleCount = (e) => {
-    setCount((count) => count + 1);
-  };
+    setCount((count) => count + 1)
+  }
 
-  const [count, setCount] = useState(1);
+  const [count, setCount] = useState(1)
 
   return (
     <div>
       {/* <TestClass></TestClass> */}
       <OriginDemo></OriginDemo>
-      <button onClick={handleCount}> 按钮 </button>
     </div>
-  );
+  )
 }
 
 // class TestClass extends Component {
@@ -41,20 +31,20 @@ export default function App() {
 // }
 
 function OriginDemo() {
-  const [count, setCount] = useState(0);
-  const [flag, setFlag] = useState(false);
+  const [count, setCount] = useState(0)
+  const [flag, setFlag] = useState(false)
 
   useLayoutEffect(() => {
-    console.log("Commit");
-  });
-  console.log("Render");
+    console.log("Commit")
+  })
+  console.log("Render")
 
   function handleClick() {
     setTimeout(() => {
       // React 18 以后，以下也只触发一次重新渲染
-      setCount((c) => c + 1);
-      setFlag((f) => !f);
-    });
+      setCount((c) => c + 1)
+      setFlag((f) => !f)
+    })
   }
 
   return (
@@ -62,21 +52,21 @@ function OriginDemo() {
       <button onClick={handleClick}>Next</button>
       <h1 style={{ color: flag ? "blue" : "black" }}>{count}</h1>
     </div>
-  );
+  )
 }
 
 // class OriginDemo extends Component {
 //   constructor(props) {
-//     super(props);
-//     this.buttonRef = createRef();
+//     super(props)
+//     this.buttonRef = createRef()
 //   }
 //   state = {
 //     count: 0,
-//   };
+//   }
 //   componentDidMount() {
-//     const button = this.buttonRef.current;
-//     setTimeout(() => this.setState({ count: 1 }), 500);
-//     setTimeout(() => button.click(), 600);
+//     const button = this.buttonRef.current
+//     setTimeout(() => this.setState({ count: 1 }), 500)
+//     setTimeout(() => button.click(), 600)
 //     //   A2是常规优先级的更新，A1是button.click()产生高优先级的更新。
 //     //   A后边的数字表示优先级，lane模型中，越小优先级越高，1 > 2。
 //     //   updateQueue：A2 - A1
@@ -95,15 +85,13 @@ function OriginDemo() {
 //   }
 //   handleButtonClick = () => {
 //     this.setState((prevState) => {
-//       return { count: prevState.count + 2 };
-//     });
-//   };
+//       return { count: prevState.count + 2 }
+//     })
+//   }
 //   render() {
 //     return (
 //       <div className={"origin-demo"}>
-//         <p>
-//           不需要点击这个按钮，这个按钮是交给js去模拟点击用的，模拟点击之后产生的是高优先级任务
-//         </p>
+//         <p>不需要点击这个按钮，这个按钮是交给js去模拟点击用的，模拟点击之后产生的是高优先级任务</p>
 //         <button ref={this.buttonRef} onClick={this.handleButtonClick}>
 //           增加2
 //         </button>
@@ -113,6 +101,6 @@ function OriginDemo() {
 //           ))}
 //         </div>
 //       </div>
-//     );
+//     )
 //   }
 // }
