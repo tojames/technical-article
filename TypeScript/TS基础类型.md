@@ -55,7 +55,7 @@ function fn(参数: 类型, 参数: 类型): 类型{
 ```ts
 let color: 'red' | 'blue' | 'black';
 color = 'red' // color 只能在  'red' | 'blue' | 'black'中选择一个。
-
+	
 let num: 1 | 2 | 3 | 4 | 5;
 num = 1 
 ```
