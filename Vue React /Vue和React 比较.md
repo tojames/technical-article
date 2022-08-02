@@ -118,6 +118,14 @@ Vue 中实现跨端，早期有mapVue等，但是这些没人继续迭代下去�
 
 React 中实现跨端，有 Trao、React Native。Trao可以理解为和uniapp类似跨很多端。React Native 专注于Android、IOS，它是和 Flutter比较的。
 
+### 性能
+
+Vue 通过劫持数据、或者代理所有的数据，当数据量大的时候会出现性能问题，Vue2.0 是全部数据进行递归响应式的，Vue3.0 proxy 是有懒响应式，官方也说Vue3.0性能好一些！
+
+React 则不会有这些困扰
+
+
+
 ### 服务端渲染
 
 Vue 实现服务端渲染使用的是 [nuxtjs](https://github.com/enaqx/awesome-react)、React 使用的是 [nextjs](https://www.nextjs.cn/)
