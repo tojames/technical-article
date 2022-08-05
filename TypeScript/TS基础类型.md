@@ -1,6 +1,6 @@
 # TypeScript
 
-> 微软的出品，以`JavaScript`为基础的语言，拓展了`JavaScript`「类型、」。`TypeScript`不能被`JavaScript`解析器直接执行，需要通过 `npm i -g typescript `执行 `tsc fileName -w`  编译成`JavaScript`才能执行。
+> 微软的出品，以`JavaScript`为基础的语言，拓展了`JavaScript`「类型」。`TypeScript`不能被`JavaScript`解析器直接执行，需要通过 `npm i -g typescript `执行 `tsc fileName -w`  编译成`JavaScript`才能执行。
 >
 > `TypeScript`拥有了静态类型，更加严格的语法，更强大的功能。`TypeScript`可以在代码执行前就完成代码的检查，减小了运行时异常的出现的几率。`TypeScript`代码可以编译为任意版本的`JavaScript`代码，可有效解决不同`JavaScript`运行环境的兼容问题。同样的功能，`TypeScript`的代码量要大于`JavaScript`，但由于`TypeScript`的代码结构更加清晰，变量类型更加明确，在后期代码的维护中`TypeScript`却远远胜于`JavaScript`。
 
@@ -24,8 +24,7 @@ let 变量 = true;  === let 变量: Boolean = true;
 
 function fn(参数: 类型, 参数: 类型): 类型{
     ...
-}
-    
+}  
 ```
 
 
@@ -48,7 +47,7 @@ function fn(参数: 类型, 参数: 类型): 类型{
 |  enum   |    enum{A, B}     |       枚举，TS中新增类型       |
 | symbol  |                   |                                |
 
-#### 字面量
+
 
 > 通过字面量可以确定变量的取值范围
 
