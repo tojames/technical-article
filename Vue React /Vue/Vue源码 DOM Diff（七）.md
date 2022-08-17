@@ -299,7 +299,7 @@ function patch(oldVnode, vnode, hydrating, removeOnly) {
 
 ### 更新子节点
 
-> 当 patchVnode 发现当前节点不是那么简单的，还有子节点，那么就需要对比子节点，那么子节点也是节点，那就就会走回去patchVnode 进行对比，直到所有元素递归完就出栈。
+> 当 patchVnode 发现当前节点不是那么简单的，还有子节点，那么就需要对比子节点，那么子节点也是节点，就会走回去patchVnode 进行对比，直到所有元素递归完就出栈。
 
 
 
@@ -310,8 +310,8 @@ function patch(oldVnode, vnode, hydrating, removeOnly) {
 ##### 策略一：
 
 基本的快捷查找方案有4种
-	newVnode中所有未处理的第一个节点「新前」和oldVnode中所有未处理的第一个节点「旧前」
-	newVnode中所有未处理的最后一个节点「新后」和oldVnode中所有未处理的最后一个节点「旧后」
+	newStartVnode中所有未处理的第一个节点「新前」和oldStartVnode中所有未处理的第一个节点「旧前」
+	newEndVnode中所有未处理的最后一个节点「新后」和oldEndVnode中所有未处理的最后一个节点「旧后」
 	新后 和 旧前
 	新前 和 旧后	
 
