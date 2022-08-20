@@ -263,7 +263,7 @@ console.log(a);
 	所以最终经过压缩工具的时候虽然b能够被删除，但是b模块的副作用代码会被保留下来
 ```
 
-### sideEffects作用
+#### sideEffects作用
 
 为了针对各种副作用的处理，`webpack`选择了`sideEffects: false`一种声明式的方式，通过在package.json中声明一个`sideEffects`字段，帮助`webpack`快速识别模块副作用，从而更好的实现代码tree shaking，
 
@@ -350,7 +350,7 @@ app内有如下模块，且使用关系如下图所示
 
 虽然`webpack4`及以上在`webpack2`的基础上添加了`sideEffects`标识来帮助tree shaking，但是受限于js的灵活性与模块的复杂性，还是有很多没有解决的副作用场景，使得最终的tree shaking效果不够完美，所以要想更好的tree shaking效果，我们可以人为的使用一些手段去提高tree shaking的效果
 
-## 配置mainFields优先级
+#### 配置mainFields优先级
 
 ```javascript
 module.exports = {
@@ -362,7 +362,7 @@ module.exports = {
 };
 ```
 
-## 禁止babel转换模块语法
+#### 禁止babel转换模块语法
 
 ```javascript
 // babel.config.js
@@ -377,13 +377,13 @@ module.exports = {
 }
 ```
 
-## 使用自带tree shaking的包
+#### 使用自带tree shaking的包
 
 比如使用`lodash-es`替换`lodash`等
 
 不过并不是所有的npm包都还有tree shaking的优化空间，比如`vue`、`react`等提供的`min`版本已经是最小功能集的版本
 
-## 避免无意义的赋值
+#### 避免无意义的赋值
 
 ```javascript
 import { getVersion } from './used-no-sideEffect';
@@ -393,7 +393,7 @@ const newGetversion = getVersion
 
 从之前的例子可以看到，`webpack`判断模块的`export`是否被使用，只是简单的判断了是否有引用关系，没有进行程序流程分析，所以这就导致了明明可以被摇树的包，最终还保留了下来
 
-## 优化导出方式
+#### 优化导出方式
 
 `webpack`的tree shaking依赖的是模块的`export`，所以下面这样的导出方式,虽然只使用了一个，但最终都会被保留下来
 
@@ -416,7 +416,7 @@ export {
 }
 ```
 
-## npm包配置sideEffects
+#### npm包配置sideEffects
 
 如果npm不是用于`polyfill`，可以大胆的在`package.json`内设置`"sideEffects": false`
 
@@ -467,7 +467,7 @@ export * from './decorator';
 
 ### 
 
-### 已添加sideEffects的npm包
+#### 已添加sideEffects的npm包
 
 - [vue](https://github.com/vuejs/vue/blob/main/package.json#L36)
 - [three.js](https://github.com/mrdoob/three.js/blob/dev/package.json#L21)
@@ -478,7 +478,7 @@ export * from './decorator';
 
 等等还有很多现在使用量非常大的包
 
-## 新项目配置sideEffects
+#### 新项目配置sideEffects
 
 其实对于一个项目的组成，主要由两部分组成，一部分是自己写的代码，一部分是第三方npm包，所以对项目配置`sideEffects`也可以
 
@@ -543,9 +543,13 @@ module.exports = class AddSideEffectsPlugin {
 
 
 
-`sideEffects: false` 标记的作用就是告诉`webpack` 当前项目 or `npm`包内的模块是没有副作用的，就是有副作用，也当成没有副作用处理
+对于一个模块里面`dead_code`，`drop_console`，`drop_debugger`，`unused`，webpack还是比较智能的，它知道这些代码在 `mode：production`，它可以对这些代码打上不要的标记。
 
+因为sideEffects是比较难分析和预测的需要开发者告诉webpack怎么处理
 
+`sideEffects: false` ： 当前项目 or `npm`包内的模块是没有副作用的，就算有副作用，也当成没有副作用处理，当模块没有被父模块使用「已经引入，但没有使用」，则整个模块会被删除。
+
+`sideEffects:true`：默认值，模块的`export`没有一个被父模块使用，只要模块内有副作用，那么模块内所有代码就会被保留。
 
 
 
