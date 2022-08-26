@@ -4,17 +4,7 @@
 
 react 要求原生javascript的能力比较高，写法也比较灵活，但是总有高效和低效之分的写法。
 
-## 组件命名
 
-```
-组件一般采用大驼峰命名规则，比如下面这种。 
-component/pages「视图」。 模块/功能进行目录结构划分
-			└─ User
-			    ├─ Form.jsx「尽量写jsx」
-			    	class Form extends Component {}，好处就是出错时 React Dev工具进行调试非常方便
-			    	如果想避免重名 可以使用这种 class UserForm extends Component {}
-			    └─ List.jsx
-```
 
 ## Context
 
@@ -107,16 +97,6 @@ function C() {
 }
 ```
 
-## 受控组件&非受控组件
-
-> 对于form表单中提交的数据来说的。
->
-> 受控组件：通过表单项的状态的改变收集状态的。类似Vue的双向数据绑定，收集到的状态存起来。
->
-> 非受控组件：当触发事件的时候才获取数据进行提交「先用现取」，就是没有控制表单里面的组件。
->
-> 受控和非受控的区别在于，状态是什么时候获取的，受控是改变就获取，非受控是提交时获取。
-
 
 
 ## Fragment
@@ -198,35 +178,6 @@ pureComponent继承Component， 和Component唯一的区别就是加了个属性
 pureComponentPrototype.isPureReactComponent = true;
 ```
 
-## render props
-
-**如何向组件内部动态传入带内容的结构（标签）？**
-
-> Vue 使用slot
->
-> React  
->
->  1.使用children props 通过组件标签传入结构
->
->  2.使用render props 通过组件标签属性传入结构，而且可以携带数据，一般用render函数属性
-
-**children props**
-
-```
-<A> 
-	<B/>
-</A>
-组件A 使用 this.props.children 即可渲染B组件，问题：但是组件B用不了组件A的数据
-```
-
-**render props**
-
-```
-<A render={data=> <B data ={data}> </B>} ></A>
-A组件：this.props.render 将state数据传入
-B组件：读取A组件传入的数据显示 {this.props.data}
-```
-
 ## 错误边界
 
 > 错误边界(Error boundary):用来捕获后代组件错误，渲染备用页面
@@ -300,7 +251,7 @@ const Home = lazy(()=>{import ('./Home')})
 // 创建高阶组件
 function withMouse (WrappedComponent) {
 // 该组件提供复用的状态逻辑
-	class Mouse extends React . Component {
+	class Mouse extends React.Component {
 		// 鼠标状态
 		state = {
 			x: 0,
@@ -353,3 +304,31 @@ class App extends React.Component (
 displayName 可以设置组件的名字，为了防止组件复用后，组件名字都叫Mouse
 ```
 
+## Render props
+
+**如何向组件内部动态传入带内容的结构（标签）？**
+
+> Vue 使用slot
+>
+> React  
+>
+> 1.使用children props 通过组件标签传入结构
+>
+> 2.使用render props 通过组件标签属性传入结构，而且可以携带数据，一般用render函数属性
+
+**children props**
+
+```
+<A> 
+	<B/>
+</A>
+组件A 使用 this.props.children 即可渲染B组件，问题：但是组件B用不了组件A的数据
+```
+
+**render props**
+
+```
+<A render={data=> <B data ={data}> </B>} ></A>
+A组件：this.props.render 将state数据传入
+B组件：读取A组件传入的数据显示 {this.props.data}
+```
