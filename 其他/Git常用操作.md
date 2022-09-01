@@ -161,8 +161,8 @@ git commit 将暂存区的内容生成一个 commit
 合并commit，有时候是我们主动去merge，但是当 `git pull` 的时候也是会触发 merge的。
 
 ```
-get merge  合并代码
-get merge feature1，
+git merge  合并代码
+git merge feature1，
 	1.当直接合并，没有问题；
 	2.当修改同一个文件触发 git 自动合并成功，这样会有一个新的 commit;
 	3.当修改同一个文件触发 git 自动合并失败，这样需要手动去解决冲突
