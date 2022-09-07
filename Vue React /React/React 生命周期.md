@@ -375,3 +375,14 @@ class LifeCycleContainer extends React.Component {
 }
 ReactDOM.render(<LifeCycleContainer />, document.getElementById("root"));
 ```
+
+
+
+## 错误捕获componentDidCatch
+
+这个生命周期比较特殊，只能在子组件发生错误的时候才会监听到错误信息。
+
+componentDidCatch(error, info)，此生命周期在后代组件抛出错误后被调用。 它接收两个参数∶
+
+- error：抛出的错误。
+- info：带有 componentStack key 的对象，其中包含有关组件引发错误的栈信息
