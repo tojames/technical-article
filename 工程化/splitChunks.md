@@ -51,6 +51,106 @@ module.exports = {
 };
 ```
 
+### splitChunks.chunks
+
+对准备打包的文件提取那些模块作为新的模块，字符串，分别为 async、initial、all
+
+- 默认值`async`：只提取异步加载的模块出来打包到一个文件中。
+  - 异步加载的模块，有很多种实现方式
+    - vue 异步组件：(resolve) => require(['@/components/home'], resolve)
+    
+    - webpack 的 `require.ensure()`：(resolve) => require.ensure([], () => resolve(require('@/components/home')), 'home')
+    
+    - ES6 的 import()：() => import('@/components/home')
+    
+      详细解析参考：https://segmentfault.com/a/1190000038180453
+  
+- `initial`：提取同步加载和异步加载模块，如果xxx在项目中异步加载了，也同步加载了，那么xxx这个模块会被提取两次，分别打包到不同的文件中。
+  
+  - 同步加载的模块：通过 `import xxx`或`require('xxx')`加载的模块。
+  
+- `all`：不管异步加载还是同步加载的模块都提取出来，打包到一个文件中，官方也说，可能最有用「Providing `all` can be particularly powerful, because it means that chunks can be shared even between async and non-async chunks.」。
+
+### splitChunks.minSize
+
+默认值：30000「30kb」
+
+被提取模块在压缩前的大小最小值，单位为字节，，只有超过了30000字节才会被提取。
+
+#### 打包优先级
+
+minSize > maxSize  > maxInitialRequest/maxAsyncRequests
+
+设置 `maxSize` 的值会同时设置 `maxAsyncSize` 和 `maxInitialSize` 的值。
+
+### splitChunks.maxSize
+
+默认值：0，表示不限制大小。
+
+被提取出来模块打包生成的文件大小不能超过maxSize值，如果超过了，要对其进行分割并打包生成新的文件。单位为字节
+
+### splitChunks.minChunks
+
+默认值：1
+
+被提取模块最小被引用次数，引用次数超过或等于minChunks值，才会被提取。
+
+### splitChunks.maxAsyncRequests
+
+默认值：30
+
+最大的按需(异步)加载并行请求数量。
+
+### splitChunks.maxInitialRequests
+
+默认值：30
+
+打包后的入口文件加载时，还能同时加载文件的数量（包括入口文件）
+
+### splitChunks.automaticNameDelimiter
+
+打包生成文件名的分割符，默认为`~`。
+
+### splitChunks.name
+
+打包生成文件的名称，可以设置 boolean、()=>{}，更多的用处应该是在 `splitChunks.cacheGroups.{cacheGroup}.name`。
+
+https://webpack.docschina.org/plugins/split-chunks-plugin/#splitchunksname
+
+### splitChunks.cacheGroups
+
+缓存组可以继承和/或覆盖来自 `splitChunks.*` 的任何选项。但是 `test`、`priority` 和 `reuseExistingChunk` 只能在缓存组级别上进行配置。将它们设置为 `false`以禁用任何默认缓存组。核心重点，**配置提取模块的方案**。里面每一项代表一个提取模块的方案。下面是 `cacheGroups` 每项中特有的选项，其余选项和  `splitChunks.*`  一致，`cacheGroups`  优先级高于 `splitChunks.*`。
+
+使用：splitChunks.cacheGroups.xxxcacheGroup，cacheGroups 包含着多个自定义的cacheGroup。
+
+- `test`：`RegExp`｜ `string`，用来匹配要提取的模块的资源路径或名称。
+
+- `priority`：`number`，方案的优先级，值越大表示提取模块时优先采用此方案。默认值为0，splitChunks.* 的优先级为负数。
+
+- `reuseExistingChunk`：`boolean`，为`true`时，如果当前 chunk 包含已从主 bundle 中拆分出的模块，则它将被重用，而不是生成新的模块。这可能会影响 chunk 的结果文件名。
+
+- `enforce`：`boolean`，为`true`时，忽略`minSize`，`minChunks`，`maxAsyncRequests`和`maxInitialRequests`splitChunks.* 中的选项，始终为此缓存组创建 chunk。
+
+- `filename`：`string` `function (pathData, assetInfo) => string`，自定义输出文件名，不建议在splitChunks.* 这一层设置。
+
+- `type`：`RegExp`｜ `string`，根据文件类型分配到 cacheGroups 处理，比如 `json`
+
+  - ```js
+    module.exports = {
+      //...
+      optimization: {
+        splitChunks: {
+          cacheGroups: {
+            json: {
+              type: 'json',
+            },
+          },
+        },
+      },
+    };
+    ```
+
+    
 
 
 ## 场景
@@ -72,3 +172,6 @@ module.exports = {
 - 对于入口模块，抽离出的公共模块文件不能超出3个（可修改）
   也就是说一个入口文件的最大并行请求默认不得超过3个，原因同上。
 
+
+
+通过 bundle-analysis 分析最后打包的成果
