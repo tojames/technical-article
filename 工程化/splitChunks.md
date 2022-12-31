@@ -6,7 +6,7 @@
 - 重复打包后，文件重复引入，**http请求数需要优化**
 - 文件打包后过大，过小，**过大：文件大小需要优化，过小：http请求数需要优化**
 
-**解决问题：提取公共代码，防止代码被重复打包，拆分过大的 javascript 文件，合并零散的 javascript 文件**
+**解决问题：提取公共代码，防止代码被重复打包，拆分过大的 javascript 文件，合并零散的 javascript 文件**，并且拆分完后合理利用缓存策略是有利于项目的加载速度的。
 
 从工程化角度思考，应该让打包工具去做，比如 Vite、Webpack、Glup、Rollup。
 
@@ -113,13 +113,17 @@ minSize > maxSize  > maxInitialRequest/maxAsyncRequests
 
 ### splitChunks.name
 
+默认值：true，为true时，splitChunks基于chunk和cacheGroups的key自动命名。
+
 打包生成文件的名称，可以设置 boolean、()=>{}，更多的用处应该是在 `splitChunks.cacheGroups.{cacheGroup}.name`。
 
 https://webpack.docschina.org/plugins/split-chunks-plugin/#splitchunksname
 
 ### splitChunks.cacheGroups
 
-缓存组可以继承和/或覆盖来自 `splitChunks.*` 的任何选项。但是 `test`、`priority` 和 `reuseExistingChunk` 只能在缓存组级别上进行配置。将它们设置为 `false`以禁用任何默认缓存组。核心重点，**配置提取模块的方案**。里面每一项代表一个提取模块的方案。下面是 `cacheGroups` 每项中特有的选项，其余选项和  `splitChunks.*`  一致，`cacheGroups`  优先级高于 `splitChunks.*`。
+缓存组可以继承和/或覆盖来自 `splitChunks.*` 的任何选项。但是 `test`、`priority` 和 `reuseExistingChunk` 只能在缓存组级别上进行配置。将它们设置为 `false`以禁用任何默认缓存组。核心重点，**配置提取模块的方案**。里面每一项代表一个提取模块的方案。下面是 `cacheGroups` 每项中特有的选项，其余选项和  `splitChunks.*`  一致，`cacheGroups`  优先级高于 `splitChunks.*`。`cacheGroups` 有两个默认的组，一个是 `vendors`，将所有来自 `node_modules` 目录的模块；一个 `default`，包含了由两个以上的 chunk 所共享的模块。
+
+chunk名字组成，例如 `vendors~app`（默认由 `cacheGroups` 中组的 key + 源chunk名组成）。
 
 使用：splitChunks.cacheGroups.xxxcacheGroup，cacheGroups 包含着多个自定义的cacheGroup。
 
